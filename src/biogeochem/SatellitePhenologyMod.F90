@@ -27,6 +27,8 @@ module SatellitePhenologyMod
   use perf_mod        , only : t_startf, t_stopf
   use spmdMod         , only : masterproc
   use spmdMod         , only : mpicom, comp_id
+  use clm_varpar      , only : nlevcan, fsurfdat_3d !Y.Fan 2017
+  use SurfaceAlbedoType , only : surfalb_type       !Y.Fan 2017
   use mct_mod
   use ncdio_pio   
   !
@@ -55,6 +57,8 @@ module SatellitePhenologyMod
   real(r8), private, allocatable :: msai2t(:,:) ! sai for interpolation (2 months)
   real(r8), private, allocatable :: mhvt2t(:,:) ! top vegetation height for interpolation (2 months)
   real(r8), private, allocatable :: mhvb2t(:,:) ! bottom vegetation height for interpolation(2 months)
+  real(r8), private, allocatable :: mlai2t_z(:,:,:) ! added Y.Fan 2015
+  real(r8), private, allocatable :: msai2t_z(:,:,:) ! added Y.Fan 2015
 
   character(len=*), parameter, private :: sourcefile = &
        __FILE__
@@ -277,6 +281,8 @@ contains
     if(.not.allocated(mlai2t)) then
        allocate (mlai2t(bounds%begp:bounds%endp,2), &
             msai2t(bounds%begp:bounds%endp,2), &
+            mlai2t_z(bounds%begp:bounds%endp,1:nlevcan,2), &  !Y.Fan 2015
+            msai2t_z(bounds%begp:bounds%endp,1:nlevcan,2), &  !Y.Fan
             mhvt2t(bounds%begp:bounds%endp,2), &
             mhvb2t(bounds%begp:bounds%endp,2), stat=ier)
     end if
@@ -289,6 +295,8 @@ contains
     msai2t(bounds%begp : bounds%endp, :) = nan
     mhvt2t(bounds%begp : bounds%endp, :) = nan
     mhvb2t(bounds%begp : bounds%endp, :) = nan
+    mlai2t_z(bounds%begp : bounds%endp, :,:) = nan !Y.Fan 2015
+    msai2t_z(bounds%begp : bounds%endp, :,:) = nan !Y.Fan 2015
 
     if (use_lai_streams) then
        call lai_init(bounds)
@@ -298,7 +306,7 @@ contains
 
   !-----------------------------------------------------------------------
   subroutine SatellitePhenology(bounds, num_nolakep, filter_nolakep, &
-       waterdiagnosticbulk_inst, canopystate_inst)
+       waterdiagnosticbulk_inst, canopystate_inst, surfalb_inst) ! surfalb_inst added by Y.Fan
     !
     ! !DESCRIPTION:
     ! Ecosystem dynamics: phenology, vegetation
@@ -313,8 +321,14 @@ contains
     integer                , intent(in)    :: filter_nolakep(bounds%endp-bounds%begp+1) ! patch filter for non-lake points
     type(waterdiagnosticbulk_type)  , intent(in)    :: waterdiagnosticbulk_inst
     type(canopystate_type) , intent(inout) :: canopystate_inst
+    type(surfalb_type)     , intent(inout) :: surfalb_inst
+    
     !
     ! !LOCAL VARIABLES:
+    ! local pointers to implicit out arguments
+    !real(r8), pointer :: tlai_z(:,:)   !Y.Fan 2015: whether use local pointer or use associate?
+    !real(r8), pointer :: tsai_z(:,:)   !Y.Fan 2015
+
     integer  :: fp,p,c                            ! indices
     real(r8) :: ol                                ! thickness of canopy layer covered by snow (m)
     real(r8) :: fb                                ! fraction of canopy layer covered by snow
@@ -323,6 +337,9 @@ contains
     associate(                                                           &
          frac_sno           => waterdiagnosticbulk_inst%frac_sno_col   ,          & ! Input:  [real(r8) (:) ] fraction of ground covered by snow (0 to 1)       
          snow_depth         => waterdiagnosticbulk_inst%snow_depth_col ,          & ! Input:  [real(r8) (:) ] snow height (m)                                                       
+         tlai_z             => surfalb_inst%tlai_z_patch      ,          & ! Output: [real(r8) (:,:) ] lai per layer, added Y.Fan 2015 
+         tsai_z             => surfalb_inst%tsai_z_patch      ,          & ! Output: [real(r8) (:,:) ] added Y.Fan, check if/not add conditional
+
          tlai               => canopystate_inst%tlai_patch    ,          & ! Output: [real(r8) (:) ] one-sided leaf area index, no burying by snow 
          tsai               => canopystate_inst%tsai_patch    ,          & ! Output: [real(r8) (:) ] one-sided stem area index, no burying by snow
          elai               => canopystate_inst%elai_patch    ,          & ! Output: [real(r8) (:) ] one-sided leaf area index with burying by snow
@@ -364,6 +381,14 @@ contains
          htop(p) = timwt(1)*mhvt2t(p,1) + timwt(2)*mhvt2t(p,2)
          hbot(p) = timwt(1)*mhvb2t(p,1) + timwt(2)*mhvb2t(p,2)
 
+          !add sub-canopy LAI/SAL input from 3D surface data in SP mode (Y.Fan 2015)
+          !mlai2t_z must have the same dimension index as tlai_z: 1:nlevcan
+         if (nlevcan > 1 .and. fsurfdat_3d ) then
+            tlai_z(p,:) = timwt(1)*mlai2t_z(p,:,1) + timwt(2)*mlai2t_z(p,:,2)
+            tsai_z(p,:) = timwt(1)*msai2t_z(p,:,1) + timwt(2)*msai2t_z(p,:,2)
+         end if
+
+
          ! adjust lai and sai for burying by snow. if exposed lai and sai
          ! are less than 0.05, set equal to zero to prevent numerical
          ! problems associated with very small lai and sai.
@@ -385,6 +410,8 @@ contains
          esai(p) = max(tsai(p)*(1.0_r8 - frac_sno(c)) + tsai(p)*fb*frac_sno(c), 0.0_r8)
          if (elai(p) < 0.05_r8) elai(p) = 0._r8
          if (esai(p) < 0.05_r8) esai(p) = 0._r8
+         !decrease the esai threshold to 0.05*0.1? because sai=0.1*lai (Y.Fan 2015)
+         !if (esai(p) < 0.005_r8) esai(p) = 0._r8
 
          ! Fraction of vegetation free of snow
 
@@ -409,6 +436,8 @@ contains
     ! !USES:
     use clm_varctl      , only : fsurdat
     use clm_time_manager, only : get_curr_date, get_step_size, get_nstep
+    use clm_varpar      , only : nlevcan, fsurfdat_3d
+
     !
     ! !ARGUMENTS:
     type(bounds_type), intent(in) :: bounds  
@@ -436,8 +465,20 @@ contains
     it(2) = it(1) + 1
     months(1) = kmo + it(1) - 1
     months(2) = kmo + it(2) - 1
-    if (months(1) <  1) months(1) = 12
-    if (months(2) > 12) months(2) = 1
+    ! if (months(1) <  1) months(1) = 12
+    ! if (months(2) > 12) months(2) = 1
+
+    !for dynamic PFT (LAI is growing), don't interpolate the begining and 
+    !end of year (Y.Fan 2015)
+    if (nlevcan > 1 .and. fsurfdat_3d ) then
+        if (months(1) <  1) months(1) = 1
+        if (months(2) > 12) months(2) = 12
+    else
+        if (months(1) <  1) months(1) = 12
+        if (months(2) > 12) months(2) = 1
+    end if
+
+
     timwt(1) = (it(1)+0.5_r8) - t
     timwt(2) = 1._r8-timwt(1)
 
@@ -463,6 +504,7 @@ contains
     ! !USES:
     use clm_varpar  , only : maxveg, maxsoil_patches
     use pftconMod   , only : noveg
+    use pftconMod   , only : noilpalm, nirrig_oilpalm !(Y.Fan)
     use domainMod   , only : ldomain
     use fileutils   , only : getfil
     use clm_varctl  , only : fsurdat
@@ -540,6 +582,16 @@ contains
                    annlai(k,p) = mlai(g,l)
                 end if
              end do
+             !oil palm lai is not available in global/regional fsurfdat file
+             !for regional simulation use lai/sai from broadleaf evergreen tropical tree
+             !PFT (l=4) or max value of all available pfts !Y.Fan 2017
+             if (mlai2t(p,k)==0._r8 .and. (patch%itype(p) == noilpalm .or. &
+                 patch%itype(p) == nirrig_oilpalm)) then
+                 !l = 4
+                 !annlai(k,p) = mlai(g,l)
+                 annlai(k,p) = maxval(mlai(g,:))
+             end if
+
           else                       !! non-vegetated pft
              annlai(k,p) = 0._r8
           end if
@@ -561,7 +613,11 @@ contains
     ! Read monthly vegetation data for two consec. months.
     !
     ! !USES:
+
     use clm_varpar       , only : maxveg
+    ! use clm_varpar       , only : numpft !changed to maxveg
+    use clm_varpar       , only : nlevcan, fsurfdat_3d !Y.Fan
+    use pftconMod        , only : noilpalm, nirrig_oilpalm !(Y.Fan)
     use pftconMod        , only : noveg
     use fileutils        , only : getfil
     use spmdMod          , only : masterproc, mpicom, MPI_REAL8, MPI_INTEGER
@@ -590,6 +646,8 @@ contains
     logical :: readvar
     real(r8), pointer :: mlai(:,:)        ! lai read from input files
     real(r8), pointer :: msai(:,:)        ! sai read from input files
+    real(r8), pointer :: mlai_z(:,:,:)    ! lai_z read from input files(Y.Fan)
+    real(r8), pointer :: msai_z(:,:,:)    ! sai_z read from input files(Y.Fan)
     real(r8), pointer :: mhgtt(:,:)       ! top vegetation height
     real(r8), pointer :: mhgtb(:,:)       ! bottom vegetation height
     character(len=32) :: subname = 'readMonthlyVegetation'
@@ -602,6 +660,9 @@ contains
          msai(bounds%begg:bounds%endg,0:maxveg), &
          mhgtt(bounds%begg:bounds%endg,0:maxveg), &
          mhgtb(bounds%begg:bounds%endg,0:maxveg), &
+         !add sub-canopy LAI/SAI (Y.Fan 2015)
+         mlai_z(bounds%begg:bounds%endg,0:maxveg,1:nlevcan), &
+         msai_z(bounds%begg:bounds%endg,0:maxveg,1:nlevcan), &
          stat=ier)
     if (ier /= 0) then
        write(iulog,*)subname, 'allocation big error '
@@ -621,6 +682,7 @@ contains
             closelatidx, closelonidx)
     endif
 
+
     do k=1,2   !loop over months and read vegetated data
 
        call ncd_io(ncid=ncid, varname='MONTHLY_LAI', flag='read', data=mlai, dim1name=grlnd, &
@@ -639,6 +701,36 @@ contains
             nt=months(k), readvar=readvar)
        if (.not. readvar) call endrun(msg=' ERROR: MONTHLY_HEIGHT_TOP NOT on fveg file'//errMsg(sourcefile, __LINE__))
 
+       !add 3D data for sub-canopy LAI/SAI for palm in SP mode (Y.Fan 2015)
+       !for 3d array use grlnd as first dimension
+       !if (nlevcan > 1 .and. mxnp > 0 ) then
+       if (nlevcan > 1 .and. fsurfdat_3d ) then
+       !the mxnp>0 condition actually turns on sub-canopy reading mode even for
+       !forest PFT if any PFT has phytomer >0 (mxnp=maxval(phytomer))
+       !be careful with this conditional or add MONTHLY_LAI_Z to all surfdata
+       !currently lai_z is only available for site simulations
+       !for regional simulations, to use multilayer canopy, need to use an oil palm
+       !canopy profile function to estimate lai_z from tlai in SurfaceAlbedoMod
+       !(Y.Fan 2017.03.03)
+
+
+          !add dimension levcan for prescribed LAI_Z/SAI_Z with fsurfdat_3d (Y.Fan 2015)
+          !the check_dim function will return the dimid and dimlen;
+          !important to declare levcan before reading the netcdf file
+          if (nlevcan > 1) then
+             call check_dim(ncid, 'levcan', nlevcan)
+          end if
+
+
+          call ncd_io(ncid=ncid, varname='MONTHLY_LAI_Z', flag='read', data=mlai_z, dim1name=grlnd,  &
+             nt=months(k), readvar=readvar)
+          if (.not. readvar) call endrun( trim(subname)//' ERROR: MONTHLY_LAI_Z NOT on fveg file' )
+          call ncd_io(ncid=ncid, varname='MONTHLY_SAI_Z', flag='read', data=msai_z, dim1name=grlnd,  &
+             nt=months(k), readvar=readvar)
+          if (.not. readvar) call endrun( trim(subname)//' ERROR: MONTHLY_SAI_Z NOT on fveg file' )
+       end if
+
+
        ! Only vegetated patches have nonzero values
        ! Assign lai/sai/hgtt/hgtb to the top [maxsoil_patches] patches
        ! as determined in subroutine surfrd
@@ -650,13 +742,39 @@ contains
                 if (l == patch%itype(p)) then
                    mlai2t(p,k) = mlai(g,l)
                    msai2t(p,k) = msai(g,l)
+                   mlai2t_z(p,:,k) = mlai_z(g,l,:) !Y.Fan 2015
+                   msai2t_z(p,:,k) = msai_z(g,l,:) !Y.Fan 2015
                    mhvt2t(p,k) = mhgtt(g,l)
                    mhvb2t(p,k) = mhgtb(g,l)
                 end if
              end do
+             !could not the above block be simplified as below? !Y.Fan 2017
+!             l = patch%itype(p)
+!             mlai2t(p,k) = mlai(g,l)
+!             msai2t(p,k) = msai(g,l)
+!             mhvt2t(p,k) = mhgtt(g,l)
+!             mhvb2t(p,k) = mhgtb(g,l)
+
+             !perennial crops are often mapped as trees in global lai dataset,
+             !therefore, their lai/sai are usually empty in regional/global fsurdat
+             !for regional simulation use lai/sai from broadleaf evergreen tropical tree PFT (l=4)
+             !or use the max value of all coexisting pfts (Y.Fan 2017)
+             !for site/point simulations, use precribed lai/lai_z in above block
+             if (mlai2t(p,k)==0._r8 .and. (patch%itype(p) == noilpalm .or. &
+                 patch%itype(p) == nirrig_oilpalm)) then
+                !l = 4  ! 4 == nbrdlf_evr_trp_tree
+                !mlai2t(p,k) = mlai(g,l)
+                mlai2t(p,k) = maxval(mlai(g,:))
+                msai2t(p,k) = maxval(msai(g,:))
+                mhvt2t(p,k) = maxval(mhgtt(g,:))
+                mhvb2t(p,k) = maxval(mhgtb(g,:))
+             end if
+
           else                        ! non-vegetated pft
              mlai2t(p,k) = 0._r8
              msai2t(p,k) = 0._r8
+             mlai2t_z(p,:,k) = 0._r8 !Y.Fan 2015
+             msai2t_z(p,:,k) = 0._r8 !Y.Fan 2015
              mhvt2t(p,k) = 0._r8
              mhvb2t(p,k) = 0._r8
           end if

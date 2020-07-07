@@ -14,6 +14,7 @@ module CanopyStateType
   use LandunitType    , only : lun                
   use ColumnType      , only : col                
   use PatchType       , only : patch                
+  use pftconMod       , only : mxnp
   !
   implicit none
   save
@@ -57,6 +58,14 @@ module CanopyStateType
      real(r8) , pointer :: vegwp_patch              (:,:) ! patch vegetation water matric potential (mm)
 
      real(r8)           :: leaf_mr_vcm = spval            ! Scalar constant of leaf respiration with Vcmax
+
+     ! for clm-palm phytomer structure(Y.Fan)
+     integer ,  pointer :: np_patch(:)                   !total number of phytomers having appeared so far
+     integer ,  pointer :: rankp_patch(:,:)              !rank of phytomers from 1=youngest to np=oldest and 0=dead^M
+     integer ,  pointer :: plaipeak_patch(:,:)           ! Flag, 1: max allowed lai per phytomer; 0: not at max
+     real(r8),  pointer :: livep_patch(:,:)              ! Flag, true if this phytomer is alive 
+     real(r8),  pointer :: sla_patch(:,:)                ! specific leaf area (m^2/gC) of each phytomer
+     real(r8),  pointer :: plai_patch(:,:)               ! one-sided leaf area index of each phytomer maturity
 
    contains
 
@@ -145,6 +154,14 @@ contains
 !    allocate(this%gccanopy_patch           (begp:endp))           ; this%gccanopy_patch           (:)   = 0.0_r8     
     allocate(this%vegwp_patch              (begp:endp,1:nvegwcs)) ; this%vegwp_patch              (:,:) = nan
 
+    !for phytomer structure (Y.Fan)
+    allocate(this%np_patch                 (begp:endp))           ; this%np_patch                 (:)   = 0
+    allocate(this%rankp_patch              (begp:endp,1:mxnp))    ; this%rankp_patch              (:,:) = 0
+    allocate(this%plaipeak_patch           (begp:endp,1:mxnp))    ; this%plaipeak_patch           (:,:) = 0
+    allocate(this%livep_patch              (begp:endp,1:mxnp))    ; this%livep_patch              (:,:) = 0._r8
+    allocate(this%plai_patch               (begp:endp,1:mxnp))    ; this%plai_patch               (:,:) = 0._r8
+    allocate(this%sla_patch                (begp:endp,1:mxnp))    ; this%sla_patch                (:,:) = 0._r8    
+
   end subroutine InitAllocate
 
   !-----------------------------------------------------------------------
@@ -195,6 +212,33 @@ contains
     call hist_addfld1d (fname='LAISHA', units='m^2/m^2', &
          avgflag='A', long_name='shaded projected leaf area index', &
          ptr_patch=this%laisha_patch, set_urb=0._r8)
+
+    if ( mxnp .gt. 0 ) then
+!       call hist_addfld1d (fname='HARVEST_COUNTER', units='none', &
+!            avgflag='A', long_name='harvest counter', &
+!            ptr_pft=pepv%harvest_counter, default='inactive')
+!
+!       call hist_addfld2d (fname='PLEAFC', units='gC/m^2', type2d='phytomer', &
+!            avgflag='A', long_name='phytomer leaf C', &
+!            ptr_pft=pcs%pleafc, default='inactive')
+!       call hist_addfld2d (fname='PLEAFC_STORAGE', units='gC/m^2', type2d='phytomer', &
+!            avgflag='A', long_name='phytomer leaf C storage', &
+!            ptr_pft=pcs%pleafc_storage, default='inactive')
+!
+!       call hist_addfld2d (fname='PGRAINC', units='gC/m^2', type2d='phytomer', &
+!            avgflag='A', long_name='phytomer grain C', &
+!            ptr_pft=pcs%pgrainc, default='inactive')
+       this%plai_patch(begp:endp,1:mxnp) = spval
+       call hist_addfld2d (fname='PLAI', units='none', type2d='phytomer', &
+            avgflag='A', long_name='phytomer LAI', &
+            ptr_patch=this%plai_patch, default='inactive')
+       this%livep_patch(begp:endp,1:mxnp) = spval
+       call hist_addfld2d (fname='LIVEP', units='none', type2d='phytomer', &
+            avgflag='A', long_name='phytomer alive or not', &
+            ptr_patch=this%livep_patch, default='inactive')
+
+    end if
+
 
     if (use_cn .or. use_fates) then
        this%fsun_patch(begp:endp) = spval
@@ -509,6 +553,11 @@ contains
        this%htop_patch(p)       = 0._r8
        this%hbot_patch(p)       = 0._r8
        this%vegwp_patch(p,:)    = -2.5e4_r8
+       
+       !init for clm-palm phytomer structure,
+       !maybe not neccessary to initilize 0 ?? (Y.Fan)
+       !this%plai_patch(:,:)     = 0._r8
+       !this%livep_patch(:,:)    = 0._r8
 
        if (lun%itype(l) == istsoil .or. lun%itype(l) == istcrop) then
           this%laisun_patch(p) = 0._r8
@@ -600,6 +649,39 @@ contains
           end if
        end do
     end if
+
+
+!    if (mxnp .gt. 0) then
+!        !np
+!       call restartvar(ncid=ncid, flag=flag,  varname='np', xtype=ncd_int,  &
+!            dim1name='pft', &
+!            long_name='Total number of phytomers having appeared so far', units='', &
+!            interpinic_flag='interp', readvar=readvar, data=this%np_patch)
+!
+!        !rankp
+!       call restartvar(ncid=ncid, flag=flag,  varname='rankp', xtype=ncd_int,  &
+!            dim1name='pft', dim2name='phytomer', &
+!            long_name='Rank of phytomers from 1=youngest to np=oldest and 0=dead', units='', &
+!            interpinic_flag='interp', readvar=readvar, data=this%rankp_patch)
+!
+!    ! plai, used in CanopyFluxesMod at restart
+!       call restartvar(ncid=ncid, flag=flag, varname='plai', xtype=ncd_double,  &
+!            dim1name='pft', dim2name='phytomer', &
+!            long_name='phytomer level LAI for multilayer canopy structure', units='', &
+!            interpinic_flag='interp', readvar=readvar, data=this%plai_patch)
+!        !plaipeak
+!       call restartvar(ncid=ncid, flag=flag,  varname='plaipeak', xtype=ncd_int,  &
+!            dim1name='pft', dim2name='phytomer', &
+!            long_name='Flag, 1: max allowed lai per phytomer; 0: not at max', units='', &
+!            interpinic_flag='interp', readvar=readvar, data=this%plaipeak_patch)
+!
+!        !livep
+!       call restartvar(ncid=ncid, flag=flag,  varname='livep', xtype=ncd_double,  &
+!            dim1name='pft', dim2name='phytomer', &
+!            long_name='Flag, true if this phytomer is alive', units='', &
+!            interpinic_flag='interp', readvar=readvar, data=this%livep_patch)
+! 
+!    end if 
 
     if (use_cn .or. use_fates) then
        call restartvar(ncid=ncid, flag=flag, varname='altmax', xtype=ncd_double,  &

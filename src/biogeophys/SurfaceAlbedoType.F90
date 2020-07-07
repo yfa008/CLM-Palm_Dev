@@ -6,7 +6,7 @@ module SurfaceAlbedoType
   use shr_kind_mod   , only : r8 => shr_kind_r8
   use shr_log_mod    , only : errMsg => shr_log_errMsg
   use decompMod      , only : bounds_type
-  use clm_varpar     , only : numrad, nlevcan, nlevsno
+  use clm_varpar     , only : numrad, nlevcan, nlevsno, angclss
   use abortutils     , only : endrun
   use clm_varctl     , only : use_SSRE
   !
@@ -62,6 +62,17 @@ module SurfaceAlbedoType
      integer  , pointer :: nrad_patch          (:)   ! patch number of canopy layers, above snow for radiative transfer
      real(r8) , pointer :: vcmaxcintsun_patch  (:)   ! patch leaf to canopy scaling coefficient, sunlit leaf vcmax   
      real(r8) , pointer :: vcmaxcintsha_patch  (:)   ! patch leaf to canopy scaling coefficient, shaded leaf vcmax   
+
+   !variables for the multilayer radiative transfer model (Y.Fan 2014)
+     real(r8), pointer :: n_iter_patch         (:,:) !number of iterations done for solving diffuse fluxes with Norman model
+     real(r8), pointer :: balerr_patch         (:,:) !remaining energy balance error after iteration
+     real(r8), pointer :: gfunc_solar_patch    (:,:) !the G function for direct beam
+     real(r8), pointer :: gfunc_sky_patch      (:,:,:) !the G function for diffuse sky radiation
+     real(r8), pointer :: lad_patch            (:,:,:) !leaf angle distribution probability density function
+     real(r8), pointer :: beam_patch           (:,:,:)
+     real(r8), pointer :: up_dif_patch         (:,:,:)
+     real(r8), pointer :: down_dif_patch       (:,:,:)
+
 
    contains
 
@@ -157,6 +168,17 @@ contains
     allocate(this%nrad_patch         (begp:endp))              ; this%nrad_patch         (:)   = 0
     allocate(this%vcmaxcintsun_patch (begp:endp))              ; this%vcmaxcintsun_patch (:)   = nan
     allocate(this%vcmaxcintsha_patch (begp:endp))              ; this%vcmaxcintsha_patch (:)   = nan
+
+!for multilayer radiative transfer (Y.Fan)
+    allocate(this%n_iter_patch       (begp:endp,1:numrad))               ; this%n_iter_patch       (:,:)   = 0._r8
+    allocate(this%balerr_patch       (begp:endp,1:numrad))               ; this%balerr_patch       (:,:)   = 0._r8
+    allocate(this%lad_patch          (begp:endp,1:nlevcan,1:angclss))    ; this%lad_patch          (:,:,:) = nan
+    allocate(this%gfunc_sky_patch    (begp:endp,1:nlevcan,1:angclss))    ; this%gfunc_sky_patch    (:,:,:) = 0._r8
+    allocate(this%gfunc_solar_patch  (begp:endp,1:nlevcan))              ; this%gfunc_solar_patch  (:,:)   = 0._r8
+    allocate(this%beam_patch         (begp:endp,1:numrad,1:(nlevcan+1))) ; this%beam_patch         (:,:,:) = nan
+    allocate(this%up_dif_patch       (begp:endp,1:numrad,1:(nlevcan+1))) ; this%up_dif_patch       (:,:,:) = nan
+    allocate(this%down_dif_patch     (begp:endp,1:numrad,1:(nlevcan+1))) ; this%down_dif_patch     (:,:,:) = nan
+
 
   end subroutine InitAllocate
 

@@ -261,13 +261,27 @@ contains
 
          end if
 
-         if (woody(ivt(p)) == 1) then
+         ! woody condition might also apply for crops, e.g. oil palm is woody crop
+         ! (Y.Fan)
+         ! calculate all the mr terms for crops, although some terms may be zero
+         if (woody(ivt(p)) == 1 .and. ivt(p) >= npcropmin) then
             livestem_mr(p) = livestemn(p)*br*tc
-            livecroot_mr(p) = livecrootn(p)*br_root*tc
+            livecroot_mr(p) = livecrootn(p)*br*tc
+            grain_mr(p) = grainn(p)*br*tc
+         else if (woody(ivt(p)) == 1) then
+            livestem_mr(p) = livestemn(p)*br*tc
+            livecroot_mr(p) = livecrootn(p)*br*tc
          else if (ivt(p) >= npcropmin) then
             livestem_mr(p) = livestemn(p)*br*tc
             grain_mr(p) = grainn(p)*br*tc
          end if
+ !      if (phytomer(ivt(p)) > 0) then !assume all unexpanded leaves have the
+ !      same respiration rate as live stem^M
+ !        livestem_mr(p) = livestem_mr(p) + sum(pleafn_storage(p,:))*br*tc^M
+ !      end if  !other PFTs have not considered leafn_storage respiration yet
+ !      (Y.Fan)
+
+
       end do
 
       ! soil and patch loop for fine root

@@ -37,6 +37,16 @@ module clm_varpar
   integer, public, parameter :: ngases      =   3     ! CH4, O2, & CO2
   integer, public, parameter :: nlevcan     =   1     ! number of leaf layers in canopy layer
   integer, public, parameter :: nvegwcs     =   4     ! number of vegetation water conductance segments
+  !new parameters for clm-palm and multilayered canopy (Y.Fan)
+  logical, public    :: fsurfdat_3d        = .false.   ! whether to read in 3D LAI data for different canopy layers
+  logical, public    :: switch_canopy      = .false.   ! if canopy model (1 layer or multilayer) switched between initial condition and current run
+  integer, public, parameter :: radiative_transfer = 0         ! 0= two-stream; 1 = multilayer radiative transfer (Norman-based) (Y.Fan 2015)
+  integer, public, parameter :: fLAD               = 0         ! leaf angle distribution function: 0= uniform (use xl index); 1 = dynamic (beta distribution)
+  integer, public, parameter :: angclss            = 9         ! number of leaf angle classes used in multilayer radiative transfer (Y.Fan)
+  ! logical, public,   :: Dynamic_nitrogen   = .false.   ! turned on/off dynamic nitrogen scheme (Y.Fan 2015)
+
+
+
   !ED variables
   integer, public, parameter :: numwat      =   5     ! number of water types (soil, ice, 2 lakes, wetland)
   integer, public, parameter :: numrad      =   2     ! number of solar radiation bands: vis, nir

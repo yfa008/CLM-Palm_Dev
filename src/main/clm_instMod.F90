@@ -436,7 +436,9 @@ contains
 
     call bgc_vegetation_inst%InitAccBuffer(bounds)
 
-    if (use_crop) then
+!   if (use_crop) then
+    !to allow bgc=sp (use_cn=FALSE) with perennial crops! (Y.Fan)
+    if (use_crop .and. use_cn) then
        call crop_inst%InitAccBuffer(bounds)
     end if
 

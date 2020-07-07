@@ -899,7 +899,7 @@ contains
        if ((.not. use_cn) .and. (.not. use_fates) .and. (doalb)) then 
           call t_startf('SatellitePhenology')
           call SatellitePhenology(bounds_clump, filter(nc)%num_nolakep, filter(nc)%nolakep, &
-               water_inst%waterdiagnosticbulk_inst, canopystate_inst)
+               water_inst%waterdiagnosticbulk_inst, canopystate_inst, surfalb_inst) ! surfalb_inst added by Y. Fan
           call t_stopf('SatellitePhenology')
        end if
 
@@ -1084,6 +1084,7 @@ contains
                filter_inactive_and_active(nc)%urbanp,           &
                nextsw_cday, declinp1,                           &
                clm_fates,                                       &
+               atm2lnd_inst,                                    & !add for multilayer radiative transfer model (Y.fan)
                aerosol_inst, canopystate_inst, &
                water_inst%waterstatebulk_inst, &
                water_inst%waterdiagnosticbulk_inst, &
@@ -1194,7 +1195,11 @@ contains
             t_a10_patch=temperature_inst%t_a10_patch, &
             t_ref2m_patch=temperature_inst%t_ref2m_patch)
 
-       if (use_crop) then
+!       if (use_crop) then
+       !to allow bgc=sp (use_cn=FALSE) with perennial crops! (Y.Fan)
+       !do the same for crop_inst%InitAccBuffer and crop_inst%initAccVars
+       !here only accumulate GDD only when bgc=cn/bgc, otherwise memory Allocate error
+       if (use_crop .and. use_cn) then 
           call crop_inst%CropUpdateAccVars(bounds_proc, &
                temperature_inst%t_ref2m_patch, temperature_inst%t_soisno_col)
        end if

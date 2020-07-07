@@ -38,6 +38,10 @@ module WaterStateType
      real(r8), pointer :: h2osfc_col             (:)   ! col surface water (mm H2O)
      real(r8), pointer :: snocan_patch           (:)   ! patch canopy snow water (mm H2O)
      real(r8), pointer :: liqcan_patch           (:)   ! patch canopy liquid water (mm H2O)
+     real(r8), pointer :: h2oleaf_patch          (:)   ! patch canopy water on leaf surface (mm H2O) (Y.Fan)
+     real(r8), pointer :: h2ostem_patch          (:)   ! patch canopy water on stem surface (mm H2O)
+     real(r8), pointer :: accum_h2ocan_patch     (:)   ! accumulative canopy water interception(mm H2O) (Y.Fan)
+
 
      real(r8), pointer :: wa_col                 (:)   ! col water in the unconfined aquifer (mm)
 
@@ -130,6 +134,18 @@ contains
     call AllocateVar1d(var = this%liqcan_patch, name = 'liqcan_patch', &
          container = tracer_vars, &
          bounds = bounds, subgrid_level = BOUNDS_SUBGRID_PATCH)
+    call AllocateVar1d(var = this%accum_h2ocan_patch, name = 'accum_h2ocan_patch', &
+         container = tracer_vars, &
+         bounds = bounds, subgrid_level = BOUNDS_SUBGRID_PATCH)
+
+    call AllocateVar1d(var = this%h2oleaf_patch, name = 'h2oleaf_patch', &
+         container = tracer_vars, &
+         bounds = bounds, subgrid_level = BOUNDS_SUBGRID_PATCH)
+
+    call AllocateVar1d(var = this%h2ostem_patch, name = 'h2ostem_patch', &
+         container = tracer_vars, &
+         bounds = bounds, subgrid_level = BOUNDS_SUBGRID_PATCH)
+
     call AllocateVar1d(var = this%h2osfc_col, name = 'h2osfc_col', &
          container = tracer_vars, &
          bounds = bounds, subgrid_level = BOUNDS_SUBGRID_COLUMN)
@@ -142,6 +158,7 @@ contains
     call AllocateVar1d(var = this%dynbal_baseline_ice_col, name = 'dynbal_baseline_ice_col', &
          container = tracer_vars, &
          bounds = bounds, subgrid_level = BOUNDS_SUBGRID_COLUMN)
+
 
   end subroutine InitAllocate
 
@@ -235,6 +252,23 @@ contains
          avgflag='A', &
          long_name=this%info%lname('intercepted liquid water'), &
          ptr_patch=this%liqcan_patch, set_lake=0._r8)
+    this%accum_h2ocan_patch(begp:endp) = spval
+    call hist_addfld1d (fname='ACCUM_H2OCAN', units='mm',  &
+         avgflag='A', long_name='accumulative intercepted water', &
+         ptr_patch=this%accum_h2ocan_patch, set_lake=0._r8)
+
+    this%h2oleaf_patch(begp:endp) = spval
+    call hist_addfld1d (fname='H2OLEAF', units='mm',  &
+         avgflag='A', long_name='intercepted water on leaf surface', &
+         ptr_patch=this%h2oleaf_patch, set_lake=0._r8)
+
+    this%h2ostem_patch(begp:endp) = spval
+    call hist_addfld1d (fname='H2OSTEM', units='mm',  &
+         avgflag='A', long_name='intercepted water on stem surface', &
+         ptr_patch=this%h2ostem_patch, set_lake=0._r8)
+
+
+
 
     call hist_addfld1d ( &
          fname=this%info%fname('H2OSNO'),  &
@@ -321,6 +355,10 @@ contains
     associate(snl => col%snl) 
 
       this%h2osfc_col(bounds%begc:bounds%endc) = 0._r8
+      this%accum_h2ocan_patch(bounds%begp:bounds%endp) = 0._r8
+      this%h2oleaf_patch(bounds%begp:bounds%endp) = 0._r8
+      this%h2ostem_patch(bounds%begp:bounds%endp) = 0._r8
+
       this%snocan_patch(bounds%begp:bounds%endp) = 0._r8
       this%liqcan_patch(bounds%begp:bounds%endp) = 0._r8
 
@@ -574,6 +612,30 @@ contains
          long_name=this%info%lname('canopy snow water'), &
          units='kg/m2', &
          interpinic_flag='interp', readvar=readvar, data=this%snocan_patch)
+         
+    call restartvar(ncid=ncid, flag=flag, &
+         varname=this%info%fname('ACCUM_H2OCAN'), &
+         xtype=ncd_double,  &
+         dim1name='pft', &
+         long_name='accumulative canopy water', &
+         units='kg/m2', &
+         interpinic_flag='interp', readvar=readvar, data=this%accum_h2ocan_patch)
+
+    call restartvar(ncid=ncid, flag=flag, &
+         varname=this%info%fname('H2OLEAF'), &
+         xtype=ncd_double,  &
+         dim1name='pft', &
+         long_name=this%info%lname('canopy water on leaf surface'), &
+         units='kg/m2', &
+         interpinic_flag='interp', readvar=readvar, data=this%h2oleaf_patch)
+
+    call restartvar(ncid=ncid, flag=flag, &
+         varname=this%info%fname('H2OSTEM'), &
+         xtype=ncd_double,  &
+         dim1name='pft', &
+         long_name=this%info%lname('canopy water on stem surface'), &
+         units='kg/m2', &
+         interpinic_flag='interp', readvar=readvar, data=this%h2ostem_patch)
 
     ! NOTE(wjs, 2015-07-01) In old restart files, there was no LIQCAN variable. However,
     ! H2OCAN had similar meaning. So if we can't find LIQCAN, use H2OCAN to initialize

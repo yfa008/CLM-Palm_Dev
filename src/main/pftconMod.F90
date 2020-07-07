@@ -9,6 +9,7 @@ module pftconMod
   use shr_kind_mod, only : r8 => shr_kind_r8
   use abortutils  , only : endrun
   use clm_varpar  , only : mxpft, numrad, ivis, inir, cft_lb, cft_ub
+  use clm_varpar  , only : Dynamic_nitrogen !added by Y.Fan
   use clm_varctl  , only : iulog, use_cndv, use_vertsoilc, use_crop
   !
   ! !PUBLIC TYPES:
@@ -17,7 +18,9 @@ module pftconMod
   !
   ! Vegetation type constants
   !
+<<<<<<< HEAD
   integer, public :: noveg                  ! value for not vegetated 
+  integer, public :: mxnp                   ! max number of phytomer (for palm, Y.Fan)
   integer, public :: ndllf_evr_tmp_tree     ! value for Needleleaf evergreen temperate tree
   integer, public :: ndllf_evr_brl_tree     ! value for Needleleaf evergreen boreal tree
   integer, public :: ndllf_dcd_brl_tree     ! value for Needleleaf deciduous boreal tree
@@ -99,7 +102,6 @@ module pftconMod
   integer, public :: npcropmax              ! value for last prognostic crop in list
   integer, public :: nc3crop                ! value for generic crop (rf)
   integer, public :: nc3irrig               ! value for irrigated generic crop (ir)
-
   ! Number of crop functional types actually used in the model. This includes each CFT for
   ! which is_pft_known_to_model is true. Note that this includes irrigated crops even if
   ! irrigation is turned off in this run: it just excludes crop types that aren't handled
@@ -205,6 +207,44 @@ module pftconMod
      real(r8), allocatable :: pprod10       (:)   ! proportion of deadstem to 10-yr product pool
      real(r8), allocatable :: pprod100      (:)   ! proportion of deadstem to 100-yr product pool
      real(r8), allocatable :: pprodharv10   (:)   ! harvest mortality proportion of deadstem to 10-yr pool
+
+    ! for palm/phytomer structure (Y.Fan)
+  integer , allocatable :: perennial(:)    !flag perennial crops (added by Y.Fan)
+  integer , allocatable :: phytomer(:)     !total number of phytomers in life time, if >0 use phytomer structure (added by Y.Fan)
+  integer , allocatable :: mxlivenp(:)     !max number of alive phytomers
+  real(r8), allocatable :: transplant(:)   !if > 0 triggers transplanting and assign this value to initial seedling C
+  real(r8), allocatable :: phyllochron(:)  !interval between successive phytomer appearance (in heat unit)
+!  real(r8), allocatable :: afact(:)        !inflorescence abortion rate decline factor used in CNAllocation
+!  real(r8), allocatable :: sfact(:)        !inflorescence sex ratio decline factor used in CNAllocation^M
+  real(r8), allocatable :: lfexp(:)        !percent of GDD-maturity needed for leaf expansion (Palm-Phenology)
+  real(r8), allocatable :: lfmat(:)        !percent of GDD-maturity needed for leaf maturity (Palm-Phenology)
+  real(r8), allocatable :: lfsen(:)        !percent of mxgdd needed for leaf senescence (Palm-Phenology)
+  real(r8), allocatable :: mxgdd(:)        !maximum GDD from phytomer initiation to end of leaf senescence (Palm-Phenology)
+  real(r8), allocatable :: arepri(:)       !initial reproductive allocation
+  real(r8), allocatable :: areprf(:)       !final reproductive allocation at summit
+  real(r8), allocatable :: grnmx(:)        !maximum grain C size per phytomer or per PFT (gC/m^2)
+  real(r8), allocatable :: a_par(:)        !parameter a for log-log allometric equation
+  real(r8), allocatable :: b_par(:)        !parameter b for log-log allometric equation^M
+  !for multilayer canopy structure (Y.Fan)
+  real(r8), allocatable :: clumping(:)    !leaf distribution clumping index for multilayer radiative transfer (Y.Fan)
+  real(r8), allocatable :: theta(:)      !maximum range of leaf inclination, between 0 and 90 degree^M
+  !turn on replication for perennial crop pft (Y.Fan)^M
+  real(r8), allocatable :: pftrep(:)       !number of age replication for each pft, replicate pfts planted at different years
+  !for dynmaic nitrogen profile (Y.Fan)
+  real(r8), allocatable :: leafcnr(:)      !the range of deviation from the mean leaf CN ratio (0-1)
+  real(r8), allocatable :: frootcnr(:)     !the range of deviation from the mean fineroot CN ratio (0-1)
+  real(r8), allocatable :: graincnr(:)     !the range of deviation from the mean grain CN ratio (0-1)
+  real(r8), allocatable :: livewdcnr(:)    !the range of deviation from the mean livewood CN ratio (0-1)^M
+  real(r8), allocatable :: kn_up(:)        !empirical constant for adjusting root N uptake potential above the minimal demand^M
+  !allow user prescribed foliage N profile^M
+  real(r8), allocatable :: kn_leaf(:)      !Nitrogen scaling factor to derive foliage N profile per canopy layer^M
+  !water film thickness in canopy interception^M
+  real(r8), allocatable :: dewmxl(:)       !max water film thickness on leaf surfaces (mm)^M
+  real(r8), allocatable :: dewmxs(:)       !max water film thickness on stem surfaces (mm)^M
+  real(r8), allocatable :: fpimx(:)        !max rate of rainfall interception efficiency    
+  real(r8), allocatable :: fwetmx(:)       !=maximum_leaf_wetted_fraction, set as pft-dependent (Y.Fan)
+  !set ball-berry slop as a pft-dependent parameter (Y.Fan 2017)
+  real(r8), allocatable :: mbbpft(:)       !ball-berry slope for stomatal conductance
 
      ! pft paraemeters for fire code
      real(r8), allocatable :: cc_leaf       (:)
@@ -461,6 +501,37 @@ contains
     allocate( this%fun_cn_flex_c (0:mxpft) )
     allocate( this%FUN_fracfixers(0:mxpft) )
     
+    !for palm structure (Y.Fan)
+    allocate( this%perennial(0:mxpft) )
+    allocate( this%phytomer(0:mxpft) )
+    allocate( this%mxlivenp(0:mxpft) )
+    allocate( this%phyllochron(0:mxpft) )
+    allocate( this%transplant(0:mxpft) )
+    allocate( this%lfexp(0:mxpft) )
+    allocate( this%lfmat(0:mxpft) )
+    allocate( this%lfsen(0:mxpft) )
+    allocate( this%mxgdd(0:mxpft) )
+    allocate( this%grnmx(0:mxpft) )
+    allocate( this%a_par(0:mxpft) )
+    allocate( this%b_par(0:mxpft) )
+    allocate( this%arepri(0:mxpft) )
+    allocate( this%areprf(0:mxpft) )
+
+    allocate( this%clumping(0:mxpft) )
+    allocate( this%theta(0:mxpft) )
+    allocate( this%dewmxl(0:mxpft) )
+    allocate( this%dewmxs(0:mxpft) )
+    allocate( this%fpimx(0:mxpft) )
+    allocate( this%fwetmx(0:mxpft) )
+    allocate( this%mbbpft(0:mxpft) )
+
+    allocate( this%leafcnr(0:mxpft) )
+    allocate( this%frootcnr(0:mxpft) )
+    allocate( this%livewdcnr(0:mxpft) )
+    allocate( this%graincnr(0:mxpft) )
+    allocate( this%kn_up(0:mxpft) )
+    allocate( this%kn_leaf(0:mxpft) )
+    allocate( this%pftrep(0:mxpft) )
  
   end subroutine InitAllocate
 
@@ -964,6 +1035,73 @@ contains
     call ncd_io('max_SH_planting_date', this%mxSHplantdate, 'read', ncid, readvar=readv)  
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
+    !for palm/phytomer structure (Y.Fan)
+    call ncd_io('perennial', this%perennial, 'read', ncid, readvar=readv, posNOTonfile=.true.)
+    if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
+    call ncd_io('phytomer', this%phytomer, 'read', ncid, readvar=readv, posNOTonfile=.true.)
+    if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
+    call ncd_io('mxlivenp', this%mxlivenp, 'read', ncid, readvar=readv, posNOTonfile=.true.)
+    if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading in pft data' )
+    call ncd_io('transplant', this%transplant, 'read', ncid, readvar=readv, posNOTonfile=.true.)
+    if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading in pft data' )
+    call ncd_io('phyllochron', this%phyllochron, 'read', ncid, readvar=readv, posNOTonfile=.true.)
+    if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading in pft data' )
+    !for new canopy hydrology parameterization (Y.Fan)^M
+    call ncd_io('mbbpft',this%mbbpft, 'read', ncid, readvar=readv)
+    if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading in pft data' )
+    call ncd_io('fpimx', this%fpimx, 'read', ncid, readvar=readv)
+    if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading in pft data' )
+    call ncd_io('fwetmx', this%fwetmx, 'read', ncid, readvar=readv)
+    if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading in pft data' )
+    call ncd_io('dewmxl', this%dewmxl, 'read', ncid, readvar=readv)
+    if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading in pft data' )
+    call ncd_io('dewmxs', this%dewmxs, 'read', ncid, readvar=readv)
+    if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading in pft data' )
+    call ncd_io('kn_leaf', this%kn_leaf, 'read', ncid, readvar=readv)
+    if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading in pft data' )
+
+    !for multilayer radiative transfer (Y.Fan)
+    call ncd_io('clumping', this%clumping, 'read', ncid, readvar=readv, posNOTonfile=.true.)
+    if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(__FILE__, __LINE__))
+    call ncd_io('theta', this%theta, 'read', ncid, readvar=readv)
+    if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(__FILE__, __LINE__))
+    !turn on age replication for perennial crop pfts (Y.Fan)
+    call ncd_io('pftrep', this%pftrep, 'read', ncid, readvar=readv)
+    if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading in pft data' )
+    !for palm phytomer structure (Y.Fan)
+    call ncd_io('lfexp', this%lfexp, 'read', ncid, readvar=readv)
+    if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(__FILE__, __LINE__))
+    call ncd_io('lfmat', this%lfmat, 'read', ncid, readvar=readv)
+    if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(__FILE__, __LINE__))
+    call ncd_io('lfsen', this%lfsen, 'read', ncid, readvar=readv)
+    if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(__FILE__, __LINE__))
+    call ncd_io('mxgdd', this%mxgdd, 'read', ncid, readvar=readv)
+    if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(__FILE__, __LINE__))
+    call ncd_io('grnmx', this%grnmx, 'read', ncid, readvar=readv)
+    if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(__FILE__, __LINE__))
+    call ncd_io('a_par', this%a_par, 'read', ncid, readvar=readv)
+    if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(__FILE__, __LINE__))
+    call ncd_io('b_par', this%b_par, 'read', ncid, readvar=readv)
+    if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(__FILE__, __LINE__))
+    call ncd_io('arepri', this%arepri, 'read', ncid, readvar=readv)
+    if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(__FILE__, __LINE__))
+    call ncd_io('areprf', this%areprf, 'read', ncid, readvar=readv)
+    if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(__FILE__, __LINE__))
+
+    !for dynamic CN profile (Y.Fan)
+    if (Dynamic_nitrogen) then
+        call ncd_io('kn_up', this%kn_up, 'read', ncid, readvar=readv, posNOTonfile=.true.)
+        if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading in pft data' )
+        call ncd_io('leafcnr', this%leafcnr, 'read', ncid, readvar=readv, posNOTonfile=.true.)
+        if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading in pft data' )
+        call ncd_io('frootcnr', this%frootcnr, 'read', ncid, readvar=readv, posNOTonfile=.true.)
+        if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading in pft data' )
+        call ncd_io('livewdcnr', this%livewdcnr, 'read', ncid, readvar=readv, posNOTonfile=.true.)
+        if ( .not. readv ) call endrun( trim(subname)//' ERROR: error in reading in pft data' )
+        call ncd_io('graincnr', this%graincnr, 'read', ncid, readvar=readv)
+        if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
+    end if
+
     !
     ! Constants
     !
@@ -1101,6 +1239,7 @@ contains
     ntree                = nbrdlf_dcd_brl_tree  ! value for last type of tree
     npcropmin            = ntmp_corn            ! first prognostic crop
     npcropmax            = mxpft                ! last prognostic crop in list
+    mxnp                 = maxval(this%phytomer)     !max number of phytomer (if sub-PFT structure on, Y.Fan 2015)
 
     call this%set_is_pft_known_to_model()
     call this%set_num_cfts_known_to_model()

@@ -27,6 +27,8 @@ module histFileMod
   use EDTypesMod     , only : nfsc, ncwd
   use FatesInterfaceMod , only : maxveg_fates => numpft
   use ncdio_pio 
+  use pftconMod      , only : mxnp  !Y.Fan
+  use clm_varpar     , only : nlevcan, angclss !Y.Fan
 
   !
   implicit none
@@ -2048,6 +2050,17 @@ contains
     ! elevclas (in contrast to glc_nec) includes elevation class 0 (bare land)
     ! (although on the history file it will go 1:(nec+1) rather than 0:nec)
     call ncd_defdim(lnfid, 'elevclas' , maxpatch_glcmec + 1, dimid)
+
+    !Sub-PFT "Phytomer" dimension (Y.Fan 2015)
+    if ( mxnp > 0 ) then
+       call ncd_defdim(lnfid, 'phytomer', mxnp, dimid)
+    end if
+    !Multilayer canopy dimension
+    if (nlevcan > 1) then
+       call ncd_defdim(lnfid, 'levcan' , nlevcan, dimid)
+       call ncd_defdim(lnfid, 'lfang' , angclss, dimid)  !angclss=9 leaf angle classes (Y.Fan 2015)
+    end if
+
 
     do n = 1,num_subs
        call ncd_defdim(lnfid, subs_name(n), subs_dim(n), dimid)
@@ -4764,6 +4777,7 @@ contains
     use clm_varpar      , only : nlevgrnd, nlevsno, nlevlak, numrad, nlevdecomp_full, nlevcan, nvegwcs,nlevsoi
     use clm_varpar      , only : natpft_size, cft_size, maxpatch_glcmec
     use landunit_varcon , only : max_lunit
+    use pftconMod       , only : mxnp
     !
     ! !ARGUMENTS:
     character(len=*), intent(in) :: fname                      ! field name
@@ -4832,6 +4846,16 @@ contains
     ! Determine second dimension size
 
     select case (type2d)
+ !add 2D dimension of phytomer structure and multilayer canopy for CLM-Palm (Y.Fan)
+    case ('phytomer')
+       num2d = mxnp
+    case ('levcan')
+       num2d = nlevcan
+ !currently 9 leaf angle classes are supported in the CLM-Palm multilayer radiative
+ !transfer module (Y.Fan)
+    case ('lfang')
+       num2d = angclss
+
     case ('levgrnd')
        num2d = nlevgrnd
     case ('levsoi')

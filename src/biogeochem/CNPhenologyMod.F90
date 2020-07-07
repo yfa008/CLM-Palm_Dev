@@ -93,9 +93,18 @@ module CNPhenologyMod
   integer              :: jdayyrstart(inSH) ! julian day of start of year
 
   real(r8), private :: initial_seed_at_planting = 3._r8 ! Initial seed at planting
+  logical,  private :: subtract_cropseed = .true.
 
   character(len=*), parameter, private :: sourcefile = &
        __FILE__
+
+  !PalmPhenolgy variables
+  integer            :: mat1                 !the first mature phytomer (oil palm model)
+  integer, parameter :: NOT_Emerged = 9999   ! If leaf not emerged yet
+  real(r8), allocatable :: huilfexp(:)        !hui needed from leaf initiation to leaf expansion for each phytomer
+  real(r8), allocatable :: huilfmat(:)        !hui needed from leaf expansion to leaf maturity for each phytomer
+  real(r8), allocatable :: huilfsen(:)        !hui needed from leaf expansion to leaf senescence for each phytomer
+  real(r8), allocatable :: huilfend(:)        !hui needed from leaf expansion to leaf end of life for each phytomer
   !-----------------------------------------------------------------------
 
 contains
@@ -310,6 +319,11 @@ contains
                waterdiagnosticbulk_inst, temperature_inst, crop_inst, canopystate_inst, cnveg_state_inst, &
                cnveg_carbonstate_inst, cnveg_nitrogenstate_inst, cnveg_carbonflux_inst, cnveg_nitrogenflux_inst, &
                c13_cnveg_carbonstate_inst, c14_cnveg_carbonstate_inst)
+          !PalmPhenology routine has a special filter for palm pfts, no need the phytomer trigger here (Y.Fan)
+          call PalmPhenology(num_pcropp, filter_pcropp, &
+               waterdiagnosticbulk_inst, temperature_inst, crop_inst, canopystate_inst, cnveg_state_inst, &
+               cnveg_carbonstate_inst, cnveg_nitrogenstate_inst, cnveg_carbonflux_inst, cnveg_nitrogenflux_inst)
+          !palm and other perennial evergreen crops use a new perennial flag (Y.Fan)
        end if
     else if ( phase == 2 ) then
        ! the same onset and offset routines are called regardless of
@@ -354,6 +368,7 @@ contains
     use clm_time_manager, only: get_step_size
     use clm_varctl      , only: use_crop
     use clm_varcon      , only: secspday
+    use pftvarcon       , only: mxnp  ! max number of phytomers for oil palm
     !
     ! !ARGUMENTS:
     type(bounds_type), intent(in) :: bounds  
@@ -408,6 +423,18 @@ contains
 
     if ( use_crop ) call CropPhenologyInit(bounds)
 
+    !Initialize private variables for PalmPhenology (Y.Fan)
+    if ( mxnp > 0 )then
+       allocate(huilfexp(bounds%begp:bounds%endp))
+       allocate(huilfmat(bounds%begp:bounds%endp))
+       allocate(huilfsen(bounds%begp:bounds%endp))
+       allocate(huilfend(bounds%begp:bounds%endp))
+       huilfexp(bounds%begp:bounds%endp) = nan
+       huilfmat(bounds%begp:bounds%endp) = nan
+       huilfsen(bounds%begp:bounds%endp) = nan
+       huilfend(bounds%begp:bounds%endp) = nan
+    end if
+
   end subroutine CNPhenologyInit
 
   !-----------------------------------------------------------------------
@@ -420,6 +447,7 @@ contains
     ! !USES:
     use clm_time_manager , only : get_days_per_year
     use clm_time_manager , only : get_curr_date, is_first_step
+    use clm_varctl      , only: use_crop
     !
     ! !ARGUMENTS:
     integer                , intent(in)    :: num_soilp       ! number of soil patches in filter
@@ -452,6 +480,8 @@ contains
          gdd020         => temperature_inst%gdd020_patch  ,   & ! Output: [real(r8) (:) ]  20-yr mean of gdd0 (ddays)                        
          gdd820         => temperature_inst%gdd820_patch  ,   & ! Output: [real(r8) (:) ]  20-yr mean of gdd8 (ddays)                        
          gdd1020        => temperature_inst%gdd1020_patch ,   & ! Output: [real(r8) (:) ]  20-yr mean of gdd10 (ddays)                       
+         gdd15          => temperature_inst%gdd15         ,   & ! Output: [real(r8) (:) ]  growing deg. days base 15 deg C (ddays) (Y.Fan)
+         gdd1520        => temperature_inst%gdd1520       ,   & ! Output: [real(r8) (:) ]  20-yr mean of gdd15 (ddays)  (added by Y.Fan)
          
          tempavg_t2m    => cnveg_state_inst%tempavg_t2m_patch & ! Output: [real(r8) (:) ]  temp. avg 2m air temperature (K)                  
          )
@@ -471,28 +501,37 @@ contains
       !
       ! The following lines come from ibis's climate.f + stats.f
       ! gdd SUMMATIONS ARE RELATIVE TO THE PLANTING DATE (see subr. updateAccFlds)
+      !!not true: GDD0/GDD8/GDD10 are tracked from April to Sep NH every year. only gddplant and gddtsoi are relatvie to planting date (Y.Fan 2015)
 
+      !if ( use_crop )then ! use this switch so that crop functions can turn on for all pfts, useful for crop experiments (Y.Fan)
+      !the num_pcropp filter only counts active crop pfts that have grid weight > 0
       if (num_pcropp > 0) then
          ! get time-related info
          call get_curr_date(kyr, kmo, kda, mcsec)
       end if
 
+!num_soilp filter includes both natural pfts and crops that are active in the column, for testing shrub for crop (Y.Fan 2016)
+!      do fp = 1,num_soilp   
+!         p = filter_soilp(fp)
       do fp = 1,num_pcropp
          p = filter_pcropp(fp)
          if (kmo == 1 .and. kda == 1 .and. nyrs_crop_active(p) == 0) then ! YR 1:
             gdd020(p)  = 0._r8                             ! set gdd..20 variables to 0
             gdd820(p)  = 0._r8                             ! and crops will not be planted
             gdd1020(p) = 0._r8
+            gdd1520(p) = 0._r8
          end if
          if (kmo == 1 .and. kda == 1 .and. mcsec == 0) then        ! <-- END of EVERY YR:
             if (nyrs_crop_active(p) == 1) then                     ! <-- END of YR 1
                gdd020(p)  = gdd0(p)                                ! <-- END of YR 1
                gdd820(p)  = gdd8(p)                                ! <-- END of YR 1
                gdd1020(p) = gdd10(p)                               ! <-- END of YR 1
+               gdd1520(p) = gdd15(p)                               ! <-- END of YR 1
             end if                                                 ! <-- END of YR 1
             gdd020(p)  = (yravgm1* gdd020(p)  + gdd0(p))  / yravg  ! gdd..20 must be long term avgs
             gdd820(p)  = (yravgm1* gdd820(p)  + gdd8(p))  / yravg  ! so ignore results for yrs 1 & 2
-            gdd1020(p) = (yravgm1* gdd1020(p) + gdd10(p)) / yravg 
+            gdd1020(p) = (yravgm1* gdd1020(p) + gdd10(p)) / yravg
+            gdd1520(p) = (yravgm1* gdd1520(p) + gdd15(p)) / yravg  !GDD base 15 degree for tropical crops (Y.Fan)
          end if
       end do
 
@@ -1420,9 +1459,625 @@ contains
   end subroutine CNStressDecidPhenology
 
   !-----------------------------------------------------------------------
+  subroutine PalmPhenology(num_pcropp, filter_pcropp                     , &
+       waterstate_inst, temperature_inst, crop_inst, canopystate_inst, cnveg_state_inst , &
+       cnveg_carbonstate_inst, cnveg_nitrogenstate_inst, cnveg_carbonflux_inst, cnveg_nitrogenflux_inst)
+
+    ! !DESCRIPTION:
+    ! !New code specifically for the phenology of palms which have a sub-canopy phytomer structure
+    ! !Developed by Y. Fan (CLM-Palm, Y.Fan et al. (2015), doi:10.5194/gmd-8-3785-2015)
+
+    ! !USES:
+    use clm_time_manager , only : get_curr_date, get_curr_calday, get_days_per_year, get_rad_step_size
+    use pftvarcon        , only : noilpalm, nirrig_oilpalm,              &
+                                  gddmin, lfemerg, mxgdd, minplanttemp, planttemp, &
+                                  lfmat, lfsen, lfexp, grnfill, grnmat, mxmat, &
+                                  phyllochron, mxlivenp, laimx, mxnp, transplant
+    use clm_varctl       , only : nlevcan ! N canopy layers: nlevcan =1 sun/shade big leaf; nlevcan >1 multilayer canopy
+    use clm_varcon       , only : spval, secspday
+    use clm_varctl       , only : use_fertilizer
+    !
+    ! !ARGUMENTS:
+    integer                        , intent(in)    :: num_pcropp       ! number of prog crop patches in filter
+    integer                        , intent(in)    :: filter_pcropp(:) ! filter for prognostic crop patches
+    type(waterstate_type)          , intent(in)    :: waterstate_inst
+    type(temperature_type)         , intent(in)    :: temperature_inst
+    type(crop_type)                , intent(inout) :: crop_inst
+    type(canopystate_type)         , intent(in)    :: canopystate_inst
+    type(cnveg_state_type)         , intent(inout) :: cnveg_state_inst
+    type(cnveg_carbonstate_type)   , intent(inout) :: cnveg_carbonstate_inst
+    type(cnveg_nitrogenstate_type) , intent(inout) :: cnveg_nitrogenstate_inst
+    type(cnveg_carbonflux_type)    , intent(inout) :: cnveg_carbonflux_inst
+    type(cnveg_nitrogenflux_type)  , intent(inout) :: cnveg_nitrogenflux_inst
+    !
+    ! LOCAL VARAIBLES:
+    integer kyr       ! current year
+    integer kmo       ! month of year  (1, ..., 12)
+    integer kda       ! day of month   (1, ..., 31)
+    integer mcsec     ! seconds of day (0, ..., seconds/day)
+    integer jday      ! julian day of the year
+    integer fp,p      ! patch indices
+    integer c         ! column indices
+    integer g         ! gridcell indices
+    integer h         ! hemisphere indices
+    integer idpp      ! number of days past planting
+    real(r8) :: dtrad ! radiation time step delta t (seconds)
+    real(r8) dayspyr  ! days per year
+    real(r8) crmcorn  ! comparitive relative maturity for corn
+    real(r8) ndays_on ! number of days to fertilize
+    integer n,m,i     ! phytomer indices
+    integer nyrs      ! number of years prognostic crop has run
+    real(r8) dayspyr  ! days per year
+    integer phyllday  ! average days per phyllochron
+    integer buddays   ! days for leaf storage (bud) growth period
+    real(r8) gddperday ! average GDD per day (base 15 degree)
+    integer np0, np1, np2 !temporary phytomer number
+    integer update_rank(1:mxnp) !phytomer rank update
+
+    !------------------------------------------------------------------------
+
+    associate(                                                                   &
+         ivt               =>    patch%itype                                     , & ! Input:  [integer  (:) ]  patch vegetation type
+         phytomer          =>    pftcon%phytomer                             , & ! Input:  [integer (:)]   total number of phytomers in life time (if >0 use phytomer phenology)
+         perennial         =>    pftcon%perennial                            , & ! Input:  [integer (:)]  binary flag for perennial crop phenology (1=perennial, 0=not perennial) (added by Y.Fan)
+         livewdcn          =>    pftcon%livewdcn                             , & ! Input:  [real(r8) (:)] live wood C:N (gC/gN)
+         slatop            =>    pftcon%slatop                               , & ! Input:  [real(r8) (:)] specific leaf area at top of canopy, projected area basis [m^2/gC]
+         leaf_long         =>    pftcon%leaf_long                              , & ! Input:  leaf longevity (yrs)
+         leafcn            =>    pftcon%leafcn                                 , & ! Input:  leaf C:N (gC/gN)
+         manunitro         =>    pftcon%manunitro                              , & ! Input:  max manure to be applied in total (kgN/m2)
+         mxmat             =>    pftcon%mxmat                                  , & ! Input:
+         minplanttemp      =>    pftcon%minplanttemp                           , & ! Input:
+         planttemp         =>    pftcon%planttemp                              , & ! Input:
+         gddmin            =>    pftcon%gddmin                                 , & ! Input:
+         hybgdd            =>    pftcon%hybgdd                                 , & ! Input:
+         lfemerg           =>    pftcon%lfemerg                                , & ! Input:
+         grnfill           =>    pftcon%grnfill                               , & ! Input:
+
+         t_ref2m_min       =>    temperature_inst%t_ref2m_min_patch            , & ! Input:  [real(r8) (:) ]  daily minimum of average 2 m height surface air temperature (K)
+         t10               =>    temperature_inst%t_a10_patch                  , & ! Input:  [real(r8) (:) ]  10-day running mean of the 2 m temperature (K)
+         a5tmin            =>    temperature_inst%t_a5min_patch                , & ! Input:  [real(r8) (:) ]  5-day running mean of min 2-m temperature
+         a10tmin           =>    temperature_inst%t_a10min_patch               , & ! Input:  [real(r8) (:) ]  10-day running mean of min 2-m temperature
+         gdd020            =>    temperature_inst%gdd020_patch                 , & ! Input:  [real(r8) (:) ]  20 yr mean of gdd0
+         gdd820            =>    temperature_inst%gdd820_patch                 , & ! Input:  [real(r8) (:) ]  20 yr mean of gdd8
+         gdd1020           =>    temperature_inst%gdd1020_patch                , & ! Input:  [real(r8) (:) ]  20 yr mean of gdd10
+         gdd1520           =>    temperature_inst%gdd1520                      , & ! Input:  [real(r8) (:)]  20 yr mean of gdd15
+         gdd15             =>    temperature_inst%gdd15                        , & ! Input:  [real(r8) (:)]  growing deg. days base 15 deg C (ddays) (Y.Fan)
+
+         idop              =>    crop_inst%idop                                    , & ! Output: [integer (:)]  date of planting
+         idpp              =>    crop_inst%idpp                                    , & ! Output: [integer (:)]  days past planting
+         yrop              =>    crop_inst%yrop                                    , & ! Output: [integer (:)]  year of planting (added Y.Fan)
+         lfoutday          =>    crop_inst%lfoutday                                , & ! Output: [integer (:,:)]  date of leaf/phytomer emergence (Y.Fan)
+         lfoutyr           =>    crop_inst%lfoutyr                                 , & ! Output: [integer (:,:)]  year of leaf/phytomer emergence (Y.Fan)
+         lfdays            =>    crop_inst%lfdays                                  , & ! Output: [integer (:,:)]  days past leaf emergence for each phytomer (Y.Fan)
+      !  harvyr            =>    crop_inst%harvyr                                  , & ! Output: [integer (:)]  harvest year (added Y.Fan)
+         harvdate          =>    crop_inst%harvdate                                , & ! Output: [integer (:)]  harvest date
+         huileafnp         =>    crop_inst%huileafnp                               , & ! Output: [real(r8) (:,:)]  hui needed for initiation of successive phytomers
+         huilfexpnp        =>    crop_inst%huilfexpnp                              , & ! Output: [real(r8) (:,:)]  hui needed for leaf expansion of successive phytomers
+         huilfmatnp        =>    crop_inst%huilfmatnp                              , & ! Output: [real(r8) (:,:)]  hui needed for leaf maturity of successive phytomers^M
+         huilfsennp        =>    crop_inst%huilfsennp                              , & ! Output: [real(r8) (:,:)]  hui needed for leaf senescence of successive phytomers^M
+         huilfendnp        =>    crop_inst%huilfendnp                              , & ! Output: [real(r8) (:,:)]  hui needed for end of life of successive phytomers
+         huigrnnp          =>    crop_inst%huigrnnp                                , & ! Output: [real(r8) (:,:)]  hui needed for starting grainfill of successive phytomers
+         grnmatnp          =>    crop_inst%grnmatnp                                , & ! Output: [real(r8) (:,:)]  hui needed for grain maturity of successive phytomers
+         np                =>    crop_inst%np                                      , & ! Output: [integer (:)]   total number of phytomers having appeared so far
+         phyllochron2      =>    crop_inst%phyllochron2                            , & ! Output: [real(r8) (:)]  extended phyllochron through maturity
+         rankp             =>    crop_inst%rankp                                   , & ! Output: [integer (:,:)]  rank of phytomers from 1=youngest to np=oldest and 0=dead
+         livep             =>    crop_inst%livep                                   , & ! Output: [real(r8) (:,:)]  Flag, true if this phytomer is alive
+ 
+         fertnitro         =>    crop_inst%fertnitro_patch                     , & ! Input:  [real(r8) (:) ]  fertilizer nitrogen
+         hui               =>    crop_inst%gddplant_patch                      , & ! Input:  [real(r8) (:) ]  gdd since planting (gddplant)
+         leafout           =>    crop_inst%gddtsoi_patch                       , & ! Input:  [real(r8) (:) ]  gdd from top soil layer temperature
+         harvdate          =>    crop_inst%harvdate_patch                      , & ! Output: [integer  (:) ]  harvest date
+         croplive          =>    crop_inst%croplive_patch                      , & ! Output: [logical  (:) ]  Flag, true if planted, not harvested
+         cropplant         =>    crop_inst%cropplant_patch                     , & ! Output: [logical  (:) ]  Flag, true if crop may be planted
+         vf                =>    crop_inst%vf_patch                            , & ! Output: [real(r8) (:) ]  vernalization factor
+         peaklai           =>    cnveg_state_inst%peaklai_patch                , & ! Output: [integer  (:) ] 1: max allowed lai; 0: not at max
+         tlai              =>    canopystate_inst%tlai_patch                   , & ! Input:  [real(r8) (:) ]  one-sided leaf area index, no burying by snow
+
+         idop              =>    cnveg_state_inst%idop_patch                   , & ! Output: [integer  (:) ]  date of planting
+         gddmaturity       =>    cnveg_state_inst%gddmaturity_patch            , & ! Output: [real(r8) (:) ]  gdd needed to harvest
+         huileaf           =>    cnveg_state_inst%huileaf_patch                , & ! Output: [real(r8) (:) ]  heat unit index needed from planting to leaf emergence
+         huigrain          =>    cnveg_state_inst%huigrain_patch               , & ! Output: [real(r8) (:) ]  same to reach vegetative maturity
+         cumvd             =>    cnveg_state_inst%cumvd_patch                  , & ! Output: [real(r8) (:) ]  cumulative vernalization d?ependence?
+         hdidx             =>    cnveg_state_inst%hdidx_patch                  , & ! Output: [real(r8) (:) ]  cold hardening index?
+         bglfr             =>    cnveg_state_inst%bglfr_patch                  , & ! Output: [real(r8) (:) ]  background litterfall rate (1/s)
+         bgtr              =>    cnveg_state_inst%bgtr_patch                   , & ! Output: [real(r8) (:) ]  background transfer growth rate (1/s)
+         lgsf              =>    cnveg_state_inst%lgsf_patch                   , & ! Output: [real(r8) (:) ]  long growing season factor [0-1]
+         onset_flag        =>    cnveg_state_inst%onset_flag_patch             , & ! Output: [real(r8) (:) ]  onset flag
+         offset_flag       =>    cnveg_state_inst%offset_flag_patch            , & ! Output: [real(r8) (:) ]  offset flag
+         onset_counter     =>    cnveg_state_inst%onset_counter_patch          , & ! Output: [real(r8) (:) ]  onset counter
+         offset_counter    =>    cnveg_state_inst%offset_counter_patch         , & ! Output: [real(r8) (:) ]  offset counter
+
+         leafc_xfer        =>    cnveg_carbonstate_inst%leafc_xfer_patch       , & ! Output: [real(r8) (:) ]  (gC/m2)   leaf C transfer
+
+         crop_seedc_to_leaf =>   cnveg_carbonflux_inst%crop_seedc_to_leaf_patch, & ! Output: [real(r8) (:) ]  (gC/m2/s) seed source to leaf
+
+         fert_counter      =>    cnveg_nitrogenflux_inst%fert_counter_patch    , & ! Output: [real(r8) (:) ]  >0 fertilize; <=0 not (seconds)
+         leafn_xfer        =>    cnveg_nitrogenstate_inst%leafn_xfer_patch     , & ! Output: [real(r8) (:) ]  (gN/m2)   leaf N transfer
+         crop_seedn_to_leaf =>   cnveg_nitrogenflux_inst%crop_seedn_to_leaf_patch, & ! Output: [real(r8) (:) ]  (gN/m2/s) seed source to leaf
+         cphase            =>    crop_inst%cphase_patch                        , & ! Output: [real(r8) (:)]   phenology phase
+         fert              =>    cnveg_nitrogenflux_inst%fert_patch            , & ! Output: [real(r8) (:) ]  (gN/m2/s) fertilizer applied each timestep
+         bglfr_p                 =>    cnveg_state_inst%bglfr_p                                , & ! Output: [real(r8) (:,:)]  background litterfall rate for each phytomer (Y.Fan)
+         bgtr_p                  =>    cnveg_state_inst%bgtr_p                                 , & ! Output: [real(r8) (:,:)]  background transfer rate for each phytomer (Y.Fan)
+         harvest_flag            =>    cnveg_state_inst%harvest_flag                           , & ! Output: [real(r8) (:)]  harvest flag (added by Y.Fan)
+         harvest_counter         =>    cnveg_state_inst%harvest_counter                        , & ! Output: [real(r8) (:)]  harvest counter to tag phytomer
+         prune                   =>    cnveg_state_inst%prune                                  , & ! Output: [real(r8) (:)]  leaf pruning flag
+         pleafc                  =>    cnveg_carbonstate_inst%pleafc                           , & ! InOut:  [real(r8) (:,:)]  (gC/m2) phytomer leaf C
+         pgrainc                 =>    cnveg_carbonstate_inst%pgrainc                          , & ! Input:  [real(r8) (:,:)] (gC/m2) grain C on each phytomer
+         livestemc_xfer          =>    cnveg_carbonstate_inst%livestemc_xfer                   , & ! Output:  [real(r8) (:)] (gC/m2) live stem C transfer
+         pleafc_storage          =>    cnveg_carbonstate_inst%pleafc_storage                   , & ! Input:  [real(r8) (:,:)]  (gC/m2) phytomer leaf C transfer
+         pleafc_storage_to_xfer  =>    cnveg_carbonflux_inst%pleafc_storage_to_xfer            , & ! InOut:  [real(r8) (:,:)]^M
+         leafc_storage_to_xfer   =>    cnveg_carbonflux_inst%leafc_storage_to_xfer             , & ! InOut:  [real(r8) (:)]
+         pleafc_xfer             =>    cnveg_carbonstate_inst%pleafc_xfer                      , & ! Output: [real(r8) (:,:)]  (gC/m2) phytomer leaf C transfer
+         pleafn_xfer             =>    cnveg_nitrogenstate_inst%pleafn_xfer                    , & ! Output: [real(r8) (:,:)]  (gN/m2) phytomer leaf N transfer
+         livestemn_xfer          =>    cnveg_nitrogenstate_inst%livestemn_xfer                 , & ! Output: [real(r8) (:)]  (gN/m2) live stem N transfer
+         pleafn_storage          =>    cnveg_nitrogenstate_inst%pleafn_storage                 , & ! Input:  [real(r8) (:,:)]  (gN/m2) phytomer leaf N transfer
+         pleafn_storage_to_xfer  =>    cnveg_nitrogenflux_inst%pleafn_storage_to_xfer          , & ! InOut:  [real(r8) (:,:)]^M
+         leafn_storage_to_xfer   =>    cnveg_nitrogenflux_inst%leafn_storage_to_xfer           , & ! InOut:  [real(r8) (:)]
+         crop_seedc_to_livestem   =>   cnveg_carbonflux_inst%crop_seedc_to_livestem_patch      , & ! Output: [real(r8) (:)]  (gC/m2/s) CN dynamic landcover fluxes: seed source to PFT-level; initialized as 0
+         crop_seedn_to_livestem   =>   cnveg_nitrogenflux_inst%crop_seedn_to_livestem_patch    & ! Output: [real(r8) (:)]  (gN/m2/s) seed source to PFT-level
+   )
+
+
+   ! get time info
+   dayspyr = get_days_per_year()
+   jday    = get_curr_calday()
+   call get_curr_date(kyr, kmo, kda, mcsec)
+   nyrs = CropRestYear()
+   dtrad   = real( get_rad_step_size(), r8 )
+  
+   if (use_fertilizer) then
+    ndays_on = 20._r8 ! number of days to fertilize
+   else
+    ndays_on = 0._r8 ! number of days to fertilize
+   end if
+  
+   do fp = 1, num_pcropp
+      p = filter_pcropp(fp)
+      c = patch%column(p)
+      g = patch%gridcell(p)
+      h = inhemi(p)
+  
+      if ( phytomer(ivt(p)) > 0) then
+  
+         ! background litterfall and transfer rates
+         bglfr(p) = 0._r8 ! this value changes later in a crop's life cycle
+         bgtr(p)  = 0._r8
+  
+         ! in order to allow a crop to be planted only once each year
+         ! initialize cropplant = .false., but hold it = .true. through the end of the year
+         if ( jday == jdayyrstart(h) .and. mcsec == 0 )then
+             if (.not. croplive(p))  then
+                cropplant(p) = .false.
+                idop(p)      = NOT_Planted
+             end if
+         end if
+  
+         ! Phase 1: Planting to leaf emergence
+  
+         if ( (.not. croplive(p)) .and. (.not. cropplant(p)) ) then
+  
+             if ((t10(p) /= spval .and. a10tmin(p) /= spval .and. &
+                 t10(p)     > planttemp(ivt(p))             .and. &
+                 a10tmin(p) > minplanttemp(ivt(p))          .and. &
+                 jday       >= minplantjday(ivt(p),h)       .and. &
+                 jday       <= maxplantjday(ivt(p),h)       .and. &
+                 gdd15(p) /= spval .and. gdd15(p) >= gddmin(ivt(p))) &
+                 .or.  &
+                (jday == maxplantjday(ivt(p),h) .and. &
+                gdd15(p) /= spval .and. gdd15(p) > 0._r8 )    ) then
+                !impose limit on growing season length and gddmin needed or hit the max planting julian day -- go ahead and plant
+                !gdd1520(p) is used for long-term crop spinup, use current year gdd15 for this study
+  
+                croplive(p)  = .true.
+                cropplant(p) = .true.
+                idop(p)      = jday
+                yrop(p)      = kyr
+                harvdate(p)  = NOT_Harvested
+  
+                ! At planting, each crop is assigned 1g leaf C/m2 to be transferred to the leaves upon leaf emergence.
+                ! Similar as evergreen PFTs which are initialized with leafc = 1 gC/m2
+                ! It could be set as a higher value for crops transplanted from nursery (Y.Fan)
+                ! oil palm transplanted when seedlings between 10 and 20 months (1m tall) after the germinated seed stage.
+                if (transplant(ivt(p)) > 0._r8) then
+                    leafc_xfer(p)     = transplant(ivt(p))/slatop(ivt(p))
+                else
+                    leafc_xfer(p) = 1._r8
+                end if
+                leafn_xfer(p) = leafc_xfer(p) / leafcn(ivt(p)) ! An equivalent amount of seed leaf N is assigned with onset
+                crop_seedc_to_leaf(c) = crop_seedc_to_leaf(c) + leafc_xfer(p)/dt !(gC/m2/s) transfer from seed source to PFT-level
+                crop_seedn_to_leaf(c) = crop_seedn_to_leaf(c) + leafn_xfer(p)/dt
+                !for woody crops like palm, assign 10% seeding C for livestem at transplanting
+                if (pftcon%woody(ivt(p)) == 1._r8) then 
+                   livestemc_xfer(p) = 0.1_r8 * leafc_xfer(p)
+                   livestemn_xfer(p) = livestemc_xfer(p) / livewdcn(ivt(p))
+                   crop_seedc_to_livestem(c) = crop_seedc_to_livestem(c) + livestemc_xfer(p)/dt
+                   crop_seedn_to_livestem(c) = crop_seedn_to_livestem(c) + livestemn_xfer(p)/dt
+                end if
+  
+             end if
+  
+             onset_counter(p) = 0._r8 !onset_counter initialized to zero when .not. croplive
+             offset_counter(p) = 0._r8 !offset_counter initialized to zero when .not. croplive
+             harvest_counter(p) = 0._r8
+             lfoutday(p,:) = NOT_Emerged ! all phytomers initialized to NOT_Emerged when .not. croplive
+             lfoutyr(p,:) = NOT_Emerged
+             lfdays(p,:) = 0
+             livep(p,:) = 0._r8       ! all phytomers initialized to zero (not alive) when .not. croplive
+             rankp(p,:) = 0
+             np(p) = 0
+         end if ! palm not live nor planted
+  
+         ! Phase 2: Leaf emergence to beginning of grain fill (general LAI accumulation)
+         ! Phase 3: Grain fill to physiological maturity and harvest (LAI decline or stabilize)
+         ! Harvest: export fruits and prune old leaves
+  
+         onset_flag(p)  = 0._r8 ! CN terminology to trigger certain
+         offset_flag(p) = 0._r8 ! carbon and nitrogen transfers
+         harvest_flag(p) = 0._r8
+  
+         ! calculate threshold for attaining leaf emergence(initiation)
+         ! initiation of the first phytomer, assume immediately after transplanting if transplant(ivt(p)) > 0
+         huileaf(p) = lfemerg(ivt(p))
+    
+         ! pre-expansion phase: from initiation to leaf expansion
+         huilfexp(p) = huileaf(p) + lfexp(ivt(p))
+    
+         ! post-expansion phases:
+         ! from leaf expansion to leaf maturity
+         huilfmat(p) = huilfexp(p) + lfmat(ivt(p))
+         ! from leaf expansion to start of leaf senescence
+         huilfsen(p) = huilfexp(p) + lfsen(ivt(p))
+         ! from leaf expansion to beginning of fruit-fill
+         huigrain(p) = huilfexp(p) + grnfill(ivt(p))
+         ! from leaf expansion to fruit maturity and harvest
+         gddmaturity(p)= huilfexp(p) + grnmat(ivt(p))
+         ! from leaf expansion to end of leaf senescence (die)
+         huilfend(p) = huilfexp(p) + mxgdd(ivt(p))
+    
+         if (croplive(p)) then
+             cphase(p) = 1._r8
+
+             ! days past planting may determine harvest
+             ! new counter for perennial crops (Y.Fan)
+             if (perennial(ivt(p)) == 1) then
+                idpp(p) = int(dayspyr)*(kyr-yrop(p)) + jday - idop(p)
+             else  !only for annual or biannual crops
+                if (jday >= idop(p)) then
+                   idpp(p) = jday - idop(p)
+                else
+                   idpp(p) = int(dayspyr) + jday - idop(p)
+                end if
+             end if
+
+             !gddperday = max(10._r8, max(gdd15(p)/jday, gdd1520(p)/dayspyr)) !do not use gdd1520 for long term crop spinup^M
+             gddperday = max(10._r8, gdd15(p)/jday)
+             phyllday = int(phyllochron(ivt(p))/gddperday)
+
+             ! =======================
+             ! enter onset for one time step:
+             ! transfer seed carbon to leaf emergence; the amount of transfer (1g leaf C) already allocated at planting
+
+             ! onset_counter initialized to zero when .not. croplive
+             ! offset_counter relevant only at time step of final rotation
+             onset_counter(p) = onset_counter(p) - dt
+             if (leafout(p) >= huileaf(p) .and. hui(p) < huilfmat(p)) then
+               cphase(p) = 2._r8
+               if (abs(onset_counter(p)) > 1.e-6_r8) then
+                  onset_flag(p)    = 1._r8
+                  onset_counter(p) = dt
+
+                  !for transplanting from nursery: the number of initial phytomers depends on initial C amount
+                  if (transplant(ivt(p)) > 0._r8) then
+
+                     np(p) = floor(transplant(ivt(p))/(0.1_r8*laimx(ivt(p))/2)) !assume 10% of laimx for a mature leaf of seedling^M
+                     np(p) = min(mxlivenp(ivt(p)), np(p))
+                     rankp(p,1:np(p)) = (/np(p):1:-1/) !already expanded phytomers
+
+                                 !leaf expansion date for already existing leaves at transplanting^M
+                                 !assign the current date to the youngest expanded leaf^M
+                     lfoutyr(p,:) = kyr
+                     lfoutday(p,1:np(p)) = (/ ((jday-(i-1)*phyllday), i=np(p), 1, -1) /)
+                     where (lfoutday(p,:) < 0)
+                         lfoutyr(p,:) = kyr - (int(abs(lfoutday(p,:))/dayspyr) + 1)
+                                       lfoutday(p,:) = lfoutday(p,:) + dayspyr*(int(abs(lfoutday(p,:))/dayspyr) + 1)
+                     endwhere
+
+                     !assign initial C to already expanded leaves at transplanting
+                     np1 = int((huilfmat(p)-huilfexp(p))/phyllochron(ivt(p))) !number of expanded immature phytomers
+                     if (np(p) > np1) then
+                         !pleafc_xfer(p,1:(np(p)-1)) = leafc_xfer(p)/np(p)
+                         !pleafc_xfer(p,np(p)) = leafc_xfer(p) - sum(pleafc_xfer(p,1:(np(p)-1)))
+                         pleafc_xfer(p,(np(p)-np1+1):np(p)) = 0.1_r8*laimx(ivt(p))/slatop(ivt(p))*(/np1:1:-1/)/(np1+1)  !linear decrease in leaf size till the youngest phytomer
+                         pleafc_xfer(p,1:(np(p)-np1)) = 0.1_r8*laimx(ivt(p))/slatop(ivt(p))*(/1:(np(p)-np1):1/)/(np(p)-np1+1) 
+                         !the oldest phytomer of a seedling is smaller than the middle ones due to limited resource at the beginning
+                         pleafc_xfer(p,1:np(p)) = pleafc_xfer(p,1:np(p)) + (leafc_xfer(p) - sum(pleafc_xfer(p,:)))/np(p) !distribute the remaining leaf C
+                     else if (np(p) > 1) then
+                         pleafc_xfer(p,1:np(p)) = 0.1_r8*laimx(ivt(p))/slatop(ivt(p))*(/np(p):1:-1/)/(np(p)+1)  
+                         !np plus 1 results in exactly a half of np(p) when summing the ratio series
+                         pleafc_xfer(p,1:np(p)) = pleafc_xfer(p,1:np(p)) + (leafc_xfer(p) - sum(pleafc_xfer(p,:)))/np(p)
+                     else
+                         pleafc_xfer(p,1) = leafc_xfer(p)
+                     end if
+                     pleafn_xfer(p,:) = pleafc_xfer(p,:) / leafcn(ivt(p))
+
+                     !add non-expanded phytomers but already initiated before transplanting
+                     !do not assign initial C to them
+                     np0 = int((huilfexp(p)-huileaf(p))/phyllochron(ivt(p)))
+                     if (np0 >= 1) then
+                         rankp(p,(np(p)+1):(np(p)+np0)) = (/-1:(-np0):-1/)       !unexpanded phytomers have negative ranks
+                         np(p) = np(p) + np0
+                     end if
+                     livep(p,1:np(p)) = 1._r8
+                     !estimate the expansion/maturity/harvest time for each existing phytomer
+                     !assume the youngest phytomer is initiated at planting (not expanded yet)
+                     huileafnp(p,1:np(p)) = (/ ((huileaf(p)-(i-1)*phyllochron(ivt(p))), i=np(p), 1, -1) /)
+                     huilfexpnp(p,1:np(p)) = (/ ((huilfexp(p)-(i-1)*phyllochron(ivt(p))), i=np(p), 1, -1) /)
+                     huilfmatnp(p,1:np(p)) = (/ ((huilfmat(p)-(i-1)*phyllochron(ivt(p))), i=np(p), 1, -1) /)
+                     huigrnnp(p,1:np(p)) = (/ ((huigrain(p)-(i-1)*phyllochron(ivt(p))), i=np(p), 1, -1) /)
+                     grnmatnp(p,1:np(p)) = (/ ((gddmaturity(p)-(i-1)*phyllochron(ivt(p))), i=np(p), 1, -1) /)
+                     huilfsennp(p,1:np(p)) = (/ ((huilfsen(p)-(i-1)*phyllochron(ivt(p))), i=np(p), 1, -1) /)
+                     huilfendnp(p,1:np(p)) = (/ ((huilfend(p)-(i-1)*phyllochron(ivt(p))), i=np(p), 1, -1) /) 
+                  else !from seed
+                     np(p) = 1  !first phytomer initiated after seed planting
+                     livep(p,1) = 1._r8
+                     rankp(p,1) = -1
+                     pleafc_xfer(p,1) = leafc_xfer(p)
+                     pleafn_xfer(p,1) = pleafc_xfer(p,1) / leafcn(ivt(p))
+                     huileafnp(p,1) = huileaf(p)
+                     huilfexpnp(p,1) = huilfexp(p)
+                     huilfmatnp(p,1) = huilfmat(p)
+                     huigrnnp(p,1) = huigrain(p)
+                     grnmatnp(p,1) = gddmaturity(p)
+                     huilfsennp(p,1) = huilfsen(p)
+                     huilfendnp(p,1) = huilfend(p)
+                  end if
+               else
+                  ! this ensures no re-entry to onset of phase2
+                  ! b/c onset_counter(p) = onset_counter(p) - dt
+                  ! at every time step
+                  onset_counter(p) = dt
+               end if
+             end if !end if leaf emergence to leaf maturity period
+
+             ! determine initiation and maturity thresholds of successive phytomers
+             ! for oil palm, phyllochron increases through age until 10years
+             if (np(p) > 0) then
+                phyllochron2(p) = phyllochron(ivt(p)) * &
+                               min(1.5_r8, 1._r8 + (1.5_r8 - 1._r8) * &
+                               min(1._r8, real(idpp(p))/(10._r8*dayspyr)))
+                huileafnp(p, np(p)+1) = huileafnp(p, np(p)) + phyllochron2(p)
+
+             else    ! plant never emerged from the ground
+                croplive(p) = .false.
+                dwt_seedc_to_leaf(c) = dwt_seedc_to_leaf(c) - leafc_xfer(p)/dt
+                dwt_seedn_to_leaf(c) = dwt_seedn_to_leaf(c) - leafn_xfer(p)/dt
+                leafc_xfer(p) = 0._r8  ! revert planting transfers
+                leafn_xfer(p) = 0._r8^M
+                dwt_seedc_to_livestem(c) = dwt_seedc_to_livestem(c) - livestemc_xfer(p)/dt
+                dwt_seedn_to_livestem(c) = dwt_seedn_to_livestem(c) - livestemn_xfer(p)/dt
+                livestemc_xfer(p) = 0._r8  ! revert planting transfers
+                livestemn_xfer(p) = 0._r8
+             end if
+
+             !turn on successive phytomers after each leaf initiation, later turn off by ageing or pruning
+             if (np(p) > 0 .and. hui(p) >= huileafnp(p, np(p)+1)) then
+                np(p) = np(p) + 1
+                livep(p,np(p)) = 1._r8
+                rankp(p,np(p)) = minval(rankp(p,:)) - 1
+                huilfexpnp(p,np(p)) = huileafnp(p,np(p)) + lfexp(ivt(p))  !pre-expansion
+                huilfmatnp(p,np(p)) = huilfexpnp(p,np(p)) + lfmat(ivt(p)) !post-expansion
+                huigrnnp(p,np(p)) = huilfexpnp(p,np(p)) + grnfill(ivt(p))
+                grnmatnp(p,np(p)) = huilfexpnp(p,np(p)) + grnmat(ivt(p))
+                huilfsennp(p,np(p)) = huilfexpnp(p,np(p)) + lfsen(ivt(p))
+                huilfendnp(p,np(p)) = huilfexpnp(p,np(p)) + mxgdd(ivt(p))
+             end if
+
+             ! =======================
+             ! enter phase 2 from leaf initiation to leaf expansion:
+             ! switch from storage growth (bud & "spear" leaf stage) to photosynthetic active LAI growth
+             np2 = sum(maxloc(rankp(p,:), mask=rankp(p,:) < 0)) !record the index of current largest unexpanded phytomer (rankp=-1)
+             if (livep(p,np2) == 1._r8 .and. rankp(p,np2) < 0 .and. &
+                hui(p) >= huilfexpnp(p,np2)) then
+                !the largest "spear" leaf expands and its rank changes from -1 to +1
+                rankp(p,np2) = 1
+                !record leaf out date (only once)
+                lfoutday(p,np2) = jday
+                lfoutyr(p,np2) = kyr
+
+                !update the rank of other live phytomers
+                where (rankp(p,1:(np2-1)) > 0) rankp(p,1:(np2-1)) = rankp(p,1:(np2-1)) + 1 !expanded
+                rankp(p,(np2+1):np(p)) = rankp(p,(np2+1):np(p)) + 1  !unexpanded
+             end if
+
+             !count days past each leaf/phytomer expansion
+             where (rankp(p,:) > 0 .and. lfoutday(p,:) /= NOT_Emerged) &
+                lfdays(p,:) = int(dayspyr)*(kyr-lfoutyr(p,:)) + jday - lfoutday(p,:)
+
+
+             ! =======================
+             ! enter phase 2 for each phytomer: from leaf initiation to leaf expansion
+             ! switch from storage growth to photosynthetic active LAI growth
+             ! the phytomer storage pool represents displayed but non-photosynthetic leafc
+             ! this is very different from that of deciduous PFTs
+             if (idpp(p) < mxmat(ivt(p))) then !from planting to crop rotation
+                 where (hui(p) >= huilfexpnp(p,:) .and. hui(p) < huilfmatnp(p,:))
+                     ! the background transfer rate gives a complete turnover of the storage pool
+                     ! to displayed pool from leaf expansion until maturity.
+                     ! bgtr flux merges with current time growth allocation flux
+                     !bgtr_p(p,:) = 2._r8/((huilfmat(p) - huilfexp(p)) / gddperday * secspday)
+                     !above equation gives nearly ~90% turnover in nonlinear decreasing rate
+
+                     bgtr_p(p,:) = 1.0_r8 /((huilfmatnp(p,:) - hui(p)) / gddperday * secspday) !100% turnover
+                     !if multiplier > 2.0_r8, it gives steeper nonlinear decreasing rate; 1.0_r8 gives a linear rate
+                     !not exceed the max rate 1/dt
+                     where (bgtr_p(p,:) > 1.0_r8/dt) bgtr_p(p,:) = 1.0_r8/dt
+
+                     ! set carbon fluxes for shifting storage pools to transfer pools
+
+                     pleafc_storage_to_xfer(p,:)  = pleafc_storage(p,:) * bgtr_p(p,:)
+                     !do N flux at the same time with the same rate to avoid using CN ratio
+                     pleafn_storage_to_xfer(p,:)  = pleafn_storage(p,:) * bgtr_p(p,:)
+
+                 elsewhere (hui(p) >= huilfmatnp(p,:) .and. hui(p) < huilfsennp(p,:)) !transfer all remaining storage, if any
+                     pleafc_storage_to_xfer(p,:)  = pleafc_storage(p,:)/dt
+                     pleafn_storage_to_xfer(p,:)  = pleafn_storage(p,:)/dt
+                     bgtr_p(p,:) = 0._r8
+
+                     !litter fall: for both big-leaf canopy and multilayer canopy
+                     !if CN ratio fixed, use background litterfall for updating photosynthetic LAI
+                     !if dynamic CN scheme, only retranslocate leaf N gradually during senescence (LAI no change)
+                     !but use pruning to move leaf C to litter
+                 elsewhere (hui(p) >= huilfsennp(p,:) ) !start of senescence
+                     livep(p,:) = 0._r8
+
+                     !a constant bglfr_p value gives ~90% turnover within the senescence period (non-linear decreasing rate)
+                     bglfr_p(p,:) = 2._r8/((mxgdd(ivt(p)) - lfsen(ivt(p))) / gddperday * secspday)
+
+                     !a non-constant value as a function of hui gives complete turnover 100%
+                     !senescence rate is the inverse of the remaining time until the end of a phytomer life cycle
+                     !bglfr_p(p,:) = 1.0_r8 /((huilfendnp(p,:) - hui(p)) / gddperday * secspday)
+                     !1.0_r8 gives a linear rate
+                     !if multiply by 2 or 3, 4.. in the above equation, it gives a non-linear decreasing rate with 100% turnover
+                     !not exceed the max rate 1/dt
+                     where (bglfr_p(p,:) > 1.0_r8/dt) bglfr_p(p,:) = 1.0_r8/dt
+
+                 end where
+
+                 !senescence fluxes finish: when leaf is pruned
+                 !or when leaf C:N ratio reaches leaf litter C:N ratio (dynamic N scheme)
+                 where (rankp(p,:) <= 0 ) bglfr_p(p,:) = 0._r8
+
+                 !summarize for all leaves to update the leafc pool
+                 leafc_storage_to_xfer(p) = sum(pleafc_storage_to_xfer(p,:))
+                 leafn_storage_to_xfer(p) = sum(pleafn_storage_to_xfer(p,:))
+                 !turn on bgtr (only for leaves)
+                 if (maxval(bgtr_p(p,:)) > 0._r8) bgtr(p)  = 1.e-6_r8
+
+             end if !end if phytomer level phase 2
+
+             ! =======================
+             ! enter harvests:
+             !enforce a threshold gddmin for oil palm to start first fruiting (for the whole plant)
+             huigrain(p) = max(huigrain(p), gddmin(ivt(p)))
+
+             ! - transfer phytomer grainc to crop yield
+             mat1 = sum(minloc(grnmatnp(p,:), mask= huigrnnp(p,:) >= huigrain(p))) !the first mature fruit
+             if (hui(p) >= grnmatnp(p,mat1) .and. idpp(p) < mxmat(ivt(p))) then
+                 cphase(p) = 3._r8
+                 n= mat1 + int(harvest_counter(p)) !this ensure each phytomer is harvested once
+                 if (tlai(p) <= 0._r8) then ! plant died during growing season
+                   if (harvdate(p) >= NOT_Harvested) harvdate(p) = jday  !reset xsmrpool
+                   croplive(p) = .false.
+                   cphase(p) = 4._r8
+                   offset_flag(p) = 1._r8
+                   offset_counter(p) = dt
+                 else if (hui(p) >= grnmatnp(p,n)) then
+                   if (pgrainc(p,n) > 0._r8) then
+                      harvest_flag(p) = 1._r8 !(if fruit exists, then do harvest and update harvest_counter afterwards)
+                   else
+                      harvest_counter(p) = harvest_counter(p) + 1 !(otherwise move on for the next phytomer without doing harvest)
+                   endif
+                 end if
+
+                 !apply fertilizer at every 12 harvest ~half year (Y.Fan)
+                 !ensure fert_counter is renewed only for one time step
+                 if (idpp(p) >= int(6*dayspyr) .and. mod(idpp(p),180) ==0 .and. fert_counter(p) <= 0._r8) then
+                    fert_counter(p)  = ndays_on * secspday
+                    fert(p) = fertnitro(ivt(p)) * 1000._r8 / fert_counter(p)  !gN/m^2/s
+                 end if
+
+                 ! continue fertilizer application before final rotation;
+                 ! fert_counter resumes every 6 month
+                 if (fert_counter(p) <= 0._r8) then
+                    fert(p) = 0._r8
+                 else ! continue same fert application every timestep
+                    fert_counter(p) = fert_counter(p) - dt
+                 end if
+
+             ! =======================
+             ! final harvest/rotation
+             ! - send xsmrpool to the atmosphere
+             else if (idpp(p) >= mxmat(ivt(p))) then
+                 if (harvdate(p) >= NOT_Harvested) harvdate(p) = jday
+                 croplive(p) = .false.
+                 cphase(p) = 4._r8
+                 if (tlai(p) > 0._r8) then ! plant had emerged before rotation
+                     offset_flag(p) = 1._r8
+                     offset_counter(p) = dt
+                 else                      ! plant never emerged from the ground
+                     dwt_seedc_to_leaf(c) = dwt_seedc_to_leaf(c) - leafc_xfer(p)/dt
+                     dwt_seedn_to_leaf(c) = dwt_seedn_to_leaf(c) - leafn_xfer(p)/dt
+                     leafc_xfer(p) = 0._r8  ! revert planting transfers
+                     leafn_xfer(p) = 0._r8
+                     crop_seedc_to_livestem(c) = crop_seedc_to_livestem(c) - livestemc_xfer(p)/dt
+                     crop_seedn_to_livestem(c) = crop_seedn_to_livestem(c) - livestemn_xfer(p)/dt
+                     livestemc_xfer(p) = 0._r8  ! revert planting transfers
+                     livestemn_xfer(p) = 0._r8
+                 end if
+             end if
+
+             !Continue froot background litterfall and livestem turnover year around;
+             ! set background litterfall rate, when not in the phenological offset/rotation
+             if (offset_flag(p) == 1._r8) then !must be zero during offset to avoid recalculating of frootc_to_litter
+                 bglfr(p) = 0._r8
+             else
+                 !bglfr is related to leaf turnover rate, used for both froot and livestem turnover
+                 !correction for longer growing phase of leaf storage (bud) growth
+                 buddays = lfexp(ivt(p))/ gddperday
+                 !mxgdd: from leaf expansion to end of leaf senescence (die)
+                 bglfr(p) = 1._r8/((mxgdd(ivt(p)) / gddperday + buddays)*secspday)
+                 !bglfr(p) = 1._r8/((leaf_long(ivt(p))*dayspyr + buddays)*secspday)
+             end if
+
+             ! =======================
+             !do pruning:
+             !senescent leaves at the bottom layer are pruned to maintain a max number of alive phytomers
+             !adjust mxlivenp, mxgdd and phyllochron to determine pruning frequency
+             !add 10 for senescent leaves that still on the tree (rankp>=1)
+             !if (count(mask=rankp(p,:) >0) > (mxlivenp(ivt(p))+10)) then
+             if (harvest_flag(p) /= 1._r8) then !only do pruning at harvest
+                 prune(p) = .false.
+             else if (count(mask=rankp(p,:) >0) > mxlivenp(ivt(p))) then
+                 prune(p) = .true.
+             else
+                 prune(p) = .false.
+             end if
+
+         else   ! crop not live
+            ! next 2 lines conserve mass if leaf*_xfer > 0 due to interpinic
+            ! We subtract from any existing value in crop_seedc_to_leaf /
+            ! crop_seedn_to_leaf in the unlikely event that we enter this block of
+            ! code in the same time step where the planting transfer originally
+            ! occurred.
+            crop_seedc_to_leaf(p) = crop_seedc_to_leaf(p) - leafc_xfer(p)/dt
+            crop_seedn_to_leaf(p) = crop_seedn_to_leaf(p) - leafn_xfer(p)/dt
+            onset_counter(p) = 0._r8
+            leafc_xfer(p) = 0._r8
+            leafn_xfer(p) = leafc_xfer(p) / leafcn(ivt(p))
+            if (use_c13) then
+               c13_cnveg_carbonstate_inst%leafc_xfer_patch(p) = 0._r8
+            endif
+            if (use_c14) then
+               c14_cnveg_carbonstate_inst%leafc_xfer_patch(p) = 0._r8
+            endif
+
+            ! revert transplanting transfers for juvenile plants
+            crop_seedc_to_livestem(c) = crop_seedc_to_livestem(c) - livestemc_xfer(p)/dt
+            crop_seedn_to_livestem(c) = crop_seedn_to_livestem(c) - livestemn_xfer(p)/dt
+            livestemc_xfer(p) = 0._r8  ! revert planting transfers
+            livestemn_xfer(p) = 0._r8
+         end if ! croplive
+  
+      end if  !end if palm phenology
+
+    end associate
+  end subroutine PalmPhenology
+
+
+  !-----------------------------------------------------------------------
   subroutine CropPhenology(num_pcropp, filter_pcropp                     , &
        waterdiagnosticbulk_inst, temperature_inst, crop_inst, canopystate_inst, cnveg_state_inst , &
-       cnveg_carbonstate_inst, cnveg_nitrogenstate_inst, cnveg_carbonflux_inst, cnveg_nitrogenflux_inst,&
+       cnveg_carbonstate_inst, cnveg_nitrogenstate_inst, cnveg_carbonflux_inst, cnveg_nitrogenflux_inst, &
        c13_cnveg_carbonstate_inst, c14_cnveg_carbonstate_inst)
 
     ! !DESCRIPTION:
@@ -1438,8 +2093,6 @@ contains
     use pftconMod        , only : nirrig_cotton, nirrig_rice
     use clm_varcon       , only : spval, secspday
     use clm_varctl       , only : use_fertilizer 
-    use clm_varctl       , only : use_c13, use_c14
-    use clm_varcon       , only : c13ratio, c14ratio
     !
     ! !ARGUMENTS:
     integer                        , intent(in)    :: num_pcropp       ! number of prog crop patches in filter
@@ -1453,8 +2106,6 @@ contains
     type(cnveg_nitrogenstate_type) , intent(inout) :: cnveg_nitrogenstate_inst
     type(cnveg_carbonflux_type)    , intent(inout) :: cnveg_carbonflux_inst
     type(cnveg_nitrogenflux_type)  , intent(inout) :: cnveg_nitrogenflux_inst
-    type(cnveg_carbonstate_type)   , intent(inout) :: c13_cnveg_carbonstate_inst
-    type(cnveg_carbonstate_type)   , intent(inout) :: c14_cnveg_carbonstate_inst
     !
     ! LOCAL VARAIBLES:
     integer kyr       ! current year
@@ -1486,7 +2137,7 @@ contains
          hybgdd            =>    pftcon%hybgdd                                 , & ! Input:  
          lfemerg           =>    pftcon%lfemerg                                , & ! Input:  
          grnfill           =>    pftcon%grnfill                               , & ! Input:  
-
+         perennial         =>    pftcon%perennial                             , & ! Input:  [integer (:)]  binary flag for perennial crop phenology (1=perennial, 0=not perennial) (added by Y.Fan)
          t_ref2m_min       =>    temperature_inst%t_ref2m_min_patch            , & ! Input:  [real(r8) (:) ]  daily minimum of average 2 m height surface air temperature (K)
          t10               =>    temperature_inst%t_a10_patch                  , & ! Input:  [real(r8) (:) ]  10-day running mean of the 2 m temperature (K)    
          a5tmin            =>    temperature_inst%t_a5min_patch                , & ! Input:  [real(r8) (:) ]  5-day running mean of min 2-m temperature         
@@ -1534,6 +2185,7 @@ contains
       dayspyr = get_days_per_year()
       jday    = get_curr_calday()
       call get_curr_date(kyr, kmo, kda, mcsec)
+      nyrs = CropRestYear()
       dtrad   = real( get_rad_step_size(), r8 )
 
       if (use_fertilizer) then
@@ -1852,10 +2504,16 @@ contains
                huigrain(p) = -0.002_r8  * (crmcorn - 73._r8) + grnfill(ivt(p))
 
                huigrain(p) = min(max(huigrain(p), grnfill(ivt(p))-0.1_r8), grnfill(ivt(p)))
-               huigrain(p) = huigrain(p) * gddmaturity(p)     ! Cabelguenne et
+               huigrain(p) = huigrain(p) * gddmaturity(p)     ! Cabelguenne et al. 1999
+
+	!oil palm begins to produce 2.5 years after planted, later grainfill takes place every year
+	!the PFT value grnfill(ivt(p)) is only used here for the first grainfill after planting
             else
-               huigrain(p) = grnfill(ivt(p)) * gddmaturity(p) ! al. 1999
+               huigrain(p) = grnfill(ivt(p)) * gddmaturity(p)
+               huigrain2(p) = 	huigrain(p)  !initialize huigrain2 for perennial crops, update annually in harvest cycle(Y.Fan)
             end if
+	    onset_counter(p) = 0._r8 !onset_counter initialized to zero when .not. croplive (Y.Fan)
+	    offset_counter(p) = 0._r8 !offset_counter initialized to zero when .not. croplive (Y.Fan)
 
          end if ! crop not live nor planted
 
@@ -1901,6 +2559,7 @@ contains
 
          onset_flag(p)  = 0._r8 ! CN terminology to trigger certain
          offset_flag(p) = 0._r8 ! carbon and nitrogen transfers
+	 harvest_flag(p) = 0._r8 ! annual harvest flag for perennial crops (Y.Fan)
 
          if (croplive(p)) then
             cphase(p) = 1._r8
@@ -1917,13 +2576,21 @@ contains
             end if
 
             ! days past planting may determine harvest
-
-            if (jday >= idop(p)) then
-               idpp = jday - idop(p)
-            else
-               idpp = int(dayspyr) + jday - idop(p)
+            ! add new counter for perennial crops (Y.Fan)
+            if (perennial(ivt(p)) == 1) then
+               if (int(dayspyr)*(nyrs-1) <= mxmat(ivt(p))) then !nyrs=1 for the start of first year
+                  idpp = int(dayspyr)*(nyrs-1) + jday - idop(p)
+               else !mod is to get the reminder for each rotation; minus 1 to account for the offset
+		    !because crops are allowed to be planted only once a year, controlled by flag cropplant(p)
+		  idpp = int(dayspyr)*(mod((nyrs-1), nint(mxmat(ivt(p))/dayspyr)) - 1) + jday - idop(p)
+               end if
+            else  !only for annual or biannual crops
+               if (jday >= idop(p)) then
+                  idpp = jday - idop(p)
+               else
+                  idpp = int(dayspyr) + jday - idop(p)
+               end if
             end if
-
             ! onset_counter initialized to zero when .not. croplive
             ! offset_counter relevant only at time step of harvest
 
@@ -1961,6 +2628,52 @@ contains
                ! if onset and harvest needed to last longer than one timestep
                ! the onset_counter would change from dt and you'd need to make
                ! changes to the offset subroutine below
+
+	    !New harvest for perennial plants to keep them alive after several harvests.
+	    !A new harvest flag is added. (Y.Fan 06.06.2014)
+            else if (hui(p) >= gddmaturity(p) .and. idpp < mxmat(ivt(p)) .and. &
+                     perennial(ivt(p)) == 1) then
+               gddmaturity2(p) = huigrain2(p) + (1._r8 - grnfill(ivt(p))) * gddmaturity(p) !gdd till next harvests
+			   !part of leaves are pruned off at each harvest (at one-time step)
+               if (hui(p) >= gddmaturity2(p)) then
+                  !the following ensures a one-time harvest each year for perennial crops
+                  !Assume a percentage 0.5 of the initial grnfill=around 1 year period between subsequent grnfills
+                  !in the future, add another PFT variable grnfill2 for perennial crops
+                  huigrain2(p) = huigrain2(p) + 0.5_r8 * grnfill(ivt(p)) * gddmaturity(p)
+                  !apply fertilizer after each grainfill stage before next grainfill (Y.Fan)
+                  !fert continue until the end of ndays_on because this loop is entered one time step only
+                  !and fert_counter(p) = fert_counter(p) - dt (see later)
+                  fert_counter(p)  = ndays_on * secspday
+                  fert(p) = fertnitro(ivt(p)) * 1000._r8 / fert_counter(p)
+                  if (tlai(p) <= 0._r8) then ! plant never emerged or died
+                     croplive(p) = .false.
+                     if (harvdate(p) >= NOT_Harvested) harvdate(p) = jday
+                     crop_seedc_to_leaf(c) = crop_seedc_to_leaf(c) - leafc_xfer(p)/dt
+                     crop_seedn_to_leaf(c) = crop_seedn_to_leaf(c) - leafn_xfer(p)/dt
+                     leafc_xfer(p) = 0._r8  ! revert planting transfers
+                     leafn_xfer(p) = leafc_xfer(p) / leafcn(ivt(p))
+                  else if (grainc(p) > 0._r8) then !only harvest when there is positive grainc accumulated during grainfill
+                     harvest_flag(p) = 1._r8
+                  end if
+               else
+                  harvest_flag(p) = 0._r8
+                 ! continue background litterfall year around because perennials keeps alive after harvest
+                  bglfr(p) = 1._r8/(leaf_long(ivt(p))*dayspyr*secspday)
+               end if
+
+            else if (hui(p) >= gddmaturity(p) .and. idpp >= mxmat(ivt(p)) .and. &
+                     perennial(ivt(p)) == 1) then
+               if (harvdate(p) >= NOT_Harvested) harvdate(p) = jday
+               croplive(p) = .false.     !
+               if (tlai(p) > 0._r8) then ! plant had emerged before harvest
+                  offset_flag(p) = 1._r8
+                  offset_counter(p) = dt
+               else                      ! plant never emerged from the ground
+                  crop_seedc_to_leaf(c) = crop_seedc_to_leaf(c) - leafc_xfer(p)/dt
+                  crop_seedn_to_leaf(c) = crop_seedn_to_leaf(c) - leafn_xfer(p)/dt
+                  leafc_xfer(p) = 0._r8  ! revert planting transfers
+                  leafn_xfer(p) = leafc_xfer(p) / leafcn(ivt(p))
+               end if
 
             else if (hui(p) >= gddmaturity(p) .or. idpp >= mxmat(ivt(p))) then
                if (harvdate(p) >= NOT_Harvested) harvdate(p) = jday
@@ -2274,7 +2987,11 @@ contains
          onset_flag                          =>    cnveg_state_inst%onset_flag_patch                           , & ! Input:  [real(r8)  (:) ]  onset flag                                        
          onset_counter                       =>    cnveg_state_inst%onset_counter_patch                        , & ! Input:  [real(r8)  (:) ]  onset days counter                                
          bgtr                                =>    cnveg_state_inst%bgtr_patch                                 , & ! Input:  [real(r8)  (:) ]  background transfer growth rate (1/s)             
-         
+         phytomer                            =>    pftcon%phytomer                                             , & ! Input:  [integer (:)]   total number of phytomers in life time (if >0 use phytomer phenology)
+         pleafc_xfer                         =>    cnveg_carbonstate_inst%pleafc_xfer                          , & ! Output: [real(r8) (:,:)]  (gC/m2) phytomer leaf C transfer
+         pleafc_xfer_to_pleafc               =>    cnveg_carbonflux_inst%pleafc_xfer_to_pleafc                 , & ! Output: [real(r8) (:,:)]  added by Y.Fan
+         pleafn_xfer                         =>    cnveg_nitrogenstate_inst%pleafn_xfer                        , & ! Output: [real(r8) (:,:)]  (gN/m2) phytomer leaf N transfer
+         pleafn_xfer_to_pleafn               =>    cnveg_nitrogenflux_inst%pleafn_xfer_to_pleafn               , & ! Output: [real(r8) (:,:)]  added by Y.Fan
          leafc_xfer                          =>    cnveg_carbonstate_inst%leafc_xfer_patch                     , & ! Input:  [real(r8)  (:) ]  (gC/m2) leaf C transfer                           
          frootc_xfer                         =>    cnveg_carbonstate_inst%frootc_xfer_patch                    , & ! Input:  [real(r8)  (:) ]  (gC/m2) fine root C transfer                      
          livestemc_xfer                      =>    cnveg_carbonstate_inst%livestemc_xfer_patch                 , & ! Input:  [real(r8)  (:) ]  (gC/m2) live stem C transfer                      
@@ -2333,6 +3050,19 @@ contains
                livecrootn_xfer_to_livecrootn(p) = t1 * livecrootn_xfer(p)
                deadcrootn_xfer_to_deadcrootn(p) = t1 * deadcrootn_xfer(p)
             end if
+            !(Y.Fan) Evergreen woody PFTs have no onset period and thus no
+            !special transfer of stored C and N from transfer pools to displayed pools
+            !the above woody condition only apply to decidious tree PFTs
+
+            !phytomer-based structure (Y.Fan):
+            !For oil palm, use initial C transfer to represent transplanting
+            !from nursery to field
+            !depending on the amount of initial leafc_xfer, first phytomers get
+            !allocation not exceeding the maximum per leaf
+            if (phytomer(ivt(p)) > 0) then
+               pleafc_xfer_to_pleafc(p,:) = t1 * pleafc_xfer(p,:)
+               pleafn_xfer_to_pleafn(p,:) = t1 * pleafn_xfer(p,:)
+            end if
 
          end if ! end if onset period
 
@@ -2340,7 +3070,15 @@ contains
          ! deciduous algorithm). In this case, all of the mass in the transfer
          ! pools should be moved to displayed growth in each timestep.
 
-         if (bgtr(p) > 0._r8) then
+         !for palm post-expansion period: move transfer pools to displayed growth
+         !the xfer pool is refilled and depleted at every timestep (Y.Fan)
+         if (bgtr(p) > 0._r8 .and. phytomer(ivt(p)) > 0) then
+            pleafc_xfer_to_pleafc(p,:) = pleafc_xfer(p,:) / dt
+            pleafn_xfer_to_pleafn(p,:) = pleafn_xfer(p,:) / dt
+            leafc_xfer_to_leafc(p)   = leafc_xfer(p) / dt
+            leafn_xfer_to_leafn(p)   = leafn_xfer(p) / dt
+         else if (bgtr(p) > 0._r8) then
+         !if (bgtr(p) > 0._r8) then
             leafc_xfer_to_leafc(p)   = leafc_xfer(p) / dt
             frootc_xfer_to_frootc(p) = frootc_xfer(p) / dt
             leafn_xfer_to_leafn(p)   = leafn_xfer(p) / dt
@@ -2372,7 +3110,7 @@ contains
     ! pools during the phenological offset period.
     !
     ! !USES:
-    use pftconMod        , only : npcropmin
+    use pftconMod        , only : npcropmin, mxlivenp, pprodharv10
     use CNSharedParamsMod, only : use_fun
     use clm_varctl       , only : CNratio_floating    
     !
@@ -2396,15 +3134,48 @@ contains
 
     associate(                                                                           & 
          ivt                   =>    patch%itype                                       , & ! Input:  [integer  (:) ]  patch vegetation type                                
-
          leafcn                =>    pftcon%leafcn                                     , & ! Input:  leaf C:N (gC/gN)                                  
          lflitcn               =>    pftcon%lflitcn                                    , & ! Input:  leaf litter C:N (gC/gN)                           
          frootcn               =>    pftcon%frootcn                                    , & ! Input:  fine root C:N (gC/gN)                             
          graincn               =>    pftcon%graincn                                    , & ! Input:  grain C:N (gC/gN)                                 
+         phytomer              =>    pftcon%phytomer                                   , & ! Input:  [integer (:)]   total number of phytomers in life time (if >0 use phytomer phenology)
+         leaf_long             =>    pftcon%leaf_long                            , & ! Input:  [real(r8) (:)]  leaf longevity (yrs)
+         prune                 =>    cnveg_state_inst%prune                                  , & ! Input:  [real(r8) (:)]  flag for pruning
+         np                    =>    crop_inst%np                                      , & ! Input:  [integer (:)]   total number of phytomers having appeared so far
+         rankp                 =>    crop_inst%rankp                                   , & ! Input:  [integer (:,:)]  rank of phytomers from 1=youngest to np=oldest and 0=dead
+         livep                 =>    crop_inst%livep                                   , & ! Input:  [real(r8) (:,:)]  Flag, true if this phytomer is alive
+         lfdays                =>    crop_inst%lfdays                                  , & ! Input:  [integer (:,:)]  days past leaf emergence for each phytomer
+         pgrainc               =>    cnveg_carbonstate_inst%pgrainc                                 , & ! Input:  [real(r8) (:,:)]  (gC/m2) phytomer grain C
+         pgrainn               =>    cnveg_nitrogenstate_inst%pgrainn                                 , & ! Input:  [real(r8) (:,:)]  (gN/m2) phytomer grain N
+         pleafc                =>    cnveg_carbonstate_inst%pleafc                                  , & ! Input:  [real(r8) (:,:)]  (gC/m2) phytomer leaf C
+         pleafn                =>    cnveg_nitrogenstate_inst%pleafn                                  , & ! Input:  [real(r8) (:,:)]  (gN/m2) phytomer leaf N
+         pleafc_storage        =>    cnveg_carbonstate_inst%pleafc_storage                          , & ! InOut:  [real(r8) (:,:)]  (gC/m2) phytomer leaf C stroage (unexpanded)
+         pleafn_storage        =>    cnveg_nitrogenstate_inst%pleafn_storage                          , & ! InOut:  [real(r8) (:,:)]  (gN/m2) phytomer leaf N storage
+         pleafc_xfer           =>    cnveg_carbonstate_inst%pleafc_xfer                             , & ! InOut:  [real(r8) (:,:)]  (gC/m2) phytomer leaf C transfer
+         pleafn_xfer           =>    cnveg_nitrogenstate_inst%pleafn_xfer                             , & ! InOut:  [real(r8) (:,:)]
+         pleafc_to_litter      =>    cnveg_carbonflux_inst%pleafc_to_litter                        , & ! InOut:  [real(r8) (:,:)]  phytomer leaf C litterfall (gC/m2/s)
+         pleafc_storage_to_litter      =>    cnveg_carbonflux_inst%pleafc_storage_to_litter                , & ! InOut:  [real(r8) (:,:)]  phytomer leaf C storage to litter at final rotation (gC/m2/s)
+         pleafc_xfer_to_litter         =>    cnveg_carbonflux_inst%pleafc_xfer_to_litter                   , & ! InOut:  [real(r8) (:,:)]
+         pgrainc_to_food               =>    cnveg_carbonflux_inst%pgrainc_to_food                         , & ! InOut:  [real(r8) (:,:)]  phytomer grain C to food (gC/m2/s)
+         npool_to_pgrainn              =>    cnveg_nitrogenflux_inst%npool_to_pgrainn                        , & ! Input:  [real(r8) (:,:)]  allocation to phytomer grain N (gN/m2/s)^M
+         npool_to_pleafn               =>    cnveg_nitrogenflux_inst%npool_to_pleafn                         , & ! Input:  [real(r8) (:,:)]  allocation to phytomer leaf N (gN/m2/s)
+         npool_to_pleafn_storage       =>    cnveg_nitrogenflux_inst%npool_to_pleafn_storage                 , & ! Input:  [real(r8) (:,:)]
+         pleafn_to_litter              =>    cnveg_nitrogenflux_inst%pleafn_to_litter                        , & ! InOut:  [real(r8) (:,:)]  phytomer leaf N litterfall (gN/m2/s)
+         pleafn_storage_to_litter      =>    cnveg_nitrogenflux_inst%pleafn_storage_to_litter                , & ! InOut:  [real(r8) (:,:)]  phytomer leaf N storage to litter at final rotation (gN/m2/s)
+         pleafn_xfer_to_litter         =>    cnveg_nitrogenflux_inst%pleafn_xfer_to_litter                   , & ! InOut:  [real(r8) (:,:)]
+         pgrainn_to_food               =>    cnveg_nitrogenflux_inst%pgrainn_to_food                         , & ! InOut:  [real(r8) (:,:)]  phytomer grain N to food (gN/m2/s)
+         pleafc_xfer           =>    cnveg_carbonstate_inst%pleafc_xfer                , & ! Output: [real(r8) (:,:)]  (gC/m2) phytomer leaf C transfer
+         pleafc_xfer_to_pleafc =>    cnveg_carbonflux_inst%pleafc_xfer_to_pleafc       , & ! Output: [real(r8) (:,:)]  added by Y.Fan
+         pleafn_xfer           =>    cnveg_nitrogenstate_inst%pleafn_xfer              , & ! Output: [real(r8) (:,:)]  (gN/m2) phytomer leaf N transfer
+         pleafn_xfer_to_pleafn =>    cnveg_nitrogenflux_inst%pleafn_xfer_to_pleafn     , & ! Output: [real(r8) (:,:)]  added by Y.Fan
+         cpool_to_pleafc       =>    cnveg_carbonflux_inst%cpool_to_pleafc                         , & ! Input:  [real(r8) (:,:)]  allocation to phytomer leaf C (gC/m2/s)
+         cpool_to_pleafc_storage   =>    cnveg_carbonflux_inst%cpool_to_pleafc_storage                 , & ! Input:  [real(r8) (:,:)]^M
+         cpool_to_pgrainc      =>    cnveg_carbonflux_inst%cpool_to_pgrainc                        , & ! Input:  [real(r8) (:,:)]  allocation to phytomer grain C (gC/m2/s)
+         harvest_flag          =>    cnveg_state_inst%harvest_flag                     , & ! Input:  [real(r8) (:)]  harvest flag (added by Y.Fan)
+         harvest_counter       =>    cnveg_state_inst%harvest_counter                  , & ! Input:  [real(r8) (:)]  harvest counter to tag phytomer
 
          offset_flag           =>    cnveg_state_inst%offset_flag_patch                , & ! Input:  [real(r8) (:) ]  offset flag                                       
          offset_counter        =>    cnveg_state_inst%offset_counter_patch             , & ! Input:  [real(r8) (:) ]  offset days counter                               
-
          leafc                 =>    cnveg_carbonstate_inst%leafc_patch                , & ! Input:  [real(r8) (:) ]  (gC/m2) leaf C                                    
          frootc                =>    cnveg_carbonstate_inst%frootc_patch               , & ! Input:  [real(r8) (:) ]  (gC/m2) fine root C                               
          grainc                =>    cnveg_carbonstate_inst%grainc_patch               , & ! Input:  [real(r8) (:) ]  (gC/m2) grain C                                   
@@ -2428,7 +3199,6 @@ contains
          grainc_to_seed        =>    cnveg_carbonflux_inst%grainc_to_seed_patch        , & ! Output: [real(r8) (:) ]  grain C to seed (gC/m2/s)
          leafn                 =>    cnveg_nitrogenstate_inst%leafn_patch              , & ! Input:  [real(r8) (:) ]  (gN/m2) leaf N      
          frootn                =>    cnveg_nitrogenstate_inst%frootn_patch             , & ! Input:  [real(r8) (:) ]  (gN/m2) fine root N                        
-
          livestemn_to_litter   =>    cnveg_nitrogenflux_inst%livestemn_to_litter_patch , & ! Output: [real(r8) (:) ]  livestem N to litter (gN/m2/s)                    
          grainn_to_food        =>    cnveg_nitrogenflux_inst%grainn_to_food_patch      , & ! Output: [real(r8) (:) ]  grain N to food (gN/m2/s)                         
          grainn_to_seed        =>    cnveg_nitrogenflux_inst%grainn_to_seed_patch      , & ! Output: [real(r8) (:) ]  grain N to seed (gN/m2/s)
@@ -2447,22 +3217,121 @@ contains
       do fp = 1,num_soilp
          p = filter_soilp(fp)
 
-         ! only calculate fluxes during offset period
+         !incorporate a one-time harvest: annually for perennial crops; seasonally for phytomer phenology (Y.Fan)
+         !leaf flux is treated according to leaf property (evergreen or deciduous) and management (prune or not)
+         !grain flux goes to food
+         if (harvest_flag(p) == 1._r8) then
+           if (phytomer(ivt(p)) > 0) then
+              t1 = 1.0_r8 / dt
+              n= mat1 + int(harvest_counter(p))
+              pgrainc_to_food(p,n) = t1 * pgrainc(p,n)  + cpool_to_pgrainc(p,n)
+              pgrainn_to_food(p,n) = t1 * pgrainn(p,n)  + npool_to_pgrainn(p,n)
+              grainc_to_food(p) = pgrainc_to_food(p,n)
+              grainn_to_food(p) = pgrainn_to_food(p,n)
+   
+              harvest_counter(p) = harvest_counter(p) + 1
+             !do pruning at the time of harvest
+             !adjust mxlivenp and leaf_long/mxgdd so as to prune nearly every 6 month
+             !  if (nlevcan > 1 .and. prune(p) .and. livep(p,n) == 0._r8) then
+             if (prune(p)) then
+               where (livep(p,:) == 0._r8)
+                  pleafc_to_litter(p,:) = pleafc(p,:) /dt  !all remaining leafc moves to litter
+                  pleafn_to_litter(p,:) = pleafn(p,:) /dt  !no N retranslocation when pruning
+                  rankp(p,:) = 0  !update rankp only after finishing pruning and C/N update
+               end where
+               leafc_to_litter(p) = sum(pleafc_to_litter(p,:))
+               leafn_to_litter(p) = sum(pleafn_to_litter(p,:))
+             end if
+   
+           else if (perennial(ivt(p)) == 1) then
+              t1 = 1.0_r8 / dt
+              grainc_to_food(p) = t1 * grainc(p)  + cpool_to_grainc(p)
+              grainn_to_food(p) = t1 * grainn(p)  + npool_to_grainn(p)
+           end if
+         end if
+   
+         ! calculate fluxes during offset period (a one time step for crops; multiple days for trees)
+         ! for oil palm offset means the final harvest/rotation at every 25-30 years (Y.Fan)
          if (offset_flag(p) == 1._r8) then
+            ! adding harvest/rotation stem C/N into litter pool will dramatically increase LITTERC_HR which will drain out SMINN very soon!
+            ! adding deadstem (accounting for 90% of total pft C after 25 years) to product pool instead of litter pool to avoid using up soil mineral N
+            ! otherwise have to use fertilization continuously to maintain sufficient SMINN!  (Y.Fan 2016)
+            if (phytomer(ivt(p)) > 0) then
+               t1 = 1.0_r8 / dt
+   
+               ! clear-cut carbon fluxes, remove all displayed/storage/transfer pools
+               ! the following hrv fluxes will not be added to litter pool unless using function NHarvestPftToColumn from fpftdynMod, otherwise will have C balance error
+               ! summarize into litter in CNLitterToColumn mod by calling NHarvestPftToColumn
+               ! displayed pools
+               hrv_leafc_to_litter(p)               = leafc(p)          * t1
+               hrv_leafn_to_litter(p)               = leafn(p)          * t1
+               hrv_frootc_to_litter(p)              = frootc(p)         * t1
+               hrv_frootn_to_litter(p)              = frootn(p)         * t1
+               hrv_livestemc_to_litter(p)           = livestemc(p)      * t1
+               hrv_livestemn_to_litter(p)           = livestemn(p)      * t1
+   
+               ! storage pools
+               hrv_leafc_storage_to_litter(p)       = leafc_storage(p)  * t1
+               hrv_leafn_storage_to_litter(p)       = leafn_storage(p)  * t1
+               hrv_gresp_storage_to_litter(p)       = gresp_storage(p)  * t1
+   
+               ! transfer pools
+               hrv_leafc_xfer_to_litter(p)          = leafc_xfer(p)     * t1
+               hrv_leafn_xfer_to_litter(p)          = leafn_xfer(p)     * t1
+               hrv_gresp_xfer_to_litter(p)          = gresp_xfer(p)     * t1
+   
+               ! N retransn pool also move to litter
+               hrv_retransn_to_litter(p)            = retransn(p)       * t1
+   
+               ! updated in CNSummary and included in C balance check
+               hrv_xsmrpool_to_atm(p)               = xsmrpool(p)       * t1
+   
+               !wood product pool (prod10c/prod100c updates even without fpftdyn), included in totcolc for C balance
+               !this pool is large and cannot be added into litter, otherwise will drain out SMINN soon! (Y.Fan 2016)
+               hrv_deadstemc_to_prod10c(p)          = deadstemc(p)      * t1 * &
+                   pprodharv10(ivt(p))
+               hrv_deadstemc_to_prod100c(p)         = deadstemc(p)      * t1 * &
+                   (1.0_r8 - pprodharv10(ivt(p)))
+               hrv_deadstemn_to_prod10n(p)          = deadstemn(p)      * t1 * &
+                   pprodharv10(ivt(p))
+               hrv_deadstemn_to_prod100n(p)         = deadstemn(p)      * t1 * &
+                   (1.0_r8 - pprodharv10(ivt(p)))
+   
+               !grain C/N all saved in food export pool (totfoodc)
+               grainc_to_food(p) = t1 *grainc(p)  + cpool_to_grainc(p)
+               grainn_to_food(p) = t1 *grainn(p)  + npool_to_grainn(p)
+   
+               ! clear-up phytomer pools too
+               pgrainc_to_food(p,:)           = t1 * pgrainc(p,:)  !+ cpool_to_pgrainc(p,:)
+               pgrainn_to_food(p,:)           = t1 * pgrainn(p,:)  !+ npool_to_pgrainn(p,:)
+               pleafc_to_litter(p,:)          = t1 * pleafc(p,:) !+ cpool_to_pleafc(p,:)
+               pleafn_to_litter(p,:)          = t1 * pleafn(p,:) !+ npool_to_pleafn(p,:)
+               pleafc_storage_to_litter(p,:)  = t1 * pleafc_storage(p,:) !+ cpool_to_pleafc_storage(p,:)
+               pleafn_storage_to_litter(p,:)  = t1 * pleafn_storage(p,:) !+ npool_to_pleafn_storage(p,:)
+               pleafc_xfer_to_litter(p,:)     = t1 * pleafc_xfer(p,:)
+               pleafn_xfer_to_litter(p,:)     = t1 * pleafn_xfer(p,:)
 
-            if (offset_counter(p) == dt) then
+            !for annual crops and trees
+            else if (offset_counter(p) == dt) then
+            !if (offset_counter(p) == dt) then
                t1 = 1.0_r8 / dt
                leafc_to_litter(p)  = t1 * leafc(p)  + cpool_to_leafc(p)
                frootc_to_litter(p) = t1 * frootc(p) + cpool_to_frootc(p)
                ! this assumes that offset_counter == dt for crops
                ! if this were ever changed, we'd need to add code to the "else"
                if (ivt(p) >= npcropmin) then
-                  ! Replenish the seed deficits from grain, if there is enough
-                  ! available grain. (If there is not enough available grain, the seed
-                  ! deficits will accumulate until there is eventually enough grain to
-                  ! replenish them.)
-                  grainc_to_seed(p) = t1 * min(-cropseedc_deficit(p), grainc(p))
-                  grainn_to_seed(p) = t1 * min(-cropseedn_deficit(p), grainn(p))
+                  if ( subtract_cropseed ) then
+                     ! Replenish the seed deficits from grain, if there is enough
+                     ! available grain. (If there is not enough available grain, the seed
+                     ! deficits will accumulate until there is eventually enough grain to
+                     ! replenish them.)
+                     grainc_to_seed(p) = t1 * min(-cropseedc_deficit(p), grainc(p))
+                     grainn_to_seed(p) = t1 * min(-cropseedn_deficit(p), grainn(p))
+                  else
+                     ! It's not necessary to explicitly 0 these, but we do it to be clear
+                     grainc_to_seed(p) = 0._r8
+                     grainn_to_seed(p) = 0._r8
+                  end if
                   ! Send the remaining grain to the food product pool
                   grainc_to_food(p) = t1 * grainc(p)  + cpool_to_grainc(p) - grainc_to_seed(p)
                   grainn_to_food(p) = t1 * grainn(p)  + npool_to_grainn(p) - grainn_to_seed(p)
@@ -2592,22 +3461,35 @@ contains
     real(r8) :: ntovr_leaf  
     real(r8) :: denom       
     !-----------------------------------------------------------------------
-
     associate(                                                                     & 
          ivt               =>    patch%itype                                     , & ! Input:  [integer  (:) ]  patch vegetation type                                
-
          leafcn            =>    pftcon%leafcn                                   , & ! Input:  leaf C:N (gC/gN)                                  
          lflitcn           =>    pftcon%lflitcn                                  , & ! Input:  leaf litter C:N (gC/gN)                           
          frootcn           =>    pftcon%frootcn                                  , & ! Input:  fine root C:N (gC/gN)                             
 
          bglfr             =>    cnveg_state_inst%bglfr_patch                    , & ! Input:  [real(r8) (:) ]  background litterfall rate (1/s)                  
+         bglfr_p           =>    cnveg_state_inst%bglfr_p                        , & ! InOut:  [real(r8) (:,:)]  background litterfall rate for each phytomer (Y.Fan)
+         phytomer          =>    pftcon%phytomer                                 , & ! Input:  [integer (:)]   total number of phytomers in life time (if >0 use phytomer phenology)
+         leaf_long             =>    pftcon%leaf_long                            , & ! Input:  [real(r8) (:)]  leaf longevity (yrs)
+         offset_flag           =>    cnveg_state_inst%offset_flag                      , & ! Input:  [real(r8) (:)]  offset flag for perennial crop ratation
+         prune                 =>    cnveg_state_inst%prune                            , & ! Input:  [real(r8) (:)]  flag for pruning
+         np                    =>    crop_inst%np                                      , & ! Input:  [integer (:)]   total number of phytomers having appeared so far
+         rankp                 =>    crop_inst%rankp                                   , & ! Input:  [integer (:,:)]  rank of phytomers from 1=youngest to np=oldest and 0=dead
+         livep                 =>    crop_inst%livep                                   , & ! Input:  [real(r8) (:,:)]  Flag, true if this phytomer is alive
+         lfdays                =>    crop_inst%lfdays                                  , & ! Input:  [integer (:,:)]  days past leaf emergence for each phytomer
+         pleafc                =>    cnveg_carbonstate_inst%pleafc                     , & ! Input:  [real(r8) (:,:)]  (gC/m2) phytomer leaf C
+         pleafn                =>    cnveg_nitrogenstate_inst%pleafn                   , & ! Input:  [real(r8) (:,:)]  (gN/m2) phytomer leaf N
+         pleafc_to_litter      =>    cnveg_carbonflux_inst%pleafc_to_litter            , & ! InOut:  [real(r8) (:,:)]  phytomer leaf C litterfall (gC/m2/s)
+         pleafn_to_litter      =>    cnveg_nitrogenflux_inst%pleafn_to_litter          , & ! InOut:  [real(r8) (:,:)]  phytomer leaf N litterfall (gN/m2/s)
+         pleafn_to_retransn    =>    cnveg_nitrogenflux_inst%pleafn_to_retransn        , & ! Input:  [real(r8) (:,:)] phytomer leaf N restranslocation (gN/m2/s)
+         leafc_senescent       =>    cnveg_carbonstate_inst%leafc_senescent            , & ! InOut:  [real(r8) (:)]  (gC/m2) leaf C saved for pruning (added by Y.Fan)
+         leafn_senescent       =>    cnveg_nitrogenstate_inst%leafn_senescent          , & ! InOut:  [real(r8) (:)]  (gN/m2) leaf N saved for pruning (added by Y.Fan)
 
          leafc             =>    cnveg_carbonstate_inst%leafc_patch              , & ! Input:  [real(r8) (:) ]  (gC/m2) leaf C                                    
          frootc            =>    cnveg_carbonstate_inst%frootc_patch             , & ! Input:  [real(r8) (:) ]  (gC/m2) fine root C                               
          
          leafc_to_litter   =>    cnveg_carbonflux_inst%leafc_to_litter_patch     , & ! Output: [real(r8) (:) ]                                                    
          frootc_to_litter  =>    cnveg_carbonflux_inst%frootc_to_litter_patch    , & ! Output: [real(r8) (:) ]                                                    
-
          leafn             =>    cnveg_nitrogenstate_inst%leafn_patch            , & ! Input:  [real(r8) (:) ]  (gN/m2) leaf N  
          frootn            =>    cnveg_nitrogenstate_inst%frootn_patch           , & ! Input:  [real(r8) (:) ]  (gN/m2) fine root N 
          leafn_to_litter   =>    cnveg_nitrogenflux_inst%leafn_to_litter_patch   , & ! Output: [real(r8) (:) ]                                                    
@@ -2623,8 +3505,47 @@ contains
       do fp = 1,num_soilp
          p = filter_soilp(fp)
 
+        ! for palm phenology, use phytomer-specific senescence function
+        ! if prune = True, the remaining CN flux is calculated in CNOffsetLitterfall
+         if (.not. prune(p) .and. offset_flag(p) /= 1._r8 .and. phytomer(ivt(p)) > 0) then
+            !update leaf C to reduce photosynthetic LAI of senescent phytomer
+            !leaf N is also reduced via retranslocation
+            where (bglfr_p(p,:) > 0._r8 .and. pleafc(p,:) > 0._r8 )
+                pleafc_to_litter(p,:) = bglfr_p(p,:) * pleafc(p,:)
+                pleafn_to_litter(p,:) = pleafc_to_litter(p,:) / lflitcn(ivt(p))
+                pleafn_to_retransn(p,:) = bglfr_p(p,:) * pleafn(p,:) - pleafn_to_litter(p,:) !avoild using leaf CN ratio
+            endwhere
+!            !for dynamic N scheme, possible further N downscaling during leaf senescence
+!            !additional N retranslocation to decrease leaf N concentration until C:N ratio reaches that of leaf litter
+!            !LAI has more control on photosynthetic capacity than N downscaling because vcmax can only reduce a half by N removal
+!                where (bglfr_p(p,:) > 0._r8 .and. pleafn(p,:) > pleafc(p,:)/lflitcn(ivt(p)) )
+!                    !pleafn_to_retransn(p,:) = bglfr_p(p,:) * (pleafn(p,:) - pleafc(p,:)/lflitcn(ivt(p)))
+!                    !this equation is equivalent to the above pleafn_to_retransn
+!                    pleafn_to_retransn(p,:) = 1.2_r8 * bglfr_p(p,:) * (pleafn(p,:) - pleafc(p,:)/lflitcn(ivt(p)))
+!                endwhere
+!            end if
+            !Since SUM is a nonelemental function, it is evaluated fully for all items of a variable included in sum().
+            !do not use sum in where/elsewhere clause, use mask condition instead
+            !leafc_senescent(p) = leafc_senescent(p) + sum(pleafc_to_litter(p,:), mask=(livep(p,:) == 0._r8 .and. rankp(p,:) > 0))*dt
+            !leafn_senescent(p) = leafn_senescent(p) + sum(pleafn_to_litter(p,:), mask=(livep(p,:) == 0._r8 .and. rankp(p,:) > 0))*dt
+            leafc_senescent(p) = leafc_senescent(p) + sum(pleafc_to_litter(p,:))*dt
+            leafn_senescent(p) = leafn_senescent(p) + sum(pleafn_to_litter(p,:))*dt
+            !at pruning, move senescent pools to litter in CNLitterToColum
+
+            leafc_to_litter(p) = sum(pleafc_to_litter(p,:)) !only meant for real-time updating leafc and leafn for maintenance respriation
+            leafn_to_litter(p) = sum(pleafn_to_litter(p,:)) !but they don't actually go to litter pool except at the time step of pruning
+            leafn_to_retransn(p) = sum(pleafn_to_retransn(p,:)) !use explicit N profile for each layer
+         end if
+
          ! only calculate these fluxes if the background litterfall rate is non-zero
          if (bglfr(p) > 0._r8) then
+
+          if (phytomer(ivt(p)) > 0) then
+            !bglfr rate for fine root, assume the same as leaf turnover rate, like other PFTs
+            frootc_to_litter(p) = bglfr(p) * frootc(p)
+            !frootn_to_litter(p) = bglfr(p) * frootn(p)
+          else !for trees and other crops
+
             ! units for bglfr are already 1/s
             leafc_to_litter(p)  = bglfr(p) * leafc(p)
             frootc_to_litter(p) = bglfr(p) * frootc(p)
@@ -2688,6 +3609,8 @@ contains
                endif
             end if
 
+          end if !condition for palm specific bglfr
+
          end if
 
       end do
@@ -2723,20 +3646,18 @@ contains
 
     associate(                                                                                   & 
          ivt                      =>    patch%itype                                              , & ! Input:  [integer  (:) ]  patch vegetation type                                
-
+         bglfr                    =>    cnveg_state_inst%bglfr_patch                          , & ! Input:  [real(r8) (:) ]  background litterfall rate (1/s)      
+         phytomer                 =>    pftcon%phytomer                                       , & ! Input:  [integer (:)]   total number of phytomers in life time (>0 use the new PhytomerPhenology) (added by Y.Fan) 
          woody                    =>    pftcon%woody                                           , & ! Input:  binary flag for woody lifeform (1=woody, 0=not woody)
          livewdcn                 =>    pftcon%livewdcn                                        , & ! Input:  live wood (phloem and ray parenchyma) C:N (gC/gN) 
          deadwdcn                 =>    pftcon%deadwdcn                                        , & ! Input:  dead wood (xylem and heartwood) C:N (gC/gN)       
-
          livestemc                =>    cnveg_carbonstate_inst%livestemc_patch                 , & ! Input:  [real(r8) (:) ]  (gC/m2) live stem C                               
          livecrootc               =>    cnveg_carbonstate_inst%livecrootc_patch                , & ! Input:  [real(r8) (:) ]  (gC/m2) live coarse root C                        
-
          livestemn                =>    cnveg_nitrogenstate_inst%livestemn_patch               , & ! Input:  [real(r8) (:) ]  (gN/m2) live stem N                               
          livecrootn               =>    cnveg_nitrogenstate_inst%livecrootn_patch              , & ! Input:  [real(r8) (:) ]  (gN/m2) live coarse root N                        
          
          livestemc_to_deadstemc   =>    cnveg_carbonflux_inst%livestemc_to_deadstemc_patch     , & ! Output: [real(r8) (:) ]                                                    
          livecrootc_to_deadcrootc =>    cnveg_carbonflux_inst%livecrootc_to_deadcrootc_patch   , & ! Output: [real(r8) (:) ]                                                    
-
          livestemn_to_deadstemn   =>    cnveg_nitrogenflux_inst%livestemn_to_deadstemn_patch   , & ! Output: [real(r8) (:) ]                                                    
          livestemn_to_retransn    =>    cnveg_nitrogenflux_inst%livestemn_to_retransn_patch    , & ! Output: [real(r8) (:) ]                                                    
          livecrootn_to_deadcrootn =>    cnveg_nitrogenflux_inst%livecrootn_to_deadcrootn_patch , & ! Output: [real(r8) (:) ]                                                    
@@ -2752,7 +3673,17 @@ contains
          ! only calculate these fluxes for woody types
          if (woody(ivt(p)) > 0._r8) then
 
-            ! live stem to dead stem turnover
+          !for oil palm, use the same turnover rate for leaf and froot except that 6% of stem is assumed alive according to van Kraalingen et al. 1989
+          !oil palm's trunk below the lowest leaf contains only 6% actively respiring tissue compared to a 100% active upper trunk section
+          !it is equivalent to consider that most stem C (94%) accumulated during the life of a leaf attached to the stem section becomes dead.
+          !only the stem C being accumulated together with alive leaves are considered 100% active (Y.Fan)
+          if (phytomer(ivt(p)) > 0) then
+            livestemc_to_deadstemc(p) = bglfr(p) * livestemc(p)*(1._r8 - 0.06_r8)
+            livestemn_to_deadstemn(p) = livestemc_to_deadstemc(p) / deadwdcn(ivt(p))
+            livestemn_to_retransn(p) = bglfr(p) * livestemn(p)*(1._r8 - 0.06_r8) - livestemn_to_deadstemn(p)
+          else
+           !for other woody plants (Y.Fan)
+           ! live stem to dead stem turnover
 
             ctovr = livestemc(p) * lwtop
             ntovr = ctovr / livewdcn(ivt(p))
@@ -2795,11 +3726,12 @@ contains
                livestemn_to_retransn(p)  = 0.0_r8
             endif
 
+          end if
          end if
 
       end do
 
-    end associate 
+    end associate
 
   end subroutine CNLivewoodTurnover
 
@@ -2891,6 +3823,18 @@ contains
     associate(                                                                                & 
          leaf_prof                 => leaf_prof_patch                                       , & ! Input:  [real(r8) (:,:) ]  (1/m) profile of leaves                         
          froot_prof                => froot_prof_patch                                      , & ! Input:  [real(r8) (:,:) ]  (1/m) profile of fine roots                     
+         phytomer                  =>    pftcon%phytomer                                    , & ! Input:  [integer (:)]   total number of phytomers in life time (>0 use the new PhytomerPhenology) (added by Y.Fan)
+         leafc_senescent           =>    cnveg_carbonstate_inst%leafc_senescent             , & ! InOut:  [real(r8) (:)]  (gC/m2) leaf C saved for pruning (added by Y.Fan)
+         leafn_senescent           =>    cnveg_nitrogenstate_inst%leafn_senescent             , & ! InOut:  [real(r8) (:)]  (gN/m2) leaf N saved for pruning (added by Y.Fan)
+         offset_flag               =>    cnveg_state_inst%offset_flag                      , & ! Input:  [real(r8) (:)]  offset flag for perennial crop ratation (Y.Fan0
+         prune                     =>    cnveg_state_inst%prune                            , & ! Input:  [real(r8) (:)]  flag for pruning (Y.Fan)
+         woody                     =>    pftcon%woody                                      , & ! Input:  [real(r8) (:)]  binary flag for woody lifeform (1=woody, 0=not woody)
+         deadstemc_to_litter       =>    cnveg_carbonflux_inst%deadstemc_to_litter         , & ! InOut:  [real(r8) (:)]  dead stem C litterfall (gC/m2/s) (Y.Fan)
+         deadstemn_to_litter       =>    cnveg_nitrogenflux_inst%deadstemn_to_litter         , & ! InOut:  [real(r8) (:)]  deadstem N to litter (gN/m2/s) (Y.Fan)
+         livecrootc_to_litter      =>    cnveg_carbonflux_inst%livecrootc_to_litter        , & ! InOut:  [real(r8) (:)]  live coarse root C litterfall (gC/m2/s) (Y.Fan)
+         deadcrootc_to_litter      =>    cnveg_carbonflux_inst%deadcrootc_to_litter        , & ! InOut:  [real(r8) (:)]  dead coarse root C litterfall (gC/m2/s) (Y.Fan)
+         livecrootn_to_litter      =>    cnveg_nitrogenflux_inst%livecrootn_to_litter        , & ! InOut:  [real(r8) (:)]  live coarse root N litter (gN/m2/s) (Y.Fan)
+         deadcrootn_to_litter      =>    cnveg_nitrogenflux_inst%deadcrootn_to_litter        , & ! InOut:  [real(r8) (:)]  dead coarse root N litter (gN/m2/s) (Y.Fan)
 
          ivt                       => patch%itype                                             , & ! Input:  [integer  (:)   ]  patch vegetation type                                
          wtcol                     => patch%wtcol                                             , & ! Input:  [real(r8) (:)   ]  weight (relative to column) for this patch (0-1)    
@@ -2928,6 +3872,47 @@ contains
                   p = col%patchi(c) + pi - 1
                   if (patch%active(p)) then
 
+                    !for oil palm, only move senescnet pool to litter at the time of pruning
+                    if (phytomer(ivt(p)) > 0) then
+                       ! leaf litter carbon fluxes
+                       if (prune(p) .or. offset_flag(p) == 1._r8) then
+                          !do not write two conditions together like (phytomer(ivt(p)) > 0 .and. prune(p)),
+                          !otherwise the else block below will execute and leafc_to_litter will move to litter pool at every time step and cause cbalance error
+                          !for palm structure, leafc_to_litter(p) only meant for real-time updating leafc in CNCStateUpdate1Mod for respiration cost
+                          !here leafc_to_litter(p) only comes together with leafc_senescent(p) for one time step at each pruning
+                          phenology_c_to_litr_met_c(c,j) = phenology_c_to_litr_met_c(c,j) &
+                              + (leafc_to_litter(p) + leafc_senescent(p)/dt) * lf_flab(ivt(p)) * wtcol(p) * leaf_prof(p,j)
+                          phenology_c_to_litr_cel_c(c,j) = phenology_c_to_litr_cel_c(c,j) &
+                              + (leafc_to_litter(p) + leafc_senescent(p)/dt) * lf_fcel(ivt(p)) * wtcol(p) * leaf_prof(p,j)
+                          phenology_c_to_litr_lig_c(c,j) = phenology_c_to_litr_lig_c(c,j) &
+                              + (leafc_to_litter(p) + leafc_senescent(p)/dt) * lf_flig(ivt(p)) * wtcol(p) * leaf_prof(p,j)
+
+                          ! leaf litter nitrogen fluxes
+                          phenology_n_to_litr_met_n(c,j) = phenology_n_to_litr_met_n(c,j) &
+                              + (leafn_to_litter(p) + leafn_senescent(p)/dt) * lf_flab(ivt(p)) * wtcol(p) * leaf_prof(p,j)
+                          phenology_n_to_litr_cel_n(c,j) = phenology_n_to_litr_cel_n(c,j) &
+                              + (leafn_to_litter(p) + leafn_senescent(p)/dt) * lf_fcel(ivt(p)) * wtcol(p) * leaf_prof(p,j)
+                          phenology_n_to_litr_lig_n(c,j) = phenology_n_to_litr_lig_n(c,j) &
+                              + (leafn_to_litter(p) + leafn_senescent(p)/dt) * lf_flig(ivt(p)) * wtcol(p) * leaf_prof(p,j)
+
+                          ! clear up the senescent pools
+                          leafc_senescent(p) = 0._r8
+                          leafn_senescent(p) = 0._r8
+
+                          !at final rotation
+                          if (offset_flag(p) == 1._r8)
+                             call CNHarvestPftToColumn(num_soilc, filter_soilc)
+                             !must need to summarize hrv fluxes to column level, use the function from pftdynMod
+                          end if
+                          !the CNHarvestPftToColumn function will summarize both leaf/froot/livestem pools to litter materials met_c/cel_c/lig_c &
+                          !and also summarize wood product pools (hrv_deadstemc_to_prod10c/hrv_deadstemc_to_prod100c) to column level
+
+                          ! deadstem is added to 10-year wood product pool instead (Y.Fan 2016)
+                          ! adding deadstem into litter pool will dramatically increase LITTERC_HR which will drain out SMINN very soon!
+                       end if
+
+                    else
+
                      ! leaf litter carbon fluxes
                      phenology_c_to_litr_met_c(c,j) = phenology_c_to_litr_met_c(c,j) &
                           + leafc_to_litter(p) * lf_flab(ivt(p)) * wtcol(p) * leaf_prof(p,j)
@@ -2943,6 +3928,7 @@ contains
                           + leafn_to_litter(p) * lf_fcel(ivt(p)) * wtcol(p) * leaf_prof(p,j)
                      phenology_n_to_litr_lig_n(c,j) = phenology_n_to_litr_lig_n(c,j) &
                           + leafn_to_litter(p) * lf_flig(ivt(p)) * wtcol(p) * leaf_prof(p,j)
+                    end if
 
                      ! fine root litter carbon fluxes
                      phenology_c_to_litr_met_c(c,j) = phenology_c_to_litr_met_c(c,j) &
@@ -2981,6 +3967,53 @@ contains
                              + livestemn_to_litter(p) * lf_fcel(ivt(p)) * wtcol(p) * leaf_prof(p,j)
                         phenology_n_to_litr_lig_n(c,j) = phenology_n_to_litr_lig_n(c,j) &
                              + livestemn_to_litter(p) * lf_flig(ivt(p)) * wtcol(p) * leaf_prof(p,j)
+
+                        if(woody(ivt(p)) == 1.0_r8) then  !added for woody crop types (Y.Fan)
+                            !dead stem
+                            phenology_c_to_litr_met_c(c,j) = phenology_c_to_litr_met_c(c,j) &
+                              + deadstemc_to_litter(p) * lf_flab(ivt(p)) * wtcol(p) * leaf_prof(p,j)
+                            phenology_c_to_litr_cel_c(c,j) = phenology_c_to_litr_cel_c(c,j) &
+                              + deadstemc_to_litter(p) * lf_fcel(ivt(p)) * wtcol(p) * leaf_prof(p,j)
+                            phenology_c_to_litr_lig_c(c,j) = phenology_c_to_litr_lig_c(c,j) &
+                              + deadstemc_to_litter(p) * lf_flig(ivt(p)) * wtcol(p) * leaf_prof(p,j)
+                           !live coarse root
+                            phenology_c_to_litr_met_c(c,j) = phenology_c_to_litr_met_c(c,j) &
+                              + livecrootc_to_litter(p) * lf_flab(ivt(p)) * wtcol(p) * leaf_prof(p,j)
+                            phenology_c_to_litr_cel_c(c,j) = phenology_c_to_litr_cel_c(c,j) &
+                              + livecrootc_to_litter(p) * lf_fcel(ivt(p)) * wtcol(p) * leaf_prof(p,j)
+                            phenology_c_to_litr_lig_c(c,j) = phenology_c_to_litr_lig_c(c,j) &
+                              + livecrootc_to_litter(p) * lf_flig(ivt(p)) * wtcol(p) * leaf_prof(p,j)
+                           !dead coarse root
+                            phenology_c_to_litr_met_c(c,j) = phenology_c_to_litr_met_c(c,j) &
+                              + deadcrootc_to_litter(p) * lf_flab(ivt(p)) * wtcol(p) * leaf_prof(p,j)
+                            phenology_c_to_litr_cel_c(c,j) = phenology_c_to_litr_cel_c(c,j) &
+                              + deadcrootc_to_litter(p) * lf_fcel(ivt(p)) * wtcol(p) * leaf_prof(p,j)
+                            phenology_c_to_litr_lig_c(c,j) = phenology_c_to_litr_lig_c(c,j) &
+                              + deadcrootc_to_litter(p) * lf_flig(ivt(p)) * wtcol(p) * leaf_prof(p,j)
+
+                           !Nitrogen fluxes: 
+                           !dead stem
+                           phenology_n_to_litr_met_n(c,j) = phenology_n_to_litr_met_n(c,j) &
+                             + deadstemn_to_litter(p) * lf_flab(ivt(p)) * wtcol(p) * leaf_prof(p,j)
+                           phenology_n_to_litr_cel_n(c,j) = phenology_n_to_litr_cel_n(c,j) &
+                             + deadstemn_to_litter(p) * lf_fcel(ivt(p)) * wtcol(p) * leaf_prof(p,j)
+                           phenology_n_to_litr_lig_n(c,j) = phenology_n_to_litr_lig_n(c,j) &
+                             + deadstemn_to_litter(p) * lf_flig(ivt(p)) * wtcol(p) * leaf_prof(p,j)
+                          !live coarse root
+                           phenology_n_to_litr_met_n(c,j) = phenology_n_to_litr_met_n(c,j) &
+                             + livecrootn_to_litter(p) * lf_flab(ivt(p)) * wtcol(p) * leaf_prof(p,j)
+                           phenology_n_to_litr_cel_n(c,j) = phenology_n_to_litr_cel_n(c,j) &
+                             + livecrootn_to_litter(p) * lf_fcel(ivt(p)) * wtcol(p) * leaf_prof(p,j)
+                           phenology_n_to_litr_lig_n(c,j) = phenology_n_to_litr_lig_n(c,j) &
+                             + livecrootn_to_litter(p) * lf_flig(ivt(p)) * wtcol(p) * leaf_prof(p,j)
+                          !dead coarse root
+                           phenology_n_to_litr_met_n(c,j) = phenology_n_to_litr_met_n(c,j) &
+                             + deadcrootn_to_litter(p) * lf_flab(ivt(p)) * wtcol(p) * leaf_prof(p,j)
+                           phenology_n_to_litr_cel_n(c,j) = phenology_n_to_litr_cel_n(c,j) &
+                             + deadcrootn_to_litter(p) * lf_fcel(ivt(p)) * wtcol(p) * leaf_prof(p,j)
+                           phenology_n_to_litr_lig_n(c,j) = phenology_n_to_litr_lig_n(c,j) &
+                             + deadcrootn_to_litter(p) * lf_flig(ivt(p)) * wtcol(p) * leaf_prof(p,j)
+                        end if
 
                         if (.not. use_grainproduct) then
                          ! grain litter carbon fluxes

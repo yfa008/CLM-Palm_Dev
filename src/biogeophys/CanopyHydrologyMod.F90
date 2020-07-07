@@ -54,6 +54,7 @@ module CanopyHydrologyMod
   real(r8) :: interception_fraction ! Fraction of intercepted precipitation
   real(r8) :: maximum_leaf_wetted_fraction ! Maximum fraction of leaf that may be wet
   logical, private :: use_clm5_fpi    = .false. ! use clm5 fpi equation
+  logical, private :: use_pft_inter    = .false. ! use pft-dependent interception function (Y.Fan 2018) 
 
   character(len=*), parameter, private :: sourcefile = &
        __FILE__
@@ -82,12 +83,13 @@ contains
     integer :: unitn                ! unit for namelist file
     character(len=32) :: subname = 'CanopyHydrology_readnl'  ! subroutine name
     !-----------------------------------------------------------------------
+
     namelist /clm_canopyhydrology_inparm/ &
          oldfflag, &
          interception_fraction, &
          maximum_leaf_wetted_fraction, &
+         use_clm5_fpi, &
          use_clm5_fpi
-
     ! ----------------------------------------------------------------------
     ! Read namelist from standard input. 
     ! ----------------------------------------------------------------------
@@ -114,6 +116,8 @@ contains
     call shr_mpi_bcast(interception_fraction, mpicom)
     call shr_mpi_bcast(maximum_leaf_wetted_fraction, mpicom)
     call shr_mpi_bcast(use_clm5_fpi, mpicom)
+    call shr_mpi_bcast(use_pft_inter, mpicom)
+
 
     if (masterproc) then
        write(iulog,*) ' '
@@ -121,6 +125,7 @@ contains
        write(iulog,*) '  interception_fraction        = ',interception_fraction
        write(iulog,*) '  maximum_leaf_wetted_fraction = ',maximum_leaf_wetted_fraction
        write(iulog,*) '  use_clm5_fpi                 = ',use_clm5_fpi
+       write(iulog,*) '  use_pft_inter                 = ',use_pft_inter
     endif
 
    end subroutine CanopyHydrology_readnl
@@ -174,6 +179,8 @@ contains
      use landunit_varcon    , only : istcrop, istwet, istsoil, istice_mec 
      use clm_varctl         , only : subgridflag
      use clm_varpar         , only : nlevsoi,nlevsno
+     ! use pftconMod          , only : noilpalm, nirrig_oilpalm ! dewmxl, dewmxs, fpimx !use pointer Y.Fan 2016
+     use pftconMod          , only : pftcon   !will allow pointing to dewmxl etc.
      use clm_time_manager   , only : get_step_size
      use subgridAveMod      , only : p2c
      use SnowHydrologyMod   , only : NewSnowBulkDensity
@@ -266,6 +273,13 @@ contains
           h2osoi_liq           => waterstatebulk_inst%h2osoi_liq_col          , & ! Output: [real(r8) (:,:) ]  liquid water (kg/m2)                  
           swe_old              => waterdiagnosticbulk_inst%swe_old_col             , & ! Output: [real(r8) (:,:) ]  snow water before update              
 
+          ivt                     => patch%itype                             , & ! Input:  [integer  (:)   ]  patch vegetation type 
+          h2oleaf              => waterstatebulk_inst%h2oleaf_patch           , & ! Output: [real(r8) (:)   ]  canopy water on leaf surfaces (mm H2O) (Y.Fan)
+          h2ostem              => waterstatebulk_inst%h2ostem_patch           , & ! Output: [real(r8) (:)   ]  canopy water on stem surfaces (mm H2O) (Y.Fan)
+          accum_h2ocan     => waterstatebulk_inst%accum_h2ocan_patch      , & ! Output: [real(r8) (:)   ]  total canopy water of the previous time step (mm H2O) for model evaluation (Y.Fan)		  
+          dewmxl                => pftcon%dewmxl                           , & ! Input:  [real(r8) (:)   ]  max dew thickness on leaf surface (Y.Fan)
+          dewmxs               => pftcon%dewmxs                           , & ! Input:  [real(r8) (:)   ]  max dew thickness on stem surface (Y.Fan)
+          fpimx                => pftcon%fpimx                            , & ! Input:  [real(r8) (:)   ]  max water interception ratio (Y.Fan)   
           qflx_floodc          => waterfluxbulk_inst%qflx_floodc_col          , & ! Output: [real(r8) (:)   ]  column flux of flood water from RTM     
           qflx_snow_drain       => waterfluxbulk_inst%qflx_snow_drain_col     , & ! Input: [real(r8) (:)   ]  drainage from snow pack from previous time step       
           qflx_snow_h2osfc     => waterfluxbulk_inst%qflx_snow_h2osfc_col     , & ! Output: [real(r8) (:)   ]  snow falling on surface water (mm/s)     
@@ -282,6 +296,7 @@ contains
           )
 
        ! Compute time step
+       
        dtime = get_step_size()
 
        ! Start patch loop
@@ -323,12 +338,43 @@ contains
                    ! Coefficient of interception
                    if(use_clm5_fpi) then 
                       fpi = interception_fraction * tanh(elai(p) + esai(p))
+
+                      ! interception_fraction is actually the max potential fraction of interception
+                      ! in clm5 the default is set as 1.0, clm4.5 uses 0.25, clm3 was using 1.0
+                      !OR use PFT-dependent max interception fraction "fpimx" (Y.Fan)
+                      !see Fan, Y., et al., 2019. Journal of Advances in Modeling Earth Systems 11, 732–751. 
+                      !https://doi.org/10.1029/2018MS001490
+                      if (use_pft_inter) then ! with clm5 tanh function
+                         fpi = fpimx(ivt(p)) * tanh(elai(p) + esai(p))
+                      end if 
+
                    else
                       fpi = 0.25_r8*(1._r8 - exp(-0.5_r8*(elai(p) + esai(p))))
+                      if (use_pft_inter) then ! with clm4.5 exp function
+                         fpi = fpimx(ivt(p))*(1._r8 - exp(-0.5_r8*(elai(p) + esai(p))))
+                      end if
+                      !use pft-dependent fpimx parameter: 1 for oil palm, 0.25 for forests and other PFTs (Y.Fan)
+                      !the resulting fpi ranges from 0.1 to 0.24 for lai from 1 to 7 when fpimx=0.25
+
                    endif
 
                    snocanmx = params_inst%sno_stor_max * (elai(p) + esai(p))  ! 6*(LAI+SAI)
                    liqcanmx = params_inst%dewmx * (elai(p) + esai(p))
+
+
+
+                !  use PFT-dependent maximum interception as below (Y.Fan)
+                   ! dewmx is set as a constant 0.1 [mm m-2] for all PFTs in CanopyStateType.F90
+                   ! here use PFT specific dewmx for leaf and stem surfaces (Y.Fan)
+                   ! stem surface could store more water (thicker water film) than leaf for some plants
+                   !Canoak use 1.0 interception efficiency (fpi) and 0.4 water film thickness (dewmx), 
+                   !wet from both sides [mm m-2 LAI]            
+                   !use separate leaf and stem storage for oil palm (Y.Fan)
+                  if (dewmxs(ivt(p)) > 0._r8) then 
+                     !applicable to both forest and oil palm, use dewmxs=0 to turn off separate treatment of leaf and stem
+                     liqcanmx = dewmxl(ivt(p)) * elai(p) + dewmxs(ivt(p)) * esai(p)
+                     dewmx(p) = liqcanmx / (elai(p) + esai(p))
+                  end if  !use identical dewmx1 and dewmxs will be same as one dewmx
 
                    fpisnow = (1._r8 - exp(-0.5_r8*(elai(p) + esai(p))))  ! max interception of 1
                    ! Direct throughfall
@@ -341,6 +387,29 @@ contains
                    snocan(p) = max(0._r8, snocan(p) + dtime*forc_snow(c)*fpisnow)
                    liqcan(p) = max(0._r8, liqcan(p) + dtime*qflx_liq_above_canopy(p)*fpi)
                    
+
+
+                   !Add separate liq water pools (snow not relevant) for leaf and stem (assume dewmxl < dewmxs) for oil palm (Y.Fan)
+                   !h2oleaf/h2ostem should be renamed to liqleaf/liqstem for oil palm but leave them as it is now (later have to update all scripts) 
+                   !h2ocan/h2oleaf/h2ostem all updated by evaporation loss in CanopyFluxesMod
+
+                   if (dewmxs(ivt(p)) > 0._r8) then
+                     !apply to both forest and oil palm, use dewmxs=0 to turn off
+                     !separate treatment of leaf and stem
+                     h2oleaf(p) = max(0._r8, h2oleaf(p) + dtime*qflx_liq_above_canopy(p)*fpi* &
+                                    elai(p)/(elai(p) + esai(p)))
+                     h2ostem(p) = max(0._r8, h2ostem(p) + dtime*qflx_liq_above_canopy(p)*fpi* &
+                                    esai(p)/(elai(p) + esai(p)))
+                     if (liqcan(p) > liqcanmx) then
+                        h2oleaf(p) = dewmxl(ivt(p)) * elai(p)
+                        h2ostem(p) = dewmxs(ivt(p)) * esai(p)
+                     else if (h2oleaf(p) > (dewmxl(ivt(p)) * elai(p))) then !when leaf pool is full, excess water drains to stem
+                        h2oleaf(p) = dewmxl(ivt(p)) * elai(p)
+                        h2ostem(p) = liqcan(p) - dewmxl(ivt(p)) * elai(p)
+                     end if
+                  end if
+
+
                    ! Initialize rate of canopy runoff and snow falling off canopy
                    qflx_snocanfall(p) = 0._r8
                    qflx_liqcanfall(p) = 0._r8
@@ -359,6 +428,17 @@ contains
                       qflx_snocanfall(p) = xsnorun
                       snocan(p) = snocanmx
                    end if
+   
+                  !use the following to accumulate total water interception per pft (Y.Fan)
+                  !interception minus canopy runoff
+                  accum_h2ocan(p) =  max(0._r8, accum_h2ocan(p) + dtime*(qflx_prec_intr(p)-qflx_candrip(p)))
+
+!                 !add monthly summary of interception
+!                 if (is_end_curr_month()) then
+!                    monsum_h2ocan(p) = tempsum_h2ocan(p)
+!                    tempsum_h2ocan(p) = 0._r8
+!                 end if
+   
                 end if
              end if
 
@@ -640,6 +720,8 @@ contains
      !
      ! ! USES:
      use clm_varcon         , only : tfrz
+     ! use pftconMod          , only : noilpalm, nirrig_oilpalm
+     use pftconMod          , only : pftcon
      ! !ARGUMENTS:
      integer                , intent(in)    :: numf                  ! number of filter non-lake points
      integer                , intent(in)    :: filter(numf)          ! patch filter for non-lake points
@@ -652,6 +734,7 @@ contains
      real(r8) :: h2ocan           ! total canopy water (mm H2O)
      real(r8) :: vegt             ! lsai
      real(r8) :: dewmxi           ! inverse of maximum allowed dew [1/mm]
+     real(r8) :: vegl,vegs,fwet1,fwet2 !separate treatment of leaf and stem interception for oil palm and other pfts (Y.Fan 2016)	 
      !-----------------------------------------------------------------------
 
      associate(                                              & 
@@ -661,6 +744,13 @@ contains
 
           snocan         => waterstatebulk_inst%snocan_patch          , & ! Input:  [real(r8) (:)   ]  canopy snow (mm H2O)             
           liqcan         => waterstatebulk_inst%liqcan_patch          , & ! Input:  [real(r8) (:)   ]  canopy liquid (mm H2O)
+
+          h2oleaf        => waterstatebulk_inst%h2oleaf_patch     , & ! Input:  [real(r8) (:) ]  canopy water on leaf surfaces (mm H2O) (Y.Fan)
+          h2ostem        => waterstatebulk_inst%h2ostem_patch     , & ! Input:  [real(r8) (:) ]  canopy water on stem surfaces (mm H2O) (Y.Fan)
+          ivt            => patch%itype                           , & ! Input:  [integer  (:) ]  patch vegetation type
+          dewmxl         => pftcon%dewmxl                         , & ! Input:  [real(r8) (:) ]  max dew thickness on leaf surface (Y.Fan)
+          dewmxs         => pftcon%dewmxs                         , & ! Input:  [real(r8) (:) ]  max dew thickness on stem surface (Y.Fan)
+          fwetmx         => pftcon%fwetmx                         , & ! Input:  [real(r8) (:) ] 
 
           fwet           => waterdiagnosticbulk_inst%fwet_patch            , & ! Output: [real(r8) (:) ]  fraction of canopy that is wet (0 to 1) 
           fcansno        => waterdiagnosticbulk_inst%fcansno_patch         , & ! Output: [real(r8) (:) ]  fraction of canopy that is snow covered (0 to 1) 
@@ -677,6 +767,12 @@ contains
                 dewmxi  = 1.0_r8/params_inst%dewmx  ! wasteful division
                 fwet(p) = ((dewmxi/vegt)*h2ocan)**0.666666666666_r8
                 fwet(p) = min (fwet(p),maximum_leaf_wetted_fraction)   ! Check for maximum limit of fwet
+                !currently maximum_leaf_wetted_fraction is set as 0.05 in clm5_0 but 1.0 in clm4_5
+                if (use_pft_inter) then
+                   fwet(p) = min (fwet(p), fwetmx(ivt(p)))  !use PFT-dependent fwet limit (Y.Fan 2018)
+                end if
+
+
                 if (snocan(p) > 0._r8) then
                    dewmxi  = 1.0_r8/params_inst%dewmx  ! wasteful division
                    fcansno(p) = ((dewmxi / (vegt * params_inst%sno_stor_max * 10.0_r8)) * snocan(p))**0.15_r8 ! must match snocanmx 
@@ -689,6 +785,36 @@ contains
                 fcansno(p) = 0._r8
              end if
              fdry(p) = (1._r8-fwet(p))*elai(p)/(elai(p)+esai(p))
+             !!only dry leaves can transpire
+             !separate treatment of leaf and stem for canopy water storage for oil palm and other pfts  (Y.Fan 2016)
+             !no need to consider snow for tropics
+
+             if (use_pft_inter .and. dewmxs(ivt(p)) > 0._r8) then 
+             !apply to both forest and oil palm, use dewmxs=0 to turn off separate treatment of leaf and stem 
+                 vegl    = frac_veg_nosno(p)*elai(p)
+                 vegs    = frac_veg_nosno(p)*esai(p)
+                 vegt    = frac_veg_nosno(p)*(elai(p) + esai(p))
+
+                 fwet1 = min(1.0_r8, (h2oleaf(p)/(dewmxl(ivt(p))*vegl))**0.666666666666_r8 )
+                 fwet2 = min(1.0_r8, (h2ostem(p)/(dewmxs(ivt(p))*vegs))**0.666666666666_r8 )
+                 
+                 !overall wet/dry parameters for use with rpp in CanopyFluxesMod (line 962)
+                 !no need to differentiate leaf and stem for rpp, the potential
+                 !evaporatie rate is assumed the same in CanopyFluxesMod
+                 fwet(p) = (fwet1*elai(p) + fwet2*esai(p))/(elai(p)+esai(p)) !normalized fwet for use with canopy averaged rpp(Y.Fan 2018)  
+                 ! fwet(p) = (h2ocan(p)/(dewmx(p)*vegt))**0.666666666666_r8 !not correct for seperate treatment
+                 ! fwetmx i.e. maximum_leaf_wetted_fraction ! 1.0 for oil palm (Y.Fan)
+                 fwet(p) = min (fwet(p), fwetmx(ivt(p))) !fwet is used  for calculating canopy averaged rpp 
+                 fwet1   = min (fwet1, fwetmx(ivt(p)))  ! leaf wetness also subject to restriction for calculating fdry
+                 ! fwet1 = fwet2 = fwet in default model, so fdry and rpp can use the same fwet when dewmxs is off
+
+                 ! fdry(p) = (1._r8-fwet(p))*elai(p)/(elai(p)+esai(p)) !wrong for seperate treatment
+                 ! use fwet1 of leaf to calculate fdry of leaf, do not use total fwet (Y.Fan 2018)
+                 ! fdry is normalized by (elai(p)+esai(p)) for calculating rpp in CanopyFluxesMod
+                 fdry(p) = (1._r8-fwet1)*elai(p)/(elai(p)+esai(p))
+                 ! fdry is only for leaves, equal to 1-fwet1
+             end if
+ 
           else
              fwet(p) = 0._r8
              fdry(p) = 0._r8

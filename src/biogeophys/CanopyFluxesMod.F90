@@ -520,6 +520,8 @@ contains
          snocan                 => waterstatebulk_inst%snocan_patch                 , & ! Output: [real(r8) (:)   ]  canopy snow (mm H2O)                                                 
          liqcan                 => waterstatebulk_inst%liqcan_patch                 , & ! Output: [real(r8) (:)   ]  canopy liquid (mm H2O)                                                 
          snounload              => waterdiagnosticbulk_inst%snounload_patch              , & ! Output: [real(r8) (:)   ]  canopy snow unloading mass (mm H2O)
+         h2oleaf                => waterstatebulk_inst%h2oleaf_patch                , & ! Output: [real(r8) (:)   ]  canopy water on leaf surfaces (mm H2O) (Y.Fan)
+         h2ostem                => waterstatebulk_inst%h2ostem_patch                , & ! Output: [real(r8) (:)   ]  canopy water on stem surfaces (mm H2O) (Y.Fan)                                                
 
          q_ref2m                => waterdiagnosticbulk_inst%q_ref2m_patch                , & ! Output: [real(r8) (:)   ]  2 m height surface specific humidity (kg/kg)                          
          rh_ref2m_r             => waterdiagnosticbulk_inst%rh_ref2m_r_patch             , & ! Output: [real(r8) (:)   ]  Rural 2 m height surface relative humidity (%)                        
@@ -1305,6 +1307,13 @@ contains
                snocan(p)=snocan(p)+liqcan(p)+(qflx_tran_veg(p)-qflx_evap_veg(p))*dtime	 
             end if
             liqcan(p) = max(0._r8,liqcan(p)+(qflx_tran_veg(p)-qflx_evap_veg(p))*dtime)
+         ! Update two new pools using the proportation of evaporation from leaf and
+         ! stem respectively (Y.Fan 2016)
+           h2oleaf(p) = max(0._r8,h2oleaf(p)-(qflx_evap_veg(p)-qflx_tran_veg(p))*dtime* &
+                           elai(p)/(elai(p) + esai(p)))
+           h2ostem(p) = max(0._r8,h2ostem(p)-(qflx_evap_veg(p)-qflx_tran_veg(p))*dtime* &
+                           esai(p)/(elai(p) + esai(p)))
+   
 
          else if (t_veg(p) <= tfrz) then ! below freezing, update accumulation in snocan
             if ((qflx_evap_veg(p)-qflx_tran_veg(p))*dtime > snocan(p)) then ! all sno evap

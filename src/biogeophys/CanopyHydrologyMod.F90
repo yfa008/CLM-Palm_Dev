@@ -54,7 +54,6 @@ module CanopyHydrologyMod
   real(r8) :: interception_fraction ! Fraction of intercepted precipitation
   real(r8) :: maximum_leaf_wetted_fraction ! Maximum fraction of leaf that may be wet
   logical, private :: use_clm5_fpi    = .false. ! use clm5 fpi equation
-
   logical, private :: use_pft_inter    = .false. ! use pft-dependent interception function (Y.Fan 2018) 
 
   character(len=*), parameter, private :: sourcefile = &
@@ -339,7 +338,6 @@ contains
                    if(use_clm5_fpi) then 
                       fpi = interception_fraction * tanh(elai(p) + esai(p))
 
-
                       ! interception_fraction is actually the max potential fraction of interception
                       ! in clm5 the default is set as 1.0, clm4.5 uses 0.25, clm3 was using 1.0
                       !OR use PFT-dependent max interception fraction "fpimx" (Y.Fan)
@@ -351,7 +349,6 @@ contains
 
                    else
                       fpi = 0.25_r8*(1._r8 - exp(-0.5_r8*(elai(p) + esai(p))))
-
                       if (use_pft_inter) then ! with clm4.5 exp function
                          fpi = fpimx(ivt(p))*(1._r8 - exp(-0.5_r8*(elai(p) + esai(p))))
                       end if
@@ -750,7 +747,6 @@ contains
 
           h2oleaf        => waterstatebulk_inst%h2oleaf_patch     , & ! Input:  [real(r8) (:) ]  canopy water on leaf surfaces (mm H2O) (Y.Fan)
           h2ostem        => waterstatebulk_inst%h2ostem_patch     , & ! Input:  [real(r8) (:) ]  canopy water on stem surfaces (mm H2O) (Y.Fan)
-
           ivt            => patch%itype                           , & ! Input:  [integer  (:) ]  patch vegetation type
           dewmxl         => pftcon%dewmxl                         , & ! Input:  [real(r8) (:) ]  max dew thickness on leaf surface (Y.Fan)
           dewmxs         => pftcon%dewmxs                         , & ! Input:  [real(r8) (:) ]  max dew thickness on stem surface (Y.Fan)

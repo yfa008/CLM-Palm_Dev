@@ -54,6 +54,7 @@ module CanopyHydrologyMod
   real(r8) :: interception_fraction ! Fraction of intercepted precipitation
   real(r8) :: maximum_leaf_wetted_fraction ! Maximum fraction of leaf that may be wet
   logical, private :: use_clm5_fpi    = .false. ! use clm5 fpi equation
+
   logical, private :: use_pft_inter    = .false. ! use pft-dependent interception function (Y.Fan 2018) 
 
   character(len=*), parameter, private :: sourcefile = &
@@ -245,7 +246,6 @@ contains
           zi                   => col%zi                                  , & ! Output: [real(r8) (:,:) ]  interface level below a "z" level (m) 
           dz                   => col%dz                                  , & ! Output: [real(r8) (:,:) ]  layer depth (m)                       
           z                    => col%z                                   , & ! Output: [real(r8) (:,:) ]  layer thickness (m)                   
-
           forc_rain            => wateratm2lndbulk_inst%forc_rain_downscaled_col   , & ! Input:  [real(r8) (:)   ]  rain rate [mm/s]                        
           forc_snow            => wateratm2lndbulk_inst%forc_snow_downscaled_col   , & ! Input:  [real(r8) (:)   ]  snow rate [mm/s]                        
           forc_t               => atm2lnd_inst%forc_t_downscaled_col      , & ! Input:  [real(r8) (:)   ]  atmospheric temperature (Kelvin)        
@@ -339,6 +339,7 @@ contains
                    if(use_clm5_fpi) then 
                       fpi = interception_fraction * tanh(elai(p) + esai(p))
 
+
                       ! interception_fraction is actually the max potential fraction of interception
                       ! in clm5 the default is set as 1.0, clm4.5 uses 0.25, clm3 was using 1.0
                       !OR use PFT-dependent max interception fraction "fpimx" (Y.Fan)
@@ -350,6 +351,7 @@ contains
 
                    else
                       fpi = 0.25_r8*(1._r8 - exp(-0.5_r8*(elai(p) + esai(p))))
+
                       if (use_pft_inter) then ! with clm4.5 exp function
                          fpi = fpimx(ivt(p))*(1._r8 - exp(-0.5_r8*(elai(p) + esai(p))))
                       end if
@@ -392,6 +394,7 @@ contains
                    !Add separate liq water pools (snow not relevant) for leaf and stem (assume dewmxl < dewmxs) for oil palm (Y.Fan)
                    !h2oleaf/h2ostem should be renamed to liqleaf/liqstem for oil palm but leave them as it is now (later have to update all scripts) 
                    !h2ocan/h2oleaf/h2ostem all updated by evaporation loss in CanopyFluxesMod
+
 
                    if (dewmxs(ivt(p)) > 0._r8) then
                      !apply to both forest and oil palm, use dewmxs=0 to turn off
@@ -747,6 +750,7 @@ contains
 
           h2oleaf        => waterstatebulk_inst%h2oleaf_patch     , & ! Input:  [real(r8) (:) ]  canopy water on leaf surfaces (mm H2O) (Y.Fan)
           h2ostem        => waterstatebulk_inst%h2ostem_patch     , & ! Input:  [real(r8) (:) ]  canopy water on stem surfaces (mm H2O) (Y.Fan)
+
           ivt            => patch%itype                           , & ! Input:  [integer  (:) ]  patch vegetation type
           dewmxl         => pftcon%dewmxl                         , & ! Input:  [real(r8) (:) ]  max dew thickness on leaf surface (Y.Fan)
           dewmxs         => pftcon%dewmxs                         , & ! Input:  [real(r8) (:) ]  max dew thickness on stem surface (Y.Fan)

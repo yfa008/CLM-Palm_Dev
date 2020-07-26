@@ -42,8 +42,10 @@ contains
     use pftconMod        , only : ntrp_corn, nirrig_trp_corn
     use pftconMod        , only : nsugarcane, nirrig_sugarcane
     use pftconMod        , only : pftcon
+    use pftconMod        , only : noilpalm, nirrig_oilpalm,ztopmx, laimx, mxlivenp (Y.Fan)
+    use clm_varpar       , only : nlevcan ! N canopy layers: nlevcan =1 big leaf; nlevcan >1 multilayer canopy (Y.Fan)
     use clm_varctl       , only : spinup_state
-    use clm_time_manager , only : get_rad_step_size
+    use clm_time_manager , only : get_rad_step_size, get_days_per_year ! added get_days (Y.Fan)
     !
     ! !ARGUMENTS:
     integer                      , intent(in)    :: num_soilp       ! number of column soil points in patch filter
@@ -72,7 +74,10 @@ contains
     real(r8) :: tsai_min   ! PATCH derived minimum tsai
     real(r8) :: tsai_alpha ! monthly decay rate of tsai
     real(r8) :: dt         ! radiation time step (sec)
+    integer :: n,np1,np2,i      !indices
+    real(r8):: plaimx       ! max lai per phytomer rescaled with planting density
 
+    !real(r8) :: sla         ! specific leaf area at different canopy depths, temporary
     real(r8), parameter :: dtsmonth = 2592000._r8 ! number of seconds in a 30 day month (60x60x24x30)
     !-----------------------------------------------------------------------
     ! tsai formula from Zeng et. al. 2002, Journal of Climate, p1835
@@ -108,8 +113,23 @@ contains
 
          forc_hgt_u_patch   =>  frictionvel_inst%forc_hgt_u_patch       , & ! Input:  [real(r8) (:) ] observational height of wind at patch-level [m]     
 
-         leafc              =>  cnveg_carbonstate_inst%leafc_patch      , & ! Input:  [real(r8) (:) ] (gC/m2) leaf C                                    
-         deadstemc          =>  cnveg_carbonstate_inst%deadstemc_patch  , & ! Input:  [real(r8) (:) ] (gC/m2) dead stem C                               
+        perennial           =>  pftcon%perennial         , & ! Input:  [integer (:)]  binary flag for perennial crop phenology (1=perennial, 0=not perennial) (added by Y.Fan)
+        phytomer            =>  pftcon%phytomer          , & ! Input:  [integer (:)]   total number of phytomers in life time (if >0 use phytomer phenology)
+      !  hui                 =>  pps%gddplant             , & ! Input:  [real(r8) (:)]  =gdd since planting (gddplant)
+      !  huigrnnp            =>  pps%huigrnnp             , & ! Input:  [real(r8) (:,:)]  hui needed for start of grainfill of successive phytomers
+      !  huilfmatnp          =>  pps%huilfmatnp           , & ! Input: [real(r8) (:,:)]  hui needed for leaf maturity of successive phytomers
+      !  leaf_long           =>  pftcon%leaf_long         , & ! Input:  [real(r8) (:)]  leaf longevity (yrs)
+        lfdays              =>  canopystate_inst%lfdays_patch               , & ! Input:  [integer (:,:)]  days past leaf emergence for each phytomer (Y.Fan)
+        np                  =>  canopystate_inst%np_patch                   , & ! Input:  [integer (:)]   total number of phytomers having appeared so far
+        rankp               =>  canopystate_inst%rankp_patch                , & ! Input:  [integer (:,:)]  rank of phytomers 1=youngest and 0=dead
+        !livep               =>  pps%livep                , & ! Input:  [real(r8) (:,:)] Flag, true if this phytomer is alive
+        sla                 =>  canopystate_inst%sla_patch                  , & ! Input:  [real(r8) (:,:)] specific leaf area of each phytomer (added by Y.Fan)
+        plai                =>  canopystate_inst%plai_patch                 , & ! Input:  [real(r8) (:,:)] one-sided leaf area index of each phytomer
+        pleafc              =>  cnveg_carbonstate_inst%pleafc_patch               , & ! Input:  [real(r8) (:,:)] (gC/m2) phytomer leaf C
+        plaipeak           =>  cnveg_state_inst%plaipeak_patch         , & ! Output: [integer  (:) ] Flag, 1: max allowed lai; 0: not at max (Y.Fan)
+
+         leafc              =>  cnveg_carbonstate_inst%leafc_patch      , & ! Input:  [real(r8) (:) ] (gC/m2) leaf C
+         deadstemc          =>  cnveg_carbonstate_inst%deadstemc_patch  , & ! Input:  [real(r8) (:) ] (gC/m2) dead stem C
 
          farea_burned       =>  cnveg_state_inst%farea_burned_col       , & ! Input:  [real(r8) (:) ] F. Li and S. Levis                                 
          htmx               =>  cnveg_state_inst%htmx_patch             , & ! Output: [real(r8) (:) ] max hgt attained by a crop during yr (m)          
@@ -174,8 +194,83 @@ contains
             end if
             tsai_min = tsai_min * 0.5_r8
             tsai(p) = max(tsai_alpha*tsai_old+max(tlai_old-tlai(p),0._r8),tsai_min)
+          ! new calculations for phytomer-based canopy structure
+          ! for oil palm the stocking (planting density) and wood density values can be adjusted here (Y.Fan)
+          if (phytomer(ivt(p)) > 0) then
+             dwood(ivt(p)) = 1.0e5_r8   !wood density (gC/m3); cn:2.5e5_r8; lpj:2.0e5
+             stocking = 150._r8         !planting density (stems/ha); 150 is standard stocking for oil palm plantation
+             taper = 20._r8             !stem height 0-5m, diameter 20 to 75 cm
 
-            if (woody(ivt(p)) == 1._r8) then
+             !laimx is per phytomer for oil palm, not per PFT
+             plaimx = laimx(ivt(p)) *min(stocking/150._r8, 2._r8) !rescale plaimx when planting is too sparse/too dense
+
+             !dsladlai is set to zero, effectively sla(p,:) = slatop(ivt(p)); do not use SLA scaling for oil palm!
+             !Oil palm SLA actually decrease slightly, instead of increase, from canopy top to bottom
+             !SLA scaling was only intented for trees to give a canopy gradient in foliage nitrogen in the CLM4
+             !CLM4.5 use Kn instead of dsladlai to scale foliage nitrogen profile
+
+             np1 = sum(minloc(rankp(p,:), mask=(rankp(p,:) > 0))) !the top youngest expanded phytomer
+             np2 = sum(maxloc(rankp(p,:), mask=(rankp(p,:) > 0))) !the bottom expanded phytomer, sequence np2 < np1
+             sla(p,np2:np1) = (/ ((slatop(ivt(p)) + (np1-i)*dsladlai(ivt(p))), i=np2, np1, 1) /)
+!             !or below function
+!             do n = np1, np2, -1
+!                if (hui(p) < huilfmatnp(p,n) .and. plai(p,n) < laimx(ivt(p))) &
+!                   sla(p,n) = slatop(ivt(p)) + dsladlai(ivt(p))*sum(plai(p,n:np1)) !SLA stops increase when C allocation stops
+!                !else if (rankp(p,n) == 0) then
+!                !   exit
+!                !end if
+!             end do
+
+             !only calculate LAI for expanded phytomers
+             where (rankp(p,:) > 0)
+                plai(p,:) = sla(p,:) * pleafc(p,:)
+             elsewhere
+                plai(p,:) = 0._r8
+             endwhere
+             where (plai(p,:) >= plaimx)
+                plaipeak(p,:) = 1 ! used in CNAllocation
+             elsewhere
+                plaipeak(p,:) = 0
+             endwhere
+             tlai(p) = sum(plai(p,:))
+
+             ! canopy integration of TLAI
+!             if (nlevcan == 1) then !for one-layer sun/shade big-leaf canopy
+!                tlai(p) = (slatop(ivt(p))*(exp(sum(pleafc(p,:))*dsladlai(ivt(p))) - 1._r8))/dsladlai(ivt(p))
+!             else			       !for multilayer canopy, each phytomer is considered a layer
+!                tlai(p) = sum(plai(p,:))
+!             end if
+
+	    !Stem area index depends on planting density
+             tsai_min = 0.005_r8 !the same sai threshold used in STATICEcosysDynMod
+             !stocking = stocking / 10000._r8 !convert from stems/ha -> stems/m^2
+             !tsai(p) = 0.05_r8 * tlai(p) * stocking
+             !the above sai might be too small. don't rescale sai again by stocking. LAI is already limited by stocking (Y.Fan 2015.11)
+             !sai should consider the vertical thickness (height) of stem as well as the rachis of phytomers. LAI and SAI are affected by stocking to the same degree.
+             tsai(p) = max(0.1_r8 * tlai(p), tsai_min) !0.1 is the similar ratio as trees
+
+			 !canopy top and bottom height follow trees
+			 stocking = stocking / 10000._r8 !convert from stems/ha -> stems/m^2
+             !correct height calculation if doing accelerated spinup
+             if (spinup_state == 2) then
+                 htop(p) = ((3._r8 * deadstemc(p) * 10._r8 * taper * taper)/ &
+                    (SHR_CONST_PI * stocking * dwood(ivt(p))))**(1._r8/3._r8)
+             else
+                 htop(p) = ((3._r8 * deadstemc(p) * taper * taper)/ &
+                     (SHR_CONST_PI * stocking * dwood(ivt(p))))**(1._r8/3._r8)
+             end if
+             htop(p) = max(0.05_r8, min(htop(p),(forc_hgt_u_pft(p)/(displar(ivt(p))+z0mr(ivt(p))))-3._r8))
+             htop(p) = min(ztopmx(ivt(p)),htop(p))
+             hbot(p) = max(0._r8, htop(p)-2._r8)  !assume palm canopy thichness == 2m
+            ! "stubble" after harvest
+            ! if (harvdate(p) < 999 .and. tlai(p) == 0._r8) then
+            !    tsai(p) = 0.25_r8*(1._r8-farea_burned(c)*0.90_r8)
+            ! end if
+
+          else if (woody(ivt(p)) == 1._r8) then
+
+
+            !if (woody(ivt(p)) == 1._r8) then
 
                ! trees and shrubs
 
@@ -229,6 +324,13 @@ contains
             else if (ivt(p) >= npcropmin) then ! prognostic crops
 
                if (tlai(p) >= laimx(ivt(p))) peaklai(p) = 1 ! used in CNAllocation
+              if (perennial(ivt(p)) == 1) then
+                if (tlai(p) >= laimx(ivt(p))) then
+				   peaklai(p) = 1
+                else  !allow leaf regrowth for perennial crops if tlai drop below laimx (Y.Fan)
+                   peaklai(p) = 0
+                end if
+              end if
 
                if (ivt(p) == ntmp_corn .or. ivt(p) == nirrig_tmp_corn .or. &
                    ivt(p) == ntrp_corn .or. ivt(p) == nirrig_trp_corn .or. &
@@ -280,7 +382,13 @@ contains
          ! adjust lai and sai for burying by snow. 
          ! snow burial fraction for short vegetation (e.g. grasses) as in
          ! Wang and Zeng, 2007.
+       !!This condition is not reasonable for many tall crops (Y.Fan)
+       !not necessary as htop > 0.25 and hbot>0.05 for grasses have been defined above; 
+       !the first condition works for most PFTs
          if (ivt(p) > noveg .and. ivt(p) <= nbrdlf_dcd_brl_shrub ) then
+            ol = min( max(snow_depth(c)-hbot(p), 0._r8), htop(p)-hbot(p))
+            fb = 1._r8 - ol / max(1.e-06_r8, htop(p)-hbot(p))
+         else if (ivt(p) >= npcropmin) then ! prognostic crops (including oil palm)
             ol = min( max(snow_depth(c)-hbot(p), 0._r8), htop(p)-hbot(p))
             fb = 1._r8 - ol / max(1.e-06_r8, htop(p)-hbot(p))
          else

@@ -101,10 +101,11 @@ module CNPhenologyMod
   !PalmPhenolgy variables
   integer            :: mat1                 !the first mature phytomer (oil palm model)
   integer, parameter :: NOT_Emerged = 9999   ! If leaf not emerged yet
-  real(r8), allocatable :: huilfexp(:)        !hui needed from leaf initiation to leaf expansion for each phytomer
-  real(r8), allocatable :: huilfmat(:)        !hui needed from leaf expansion to leaf maturity for each phytomer
-  real(r8), allocatable :: huilfsen(:)        !hui needed from leaf expansion to leaf senescence for each phytomer
-  real(r8), allocatable :: huilfend(:)        !hui needed from leaf expansion to leaf end of life for each phytomer
+  real(r8), allocatable :: phyllochron2(:)    !phyllochron increases through maturity
+  real(r8), allocatable :: huilfexp(:)        !hui needed from leaf initiation to leaf expansion for all phytomers
+  real(r8), allocatable :: huilfmat(:)        !hui needed from leaf expansion to leaf maturity for all phytomers
+  real(r8), allocatable :: huilfsen(:)        !hui needed from leaf expansion to leaf senescence for all phytomers
+  real(r8), allocatable :: huilfend(:)        !hui needed from leaf expansion to leaf end of life for all phytomers
   !-----------------------------------------------------------------------
 
 contains
@@ -429,6 +430,8 @@ contains
        allocate(huilfmat(bounds%begp:bounds%endp))
        allocate(huilfsen(bounds%begp:bounds%endp))
        allocate(huilfend(bounds%begp:bounds%endp))
+	   allocate(phyllochron2(bounds%begp:bounds%endp))
+	   phyllochron2(bounds%begp:bounds%endp) = nan
        huilfexp(bounds%begp:bounds%endp) = nan
        huilfmat(bounds%begp:bounds%endp) = nan
        huilfsen(bounds%begp:bounds%endp) = nan
@@ -480,8 +483,8 @@ contains
          gdd020         => temperature_inst%gdd020_patch  ,   & ! Output: [real(r8) (:) ]  20-yr mean of gdd0 (ddays)                        
          gdd820         => temperature_inst%gdd820_patch  ,   & ! Output: [real(r8) (:) ]  20-yr mean of gdd8 (ddays)                        
          gdd1020        => temperature_inst%gdd1020_patch ,   & ! Output: [real(r8) (:) ]  20-yr mean of gdd10 (ddays)                       
-         gdd15          => temperature_inst%gdd15         ,   & ! Output: [real(r8) (:) ]  growing deg. days base 15 deg C (ddays) (Y.Fan)
-         gdd1520        => temperature_inst%gdd1520       ,   & ! Output: [real(r8) (:) ]  20-yr mean of gdd15 (ddays)  (added by Y.Fan)
+         gdd15          => temperature_inst%gdd15_patch   ,   & ! Output: [real(r8) (:) ]  growing deg. days base 15 deg C (ddays) (Y.Fan)
+         gdd1520        => temperature_inst%gdd1520_patch ,   & ! Output: [real(r8) (:) ]  20-yr mean of gdd15 (ddays)  (added by Y.Fan)
          
          tempavg_t2m    => cnveg_state_inst%tempavg_t2m_patch & ! Output: [real(r8) (:) ]  temp. avg 2m air temperature (K)                  
          )
@@ -1513,7 +1516,7 @@ contains
     real(r8) gddperday ! average GDD per day (base 15 degree)
     integer np0, np1, np2 !temporary phytomer number
     integer update_rank(1:mxnp) !phytomer rank update
-
+	
     !------------------------------------------------------------------------
 
     associate(                                                                   &
@@ -1540,8 +1543,8 @@ contains
          gdd020            =>    temperature_inst%gdd020_patch                 , & ! Input:  [real(r8) (:) ]  20 yr mean of gdd0
          gdd820            =>    temperature_inst%gdd820_patch                 , & ! Input:  [real(r8) (:) ]  20 yr mean of gdd8
          gdd1020           =>    temperature_inst%gdd1020_patch                , & ! Input:  [real(r8) (:) ]  20 yr mean of gdd10
-         gdd1520           =>    temperature_inst%gdd1520                      , & ! Input:  [real(r8) (:)]  20 yr mean of gdd15
-         gdd15             =>    temperature_inst%gdd15                        , & ! Input:  [real(r8) (:)]  growing deg. days base 15 deg C (ddays) (Y.Fan)
+         gdd1520           =>    temperature_inst%gdd1520_patch                , & ! Input:  [real(r8) (:)]  20 yr mean of gdd15
+         gdd15             =>    temperature_inst%gdd15_patch                  , & ! Input:  [real(r8) (:)]  growing deg. days base 15 deg C (ddays) (Y.Fan)
 
          idop              =>    crop_inst%idop                                    , & ! Output: [integer (:)]  date of planting
          idpp              =>    crop_inst%idpp                                    , & ! Output: [integer (:)]  days past planting
@@ -1559,7 +1562,6 @@ contains
          huigrnnp          =>    crop_inst%huigrnnp                                , & ! Output: [real(r8) (:,:)]  hui needed for starting grainfill of successive phytomers
          grnmatnp          =>    crop_inst%grnmatnp                                , & ! Output: [real(r8) (:,:)]  hui needed for grain maturity of successive phytomers
          np                =>    crop_inst%np                                      , & ! Output: [integer (:)]   total number of phytomers having appeared so far
-         phyllochron2      =>    crop_inst%phyllochron2                            , & ! Output: [real(r8) (:)]  extended phyllochron through maturity
          rankp             =>    crop_inst%rankp                                   , & ! Output: [integer (:,:)]  rank of phytomers from 1=youngest to np=oldest and 0=dead
          livep             =>    crop_inst%livep                                   , & ! Output: [real(r8) (:,:)]  Flag, true if this phytomer is alive
  
@@ -1840,7 +1842,7 @@ contains
              end if !end if leaf emergence to leaf maturity period
 
              ! determine initiation and maturity thresholds of successive phytomers
-             ! for oil palm, phyllochron increases through age until 10years
+             ! for oil palm, phyllochron increases (max 1.5 times) through age until 10 years old
              if (np(p) > 0) then
                 phyllochron2(p) = phyllochron(ivt(p)) * &
                                min(1.5_r8, 1._r8 + (1.5_r8 - 1._r8) * &
@@ -2137,7 +2139,6 @@ contains
          hybgdd            =>    pftcon%hybgdd                                 , & ! Input:  
          lfemerg           =>    pftcon%lfemerg                                , & ! Input:  
          grnfill           =>    pftcon%grnfill                               , & ! Input:  
-         perennial         =>    pftcon%perennial                             , & ! Input:  [integer (:)]  binary flag for perennial crop phenology (1=perennial, 0=not perennial) (added by Y.Fan)
          t_ref2m_min       =>    temperature_inst%t_ref2m_min_patch            , & ! Input:  [real(r8) (:) ]  daily minimum of average 2 m height surface air temperature (K)
          t10               =>    temperature_inst%t_a10_patch                  , & ! Input:  [real(r8) (:) ]  10-day running mean of the 2 m temperature (K)    
          a5tmin            =>    temperature_inst%t_a5min_patch                , & ! Input:  [real(r8) (:) ]  5-day running mean of min 2-m temperature         
@@ -2169,6 +2170,11 @@ contains
          offset_flag       =>    cnveg_state_inst%offset_flag_patch            , & ! Output: [real(r8) (:) ]  offset flag                                       
          onset_counter     =>    cnveg_state_inst%onset_counter_patch          , & ! Output: [real(r8) (:) ]  onset counter                                     
          offset_counter    =>    cnveg_state_inst%offset_counter_patch         , & ! Output: [real(r8) (:) ]  offset counter                                    
+
+         perennial         =>    pftcon%perennial                              , & ! Input:  [integer (:)]  binary flag for perennial crop phenology (1=perennial, 0=not perennial) (added by Y.Fan)
+         gddmaturity2      =>    cnveg_state_inst%gddmaturity2_patch           , & ! Input:  [real(r8) (:)   ]  gdd needed to harvest since previous harvest (Y.Fan)
+         huigrain2         =>    cnveg_state_inst%huigrain2_patch              , & ! Input:  [real(r8) (:)]  gdd needed from last harvest to start of next grainfill (Y.Fan)
+         harvest_flag      =>    cnveg_state_inst%harvest_flag                 , & ! Output: [real(r8) (:)]  harvest flag (added by Y.Fan)
          
          leafc_xfer        =>    cnveg_carbonstate_inst%leafc_xfer_patch       , & ! Output: [real(r8) (:) ]  (gC/m2)   leaf C transfer                           
 
@@ -2559,7 +2565,7 @@ contains
 
          onset_flag(p)  = 0._r8 ! CN terminology to trigger certain
          offset_flag(p) = 0._r8 ! carbon and nitrogen transfers
-	 harvest_flag(p) = 0._r8 ! annual harvest flag for perennial crops (Y.Fan)
+	     harvest_flag(p) = 0._r8 ! annual harvest flag for perennial crops (Y.Fan)
 
          if (croplive(p)) then
             cphase(p) = 1._r8

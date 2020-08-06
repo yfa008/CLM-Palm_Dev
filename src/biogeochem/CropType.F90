@@ -42,6 +42,30 @@ module CropType
      real(r8) :: baset_latvary_intercept
      real(r8) :: baset_latvary_slope
 
+     !oil palm related new state variables  (Y.Fan)
+     integer  , pointer :: yrop_patch(:)                 ! year of planting
+     integer  , pointer :: idpp_patch(:)                 ! days past planting
+     integer  , pointer :: idpp2_patch(:)                ! saved from phase 2
+     real(r8) , pointer :: aleaf0_patch(:)               ! initial leaf allocation coefficient
+     real(r8) , pointer :: huigrain2_patch(:)            ! huigrain for perennial crops after the initial harvest
+     real(r8) , pointer :: gddmaturity2_patch(:)         ! GDD needed for subsequent harvests of perennial crops (ddays) 
+     integer  , pointer :: np_patch(:)                   ! total number of phytomers having appeared so far
+     integer  , pointer :: rankp_patch(:,:)              ! rank of phytomers from 1=youngest to np=oldest and 0=dead
+     integer  , pointer :: plaipeak_patch(:,:)           ! Flag, 1: max allowed lai per phytomer; 0: not at max
+     logical  , pointer :: livep_patch(:,:)              ! Flag, true if this phytomer is alive
+     integer  , pointer :: lfoutday_patch(:,:)           ! date of leaf/phytomer emergence
+     integer  , pointer :: lfoutyr_patch(:,:)            ! year of leaf/phytomer emergence
+     integer  , pointer :: lfdays_patch(:,:)             ! days past leaf emergence for each phytomer
+     real(r8) , pointer :: huileafnp_patch(:,:)          ! hui needed for initiation of successive phytomers
+     real(r8) , pointer :: huilfexpnp_patch(:,:)         ! hui needed for leaf expansion of successive phytomers
+     real(r8) , pointer :: huigrnnp_patch(:,:)           ! hui needed for starting grainfill of successive phytomers
+     real(r8) , pointer :: huilfmatnp_patch(:,:)         ! hui needed for leaf maturity of successive phytomers
+     real(r8) , pointer :: grnmatnp_patch(:,:)           ! hui needed for grain maturity of successive phytomers
+     real(r8) , pointer :: huilfsennp_patch(:,:)         ! hui needed for leaf senescence of successive phytomers
+     real(r8) , pointer :: huilfendnp_patch(:,:)         ! hui needed for end of life of successive phytomers
+     real(r8) , pointer :: sla_patch(:,:)                ! specific leaf area (m^2/gC) of each phytomer
+     real(r8) , pointer :: plai_patch(:,:)               ! one-sided leaf area index of each phytomer
+	 
    contains
      ! Public routines
      procedure, public  :: Init               ! Initialize the crop type
@@ -200,6 +224,27 @@ contains
     allocate(this%cphase_patch   (begp:endp)) ; this%cphase_patch   (:) = 0.0_r8
     allocate(this%latbaset_patch (begp:endp)) ; this%latbaset_patch (:) = spval
 
+	!for phytomer structure (Y.Fan)
+    allocate(this%yrop_patch          (begp:endp))                   ; this%idop_patch          (:)   = huge(1)
+	allocate(this%lfoutday_patch      (begp:endp))                   ; this%lfoutday_patch      (:)   = huge(1)
+    allocate(this%lfoutyr_patch       (begp:endp))                   ; this%lfoutyr_patch       (:)   = huge(1)
+    allocate(this%lfdays_patch        (begp:endp))                   ; this%lfdays_patch        (:)   = nan
+    allocate(this%idpp_patch          (begp:endp))                   ; this%idpp_patch          (:)   = nan
+    allocate(this%idpp2_patch         (begp:endp))                   ; this%idpp2_patch         (:)   = nan
+    allocate(this%np_patch            (begp:endp))                   ; this%np_patch            (:)   = 0
+    allocate(this%rankp_patch         (begp:endp))                   ; this%rankp_patch         (:)   = 0
+    allocate(this%plaipeak_patch      (begp:endp))                   ; this%plaipeak_patch      (:)   = 0
+    allocate(this%livep_patch         (begp:endp))                   ; this%livep_patch         (:)   = .false.
+    allocate(this%plai_patch          (begp:endp))                   ; this%plai_patch          (:)   = 0._r8
+    allocate(this%sla_patch           (begp:endp))                   ; this%sla_patch           (:)   = 0._r8 
+    allocate(this%huileafnp_patch     (begp:endp,1:mxnp))            ; this%huileafnp_patch     (:)   = nan 
+    allocate(this%huilfexpnp_patch    (begp:endp,1:mxnp))            ; this%huilfexpnp_patch    (:)   = nan 
+    allocate(this%huilfmatnp_patch    (begp:endp,1:mxnp))            ; this%huilfmatnp_patch    (:)   = nan 
+    allocate(this%huilfsennp_patch    (begp:endp,1:mxnp))            ; this%huilfsennp_patch    (:)   = nan 
+    allocate(this%huilfendnp_patch    (begp:endp,1:mxnp))            ; this%huilfendnp_patch    (:)   = nan 
+    allocate(this%huigrnnp_patch      (begp:endp,1:mxnp))            ; this%huigrnnp_patch      (:)   = nan 
+    allocate(this%grnmatnp_patch      (begp:endp,1:mxnp))            ; this%grnmatnp_patch      (:)   = nan 
+	
   end subroutine InitAllocate
 
   !-----------------------------------------------------------------------

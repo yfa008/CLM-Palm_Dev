@@ -1563,7 +1563,7 @@ contains
          grnmatnp          =>    crop_inst%grnmatnp                                , & ! Output: [real(r8) (:,:)]  hui needed for grain maturity of successive phytomers
          np                =>    crop_inst%np                                      , & ! Output: [integer (:)]   total number of phytomers having appeared so far
          rankp             =>    crop_inst%rankp                                   , & ! Output: [integer (:,:)]  rank of phytomers from 1=youngest to np=oldest and 0=dead
-         livep             =>    crop_inst%livep                                   , & ! Output: [real(r8) (:,:)]  Flag, true if this phytomer is alive
+         livep             =>    crop_inst%livep                                   , & ! Output: [logical (:,:)]  Flag, true if this phytomer is alive
  
          fertnitro         =>    crop_inst%fertnitro_patch                     , & ! Input:  [real(r8) (:) ]  fertilizer nitrogen
          hui               =>    crop_inst%gddplant_patch                      , & ! Input:  [real(r8) (:) ]  gdd since planting (gddplant)
@@ -1704,7 +1704,7 @@ contains
              lfoutday(p,:) = NOT_Emerged ! all phytomers initialized to NOT_Emerged when .not. croplive
              lfoutyr(p,:) = NOT_Emerged
              lfdays(p,:) = 0
-             livep(p,:) = 0._r8       ! all phytomers initialized to zero (not alive) when .not. croplive
+             livep(p,:) = .false.       ! all phytomers initialized to zero (not alive) when .not. croplive
              rankp(p,:) = 0
              np(p) = 0
          end if ! palm not live nor planted
@@ -1809,7 +1809,7 @@ contains
                          rankp(p,(np(p)+1):(np(p)+np0)) = (/-1:(-np0):-1/)       !unexpanded phytomers have negative ranks
                          np(p) = np(p) + np0
                      end if
-                     livep(p,1:np(p)) = 1._r8
+                     livep(p,1:np(p)) = .true.
                      !estimate the expansion/maturity/harvest time for each existing phytomer
                      !assume the youngest phytomer is initiated at planting (not expanded yet)
                      huileafnp(p,1:np(p)) = (/ ((huileaf(p)-(i-1)*phyllochron(ivt(p))), i=np(p), 1, -1) /)
@@ -1821,7 +1821,7 @@ contains
                      huilfendnp(p,1:np(p)) = (/ ((huilfend(p)-(i-1)*phyllochron(ivt(p))), i=np(p), 1, -1) /) 
                   else !from seed
                      np(p) = 1  !first phytomer initiated after seed planting
-                     livep(p,1) = 1._r8
+                     livep(p,1) = .true.
                      rankp(p,1) = -1
                      pleafc_xfer(p,1) = leafc_xfer(p)
                      pleafn_xfer(p,1) = pleafc_xfer(p,1) / leafcn(ivt(p))
@@ -1864,7 +1864,7 @@ contains
              !turn on successive phytomers after each leaf initiation, later turn off by ageing or pruning
              if (np(p) > 0 .and. hui(p) >= huileafnp(p, np(p)+1)) then
                 np(p) = np(p) + 1
-                livep(p,np(p)) = 1._r8
+                livep(p,np(p)) = .true.
                 rankp(p,np(p)) = minval(rankp(p,:)) - 1
                 huilfexpnp(p,np(p)) = huileafnp(p,np(p)) + lfexp(ivt(p))  !pre-expansion
                 huilfmatnp(p,np(p)) = huilfexpnp(p,np(p)) + lfmat(ivt(p)) !post-expansion
@@ -1878,7 +1878,7 @@ contains
              ! enter phase 2 from leaf initiation to leaf expansion:
              ! switch from storage growth (bud & "spear" leaf stage) to photosynthetic active LAI growth
              np2 = sum(maxloc(rankp(p,:), mask=rankp(p,:) < 0)) !record the index of current largest unexpanded phytomer (rankp=-1)
-             if (livep(p,np2) == 1._r8 .and. rankp(p,np2) < 0 .and. &
+             if (livep(p,np2) == .true. .and. rankp(p,np2) < 0 .and. &
                 hui(p) >= huilfexpnp(p,np2)) then
                 !the largest "spear" leaf expands and its rank changes from -1 to +1
                 rankp(p,np2) = 1
@@ -1930,7 +1930,7 @@ contains
                      !if dynamic CN scheme, only retranslocate leaf N gradually during senescence (LAI no change)
                      !but use pruning to move leaf C to litter
                  elsewhere (hui(p) >= huilfsennp(p,:) ) !start of senescence
-                     livep(p,:) = 0._r8
+                     livep(p,:) = .false.
 
                      !a constant bglfr_p value gives ~90% turnover within the senescence period (non-linear decreasing rate)
                      bglfr_p(p,:) = 2._r8/((mxgdd(ivt(p)) - lfsen(ivt(p))) / gddperday * secspday)
@@ -3147,10 +3147,10 @@ contains
          phytomer              =>    pftcon%phytomer                                   , & ! Input:  [integer (:)]   total number of phytomers in life time (if >0 use phytomer phenology)
          leaf_long             =>    pftcon%leaf_long                            , & ! Input:  [real(r8) (:)]  leaf longevity (yrs)
          prune                 =>    cnveg_state_inst%prune                                  , & ! Input:  [real(r8) (:)]  flag for pruning
-         np                    =>    crop_inst%np                                      , & ! Input:  [integer (:)]   total number of phytomers having appeared so far
-         rankp                 =>    crop_inst%rankp                                   , & ! Input:  [integer (:,:)]  rank of phytomers from 1=youngest to np=oldest and 0=dead
-         livep                 =>    crop_inst%livep                                   , & ! Input:  [real(r8) (:,:)]  Flag, true if this phytomer is alive
-         lfdays                =>    crop_inst%lfdays                                  , & ! Input:  [integer (:,:)]  days past leaf emergence for each phytomer
+         np                    =>    cnveg_state_inst%np                                      , & ! Input:  [integer (:)]   total number of phytomers having appeared so far
+         rankp                 =>    cnveg_state_inst%rankp                                   , & ! Input:  [integer (:,:)]  rank of phytomers from 1=youngest to np=oldest and 0=dead
+         livep                 =>    cnveg_state_inst%livep                                   , & ! Input:  [logical (:,:)]  Flag, true if this phytomer is alive
+         lfdays                =>    cnveg_state_inst%lfdays                                  , & ! Input:  [integer (:,:)]  days past leaf emergence for each phytomer
          pgrainc               =>    cnveg_carbonstate_inst%pgrainc                                 , & ! Input:  [real(r8) (:,:)]  (gC/m2) phytomer grain C
          pgrainn               =>    cnveg_nitrogenstate_inst%pgrainn                                 , & ! Input:  [real(r8) (:,:)]  (gN/m2) phytomer grain N
          pleafc                =>    cnveg_carbonstate_inst%pleafc                                  , & ! Input:  [real(r8) (:,:)]  (gC/m2) phytomer leaf C
@@ -3240,7 +3240,7 @@ contains
              !adjust mxlivenp and leaf_long/mxgdd so as to prune nearly every 6 month
              !  if (nlevcan > 1 .and. prune(p) .and. livep(p,n) == 0._r8) then
              if (prune(p)) then
-               where (livep(p,:) == 0._r8)
+               where (livep(p,:) == .false.)
                   pleafc_to_litter(p,:) = pleafc(p,:) /dt  !all remaining leafc moves to litter
                   pleafn_to_litter(p,:) = pleafn(p,:) /dt  !no N retranslocation when pruning
                   rankp(p,:) = 0  !update rankp only after finishing pruning and C/N update
@@ -3481,7 +3481,7 @@ contains
          prune                 =>    cnveg_state_inst%prune                            , & ! Input:  [real(r8) (:)]  flag for pruning
          np                    =>    crop_inst%np                                      , & ! Input:  [integer (:)]   total number of phytomers having appeared so far
          rankp                 =>    crop_inst%rankp                                   , & ! Input:  [integer (:,:)]  rank of phytomers from 1=youngest to np=oldest and 0=dead
-         livep                 =>    crop_inst%livep                                   , & ! Input:  [real(r8) (:,:)]  Flag, true if this phytomer is alive
+         livep                 =>    crop_inst%livep                                   , & ! Input:  [logical (:,:)]  Flag, true if this phytomer is alive
          lfdays                =>    crop_inst%lfdays                                  , & ! Input:  [integer (:,:)]  days past leaf emergence for each phytomer
          pleafc                =>    cnveg_carbonstate_inst%pleafc                     , & ! Input:  [real(r8) (:,:)]  (gC/m2) phytomer leaf C
          pleafn                =>    cnveg_nitrogenstate_inst%pleafn                   , & ! Input:  [real(r8) (:,:)]  (gN/m2) phytomer leaf N

@@ -160,7 +160,7 @@ contains
     type(soilbiogeochem_carbonflux_type) , intent(inout) :: soilbiogeochem_carbonflux_inst
     !
     ! !LOCAL VARIABLES:
-    integer  :: c,p,j,k,l ! indices
+    integer  :: c,p,j,k,l,n  ! indices
     integer  :: fp,fc     ! filter indices
     real(r8) :: dt        ! radiation time step (seconds)
     real(r8) :: check_cpool
@@ -171,6 +171,7 @@ contains
          ivt                   => patch%itype                                , & ! Input:  [integer  (:)     ]  patch vegetation type                                
 
          woody                 => pftcon%woody                             , & ! Input:  binary flag for woody lifeform (1=woody, 0=not woody)
+         phytomer             => pftcon%phytomer                         , & ! Input:  [integer (:)]   total number of phytomers in life time (>0 use the new PhytomerPhenology) (added by Y.Fan)
 
          cascade_donor_pool    => decomp_cascade_con%cascade_donor_pool    , & ! Input:  [integer  (:)     ]  which pool is C taken from for a given decomposition step
          cascade_receiver_pool => decomp_cascade_con%cascade_receiver_pool , & ! Input:  [integer  (:)     ]  which pool is C added to for a given decomposition step
@@ -266,10 +267,22 @@ contains
          end if
          if (ivt(p) >= npcropmin) then ! skip 2 generic crops
             ! lines here for consistency; the transfer terms are zero
+            if (woody(ivt(p)) /= 1._r8) then ! avoid overlap with above for woody crops (Y.Fan)
+
             cs_veg%livestemc_patch(p)       = cs_veg%livestemc_patch(p)      + cf_veg%livestemc_xfer_to_livestemc_patch(p)*dt
             cs_veg%livestemc_xfer_patch(p)  = cs_veg%livestemc_xfer_patch(p) - cf_veg%livestemc_xfer_to_livestemc_patch(p)*dt
+            end if
             cs_veg%grainc_patch(p)          = cs_veg%grainc_patch(p)         + cf_veg%grainc_xfer_to_grainc_patch(p)*dt
             cs_veg%grainc_xfer_patch(p)     = cs_veg%grainc_xfer_patch(p)    - cf_veg%grainc_xfer_to_grainc_patch(p)*dt
+
+
+            if (phytomer(ivt(p)) > 0) then ! phytomer-based (Y.Fan)
+               cs_veg%pleafc(p,:)      = cs_veg%pleafc(p,:)   + cs_veg%pleafc_xfer_to_pleafc(p,:)*dt
+               cs_veg%pleafc_xfer(p,:)      = cs_veg%pleafc_xfer(p,:)  - cs_veg%pleafc_xfer_to_pleafc(p,:)*dt
+               !zero out leaf xfer pool at final rotation
+               cs_veg%pleafc_xfer(p,:)      = cs_veg%pleafc_xfer(p,:)  - cs_veg%pleafc_xfer_to_litter(p,:)*dt
+           end if
+
          end if
 
          ! phenology: litterfall fluxes
@@ -293,8 +306,23 @@ contains
             cs_veg%cropseedc_deficit_patch(p) = cs_veg%cropseedc_deficit_patch(p) &
                  - cf_veg%crop_seedc_to_leaf_patch(p) * dt &
                  + cf_veg%grainc_to_seed_patch(p) * dt
+            !add other C state variables for crops; terms are zero except woody crops (Y.Fan)
+            cs_veg%deadstemc_patch(p)  = cs_veg%deadstemc_patch(p)  - cs_veg%deadstemc_to_litter_patch(p)*dt
+            cs_veg%livecrootc_patch(p) = cs_veg%livecrootc_patch(p) - cs_veg%livecrootc_to_litter_patch(p)*dt
+            cs_veg%deadcrootc_patch(p) = cs_veg%deadcrootc_patch(p) - cs_veg%deadcrootc_to_litter_patch(p)*dt
+
          end if
-         
+
+         if (phytomer(ivt(p)) > 0) then ! phytomer-based (Y.Fan)
+           cs_veg%pleafc(p,:) = cs_veg%pleafc(p,:) - cs_veg%pleafc_to_litter(p,:)*dt
+           cs_veg%pgrainc(p,:) = cs_veg%pgrainc(p,:) - cs_veg%pgrainc_to_food(p,:)*dt
+           !zero out leaf storage pools at final rotation
+           cs_veg%pleafc_storage(p,:) = cs_veg%pleafc_storage(p,:) - cs_veg%pleafc_storage_to_litter(p,:)*dt
+           !leafc_storage(p) = leafc_storage(p) - leafc_storage_to_litter(p)*dt !this is done by hrv_ flux in CNCStateUpdate2Mod
+         end if
+
+
+        
          check_cpool = cs_veg%cpool_patch(p)- cf_veg%psnsun_to_cpool_patch(p)*dt-cf_veg%psnshade_to_cpool_patch(p)*dt
          cpool_delta  =  cs_veg%cpool_patch(p) 
          
@@ -308,7 +336,10 @@ contains
             cs_veg%cpool_patch(p) = cs_veg%cpool_patch(p) - cf_veg%livecroot_curmr_patch(p)*dt
          end if
          if (ivt(p) >= npcropmin) then ! skip 2 generic crops
+          if (woody(ivt(p)) /= 1._r8) then !to avoid overlap with above for woody crops (Y.Fan)
+
             cs_veg%cpool_patch(p) = cs_veg%cpool_patch(p) - cf_veg%livestem_curmr_patch(p)*dt
+          end if
             cs_veg%cpool_patch(p) = cs_veg%cpool_patch(p) - cf_veg%grain_curmr_patch(p)*dt
          end if
          
@@ -372,6 +403,8 @@ contains
             cs_veg%deadcrootc_storage_patch(p) = cs_veg%deadcrootc_storage_patch(p) + cf_veg%cpool_to_deadcrootc_storage_patch(p)*dt
          end if
          if (ivt(p) >= npcropmin) then ! skip 2 generic crops
+          if (woody(ivt(p)) /= 1._r8) then !to avoid overlap with above for woody crops (Y.Fan)
+
             if (carbon_resp_opt == 1) then
                cf_veg%cpool_to_livestemc_patch(p) = cf_veg%cpool_to_livestemc_patch(p) - cf_veg%cpool_to_livestemc_resp_patch(p)
     	       cf_veg%cpool_to_livestemc_storage_patch(p) = cf_veg%cpool_to_livestemc_storage_patch(p) 	- &
@@ -381,11 +414,19 @@ contains
             cs_veg%livestemc_patch(p)          = cs_veg%livestemc_patch(p)          + cf_veg%cpool_to_livestemc_patch(p)*dt
             cs_veg%cpool_patch(p)              = cs_veg%cpool_patch(p)              - cf_veg%cpool_to_livestemc_storage_patch(p)*dt
             cs_veg%livestemc_storage_patch(p)  = cs_veg%livestemc_storage_patch(p)  + cf_veg%cpool_to_livestemc_storage_patch(p)*dt
+          end if
             cs_veg%cpool_patch(p)              = cs_veg%cpool_patch(p)              - cf_veg%cpool_to_grainc_patch(p)*dt
             cs_veg%grainc_patch(p)             = cs_veg%grainc_patch(p)             + cf_veg%cpool_to_grainc_patch(p)*dt
             cs_veg%cpool_patch(p)              = cs_veg%cpool_patch(p)              - cf_veg%cpool_to_grainc_storage_patch(p)*dt
             cs_veg%grainc_storage_patch(p)     = cs_veg%grainc_storage_patch(p)     + cf_veg%cpool_to_grainc_storage_patch(p)*dt
          end if
+        if (phytomer(ivt(p)) > 0) then ! phytomer-based allocation (Y.Fan)
+           cs_veg%pleafc(p,:)             = cs_veg%pleafc(p,:)             + cs_veg%cpool_to_pleafc(p,:)*dt
+           cs_veg%pleafc_storage(p,:)     = cs_veg%pleafc_storage(p,:)     + cs_veg%cpool_to_pleafc_storage(p,:)*dt
+           cs_veg%pgrainc(p,:)            = cs_veg%pgrainc(p,:)            + cs_veg%cpool_to_pgrainc(p,:)*dt
+        end if
+
+
 
          ! growth respiration fluxes for current growth
          cs_veg%cpool_patch(p) = cs_veg%cpool_patch(p) - cf_veg%cpool_leaf_gr_patch(p)*dt
@@ -398,7 +439,10 @@ contains
             cs_veg%cpool_patch(p) = cs_veg%cpool_patch(p) - cf_veg%cpool_deadcroot_gr_patch(p)*dt
          end if
          if (ivt(p) >= npcropmin) then ! skip 2 generic crops
+          if (woody(ivt(p)) /= 1._r8) then !to avoid overlap with above for woody crops (Y.Fan)
+
             cs_veg%cpool_patch(p) = cs_veg%cpool_patch(p) - cf_veg%cpool_livestem_gr_patch(p)*dt
+          end if
             cs_veg%cpool_patch(p) = cs_veg%cpool_patch(p) - cf_veg%cpool_grain_gr_patch(p)*dt
          end if
 
@@ -412,7 +456,10 @@ contains
             cs_veg%gresp_xfer_patch(p) = cs_veg%gresp_xfer_patch(p) - cf_veg%transfer_deadcroot_gr_patch(p)*dt
          end if
          if (ivt(p) >= npcropmin) then ! skip 2 generic crops
+          if (woody(ivt(p)) /= 1._r8) then !to avoid overlap with above for woody crops (Y.Fan)
+
             cs_veg%gresp_xfer_patch(p) = cs_veg%gresp_xfer_patch(p) - cf_veg%transfer_livestem_gr_patch(p)*dt
+          end if
             cs_veg%gresp_xfer_patch(p) = cs_veg%gresp_xfer_patch(p) - cf_veg%transfer_grain_gr_patch(p)*dt
          end if
 
@@ -427,8 +474,10 @@ contains
             cs_veg%cpool_patch(p) = cs_veg%cpool_patch(p) - cf_veg%cpool_deadcroot_storage_gr_patch(p)*dt
          end if
          if (ivt(p) >= npcropmin) then ! skip 2 generic crops
+          if (woody(ivt(p)) /= 1._r8) then !to avoid overlap with above for woody crops (Y.Fan)
+
             cs_veg%cpool_patch(p) = cs_veg%cpool_patch(p) - cf_veg%cpool_livestem_storage_gr_patch(p)*dt
- 
+          end if
             cs_veg%cpool_patch(p) = cs_veg%cpool_patch(p) - cf_veg%cpool_grain_storage_gr_patch(p)*dt
 
          end if
@@ -456,14 +505,25 @@ contains
          end if
          if (ivt(p) >= npcropmin) then ! skip 2 generic crops
             ! lines here for consistency; the transfer terms are zero
+           if (woody(ivt(p)) /= 1._r8) then !to avoid overlap with above for woody crops (Y.Fan)
+
             cs_veg%livestemc_storage_patch(p)  = cs_veg%livestemc_storage_patch(p) - cf_veg%livestemc_storage_to_xfer_patch(p)*dt
             cs_veg%livestemc_xfer_patch(p)     = cs_veg%livestemc_xfer_patch(p)    + cf_veg%livestemc_storage_to_xfer_patch(p)*dt
+           end if
             cs_veg%grainc_storage_patch(p)     = cs_veg%grainc_storage_patch(p)    - cf_veg%grainc_storage_to_xfer_patch(p)*dt
             cs_veg%grainc_xfer_patch(p)        = cs_veg%grainc_xfer_patch(p)       + cf_veg%grainc_storage_to_xfer_patch(p)*dt
          end if
+         if (phytomer(ivt(p)) > 0) then ! phytomer-based (Y.Fan)
+           cs_veg%pleafc_xfer(p,:)        = cs_veg%pleafc_xfer(p,:)        + cs_veg%pleafc_storage_to_xfer(p,:)*dt
+           cs_veg%pleafc_storage(p,:)     = cs_veg%pleafc_storage(p,:)     - cs_veg%pleafc_storage_to_xfer(p,:)*dt
+         end if
+
 
          if (ivt(p) >= npcropmin) then ! skip 2 generic crops
+           if (woody(ivt(p)) /= 1._r8) then !to avoid overlap with above for woody crops (Y.Fan)
+
             cs_veg%xsmrpool_patch(p) = cs_veg%xsmrpool_patch(p) - cf_veg%livestem_xsmr_patch(p)*dt
+           end if
             cs_veg%xsmrpool_patch(p) = cs_veg%xsmrpool_patch(p) - cf_veg%grain_xsmr_patch(p)*dt
             if (harvdate(p) < 999) then ! beginning at harvest, send to atm
                ! TODO (mv, 11-02-2014) the following lines are why the cf_veg is

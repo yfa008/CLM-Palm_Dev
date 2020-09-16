@@ -83,6 +83,16 @@ module CNVegCarbonStateType
      real(r8), pointer :: totc_col                 (:) ! (gC/m2) total column carbon, incl veg and cpool
      real(r8), pointer :: totecosysc_col           (:) ! (gC/m2) total ecosystem carbon, incl veg but excl cpool 
 
+     !oil palm related new state variables  (Y.Fan)
+     real(r8), pointer :: foodc_patch              (:) ! (gC/m2) pft-level food C
+     real(r8), pointer :: grain_harvestc_patch     (:) ! (gC/m2) pft-level harvested grain C, for each harvest
+     real(r8), pointer :: pleafc_patch             (:,:) ! (gC/m2) phytomer leaf C
+     real(r8), pointer :: pgrainc_patch            (:,:) ! (gC/m2) phytomer grain C
+     real(r8), pointer :: pleafc_xfer_patch        (:,:) ! (gC/m2) phytomer leaf C transfer
+     real(r8), pointer :: pleafc_storage_patch     (:,:) ! (gC/m2) phytomer leaf C storage
+     real(r8), pointer :: leafc_senescent_patch    (:)   ! (gC/m2) leaf C saved for pruning and transferring to litter pool
+     real(r8), pointer :: totfoodc_patch           (:)   ! (gC/m2) total column food carbon
+
    contains
 
      procedure , public  :: Init   
@@ -263,6 +273,15 @@ contains
     allocate(this%totc_p2c_col             (begc:endc)) ; this%totc_p2c_col             (:) = nan
     allocate(this%totc_col                 (begc:endc)) ; this%totc_col                 (:) = nan
     allocate(this%totecosysc_col           (begc:endc)) ; this%totecosysc_col           (:) = nan
+
+    allocate(this%foodc_patch              (begp:endp))             ; this%foodc_patch         (:,:) = nan
+    allocate(this%grain_harvestc_patch     (begp:endp))             ; this%grain_harvestc_patch (:,:) = nan
+    allocate(this%pleafc_patch             (begp:endp,1:mxnp))      ; this%pleafc_patch         (:,:) = nan
+    allocate(this%pgrainc_patch            (begp:endp,1:mxnp))      ; this%pgrainc_patch        (:,:) = nan
+    allocate(this%pleafc_xfer_patch        (begp:endp,1:mxnp))      ; this%pleafc_xfer_patch    (:,:) = nan
+    allocate(this%pleafc_storage_patch     (begp:endp,1:mxnp))      ; this%pleafc_storage_patch (:,:) = nan
+    allocate(this%leafc_senescent_patch    (begp:endp))             ; this%leafc_senescent_patch (:,:) = nan
+    allocate(this%totfoodc_patch           (begp:endp))             ; this%totfoodc_patch        (:)  = nan
 
   end subroutine InitAllocate
 
@@ -483,6 +502,36 @@ contains
        call hist_addfld1d (fname='TOTECOSYSC', units='gC/m^2', &
             avgflag='A', long_name='total ecosystem carbon, incl veg but excl cpool and product pools', &
             ptr_col=this%totecosysc_col)
+       
+       this%foodc_patch(begc:endc) = spval
+       call hist_addfld1d (fname='FOODC', units='gC/m^2', &
+               avgflag='A', long_name='total pft-level food carbon', &
+               ptr_patch=this%foodc_patch)
+       
+       this%grain_harvestc_patch(begc:endc) = spval
+       call hist_addfld1d (fname='GRAIN_HARVESTC', units='gC/m^2', &
+               avgflag='A', long_name='total pft-level grain harvest carbon', &
+               ptr_patch=this%grain_harvestc_patch)
+       
+       this%pleafc_patch(begc:endc) = spval
+       call hist_addfld2d (fname='PLEAFC', units='gC/m^2', type2d='phytomer', &
+               avgflag='A', long_name='phytomer leaf C', &
+               ptr_patch=this%pleafc_patch, default='inactive')
+       
+       this%pgrainc_patch(begc:endc) = spval
+       call hist_addfld2d (fname='PGRAINC', units='gC/m^2', type2d='phytomer', &
+               avgflag='A', long_name='phytomer grain C', &
+               ptr_patch=this%pgrainc_patch, default='inactive')
+       
+       this%pleafc_storage_patch(begc:endc) = spval
+       call hist_addfld2d (fname='PLEAFC_STORAGE', units='gC/m^2', type2d='phytomer', &
+               avgflag='A', long_name='phytomer leaf C storage', &
+               ptr_patch=this%pleafc_storage_patch, default='inactive')
+
+       this%totfoodc_patch(begc:endc) = spval
+       call hist_addfld1d (fname='TOTFOODC', units='gC/m^2', &
+            avgflag='A', long_name='total column-level food C', &
+            ptr_patch=this%totfoodc_patch)
 
     end if
 
@@ -969,6 +1018,12 @@ contains
           this%woodc_patch(p)              = 0._r8
           this%totc_patch(p)               = 0._r8 
 
+          this%pleafc_patch(p)             = 0._r8 
+          this%pgrainc_patch(p)            = 0._r8 
+          this%pleafc_xfer_patch(p)        = 0._r8 
+          this%pleafc_storage_patch(p)     = 0._r8 
+          this%leafc_senescent_patch(p)    = 0._r8 
+
           if ( use_crop )then
              this%grainc_patch(p)         = 0._r8 
              this%grainc_storage_patch(p) = 0._r8 
@@ -1213,6 +1268,27 @@ contains
             dim1name='pft', &
             long_name='', units='', &
             interpinic_flag='interp', readvar=readvar, data=this%leafcmax_patch)
+
+       call restartvar(ncid=ncid, flag=flag, varname='pleafc', xtype=ncd_double,  &
+                dim1name='pft',dim2name='phytomer',long_name='',units='', &
+                readvar=readvar, data=this%pleafc_patch)
+
+       call restartvar(ncid=ncid, flag=flag, varname='pgrainc', xtype=ncd_double,  &
+                dim1name='pft',dim2name='phytomer',long_name='',units='', &
+                readvar=readvar, data=this%pgrainc_patch)
+
+       call restartvar(ncid=ncid, flag=flag, varname='pleafc_xfer', xtype=ncd_double,  &
+                dim1name='pft',dim2name='phytomer',long_name='',units='', &
+                readvar=readvar, data=this%pleafc_xfer_patch)
+
+       call restartvar(ncid=ncid, flag=flag, varname='pleafc_storage', xtype=ncd_double,  &
+                dim1name='pft',dim2name='phytomer',long_name='',units='', &
+                readvar=readvar, data=this%pleafc_storage_patch)
+
+       call restartvar(ncid=ncid, flag=flag, varname='leafc_senescent', xtype=ncd_double,  &
+               dim1name='pft',long_name='senescent leaf C saved for pruning', units='gC/m2', &
+               readvar=readvar, data=this%leafc_senescent_patch)
+
 
        if (flag == 'read') then
           call restartvar(ncid=ncid, flag=flag, varname='spinup_state', xtype=ncd_int, &

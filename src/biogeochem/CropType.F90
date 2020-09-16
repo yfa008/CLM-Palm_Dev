@@ -43,28 +43,61 @@ module CropType
      real(r8) :: baset_latvary_slope
 
      !oil palm related new state variables  (Y.Fan)
-     integer  , pointer :: yrop_patch(:)                 ! year of planting
-     integer  , pointer :: idpp_patch(:)                 ! days past planting
-     integer  , pointer :: idpp2_patch(:)                ! saved from phase 2
-     real(r8) , pointer :: aleaf0_patch(:)               ! initial leaf allocation coefficient
-     real(r8) , pointer :: huigrain2_patch(:)            ! huigrain for perennial crops after the initial harvest
-     real(r8) , pointer :: gddmaturity2_patch(:)         ! GDD needed for subsequent harvests of perennial crops (ddays) 
-     integer  , pointer :: np_patch(:)                   ! total number of phytomers having appeared so far
-     integer  , pointer :: rankp_patch(:,:)              ! rank of phytomers from 1=youngest to np=oldest and 0=dead
-     integer  , pointer :: plaipeak_patch(:,:)           ! Flag, 1: max allowed lai per phytomer; 0: not at max
-     logical  , pointer :: livep_patch(:,:)              ! Flag, true if this phytomer is alive
-     integer  , pointer :: lfoutday_patch(:,:)           ! date of leaf/phytomer emergence
-     integer  , pointer :: lfoutyr_patch(:,:)            ! year of leaf/phytomer emergence
-     integer  , pointer :: lfdays_patch(:,:)             ! days past leaf emergence for each phytomer
-     real(r8) , pointer :: huileafnp_patch(:,:)          ! hui needed for initiation of successive phytomers
-     real(r8) , pointer :: huilfexpnp_patch(:,:)         ! hui needed for leaf expansion of successive phytomers
-     real(r8) , pointer :: huigrnnp_patch(:,:)           ! hui needed for starting grainfill of successive phytomers
-     real(r8) , pointer :: huilfmatnp_patch(:,:)         ! hui needed for leaf maturity of successive phytomers
-     real(r8) , pointer :: grnmatnp_patch(:,:)           ! hui needed for grain maturity of successive phytomers
-     real(r8) , pointer :: huilfsennp_patch(:,:)         ! hui needed for leaf senescence of successive phytomers
-     real(r8) , pointer :: huilfendnp_patch(:,:)         ! hui needed for end of life of successive phytomers
-     real(r8) , pointer :: sla_patch(:,:)                ! specific leaf area (m^2/gC) of each phytomer
-     real(r8) , pointer :: plai_patch(:,:)               ! one-sided leaf area index of each phytomer
+     integer  , pointer :: yrop_patch(:)                       ! year of planting
+     integer  , pointer :: idpp_patch(:)                       ! days past planting
+     integer  , pointer :: idpp2_patch(:)                      ! saved from phase 2
+     real(r8) , pointer :: aleaf0_patch(:)                     ! initial leaf allocation coefficient
+     real(r8) , pointer :: huigrain2_patch(:)                  ! huigrain for perennial crops after the initial harvest
+     real(r8) , pointer :: gddmaturity2_patch(:)               ! GDD needed for subsequent harvests of perennial crops (ddays) 
+     integer  , pointer :: np_patch(:)                         ! total number of phytomers having appeared so far
+     integer  , pointer :: rankp_patch(:,:)                    ! rank of phytomers from 1=youngest to np=oldest and 0=dead
+     integer  , pointer :: plaipeak_patch(:,:)                 ! Flag, 1: max allowed lai per phytomer; 0: not at max
+     logical  , pointer :: livep_patch(:,:)                    ! Flag, true if this phytomer is alive
+     integer  , pointer :: lfoutday_patch(:,:)                 ! date of leaf/phytomer emergence
+     integer  , pointer :: lfoutyr_patch(:,:)                  ! year of leaf/phytomer emergence
+     integer  , pointer :: lfdays_patch(:,:)                   ! days past leaf emergence for each phytomer
+     real(r8) , pointer :: huileafnp_patch(:,:)                ! hui needed for initiation of successive phytomers
+     real(r8) , pointer :: huilfexpnp_patch(:,:)               ! hui needed for leaf expansion of successive phytomers
+     real(r8) , pointer :: huigrnnp_patch(:,:)                 ! hui needed for starting grainfill of successive phytomers
+     real(r8) , pointer :: huilfmatnp_patch(:,:)               ! hui needed for leaf maturity of successive phytomers
+     real(r8) , pointer :: grnmatnp_patch(:,:)                 ! hui needed for grain maturity of successive phytomers
+     real(r8) , pointer :: huilfsennp_patch(:,:)               ! hui needed for leaf senescence of successive phytomers
+     real(r8) , pointer :: huilfendnp_patch(:,:)               ! hui needed for end of life of successive phytomers
+     real(r8) , pointer :: sla_patch(:,:)                      ! specific leaf area (m^2/gC) of each phytomer
+     real(r8) , pointer :: plai_patch(:,:)                     ! one-sided leaf area index of each phytomer
+     real(r8) , pointer :: phyllochron2_patch(:,:)             ! extended phyllochron through maturity
+     real(r8) , pointer :: avgvegsink_patch(:,:)               ! average vegetative sink size (running mean)
+     real(r8) , pointer :: avgrepsink_patch(:,:)               ! average reproductive sink size (running mean)
+     real(r8) , pointer :: crop_patch(:)                       !binary flag: crop or not
+     integer ,  pointer :: perennial_patch(:)                  !binary flag for perennial crop phenology (1=perennial, 0=not perennial)
+     integer , pointer :: phytomer_patch(:)                    !total number of phytomers in life time, if >0 use phytomer structure
+     real(r8), pointer :: harvest_flag_patch(:)                !harvest flag for perennial crops 
+     real(r8), pointer :: harvest_counter_patch(:)             !harvest counter to tag the phytomer 
+     logical , pointer :: prune_patch(:)                       !Flag, if true do pruning
+     real(r8), pointer :: bglfr_p_patch(:,:)                   !background litterfall rate for each phytomer 
+     real(r8), pointer :: bgtr_p_patch(:,:)                    !background transfer growth rate for each phytomer     
+     real(r8), pointer :: h2oleaf_patch(:)                     !canopy water on leaf (mm H2O)
+     real(r8), pointer :: h2ostem_patch(:)                     !canopy water on stem (mm H2O)
+     real(r8), pointer :: accum_h2ocan_patch(:)                !accumulative canopy water interception(mm H2O)
+     real(r8), pointer :: totrepc_patch(:)                     ! (gC/m2) total reproductive carbon, excluding cpool and harvested foodc (added by Y.Fan)
+     real(r8), pointer :: vegsize0_patch(:)                    ! (gC/m2) vegetation size (vegetative C) at the beginning of yield
+     real(r8), pointer :: hrv_c_to_litter_patch(:)             ! total C harvest mortality at final rotation, added for CLM-Palm (gC/m2/s)
+     real(r8), pointer :: leafc_storage_to_litter_patch(:)     ! leaf storage C to litter (final rotation) (gC/m2/s)     
+     real(r8), pointer :: deadstemc_to_litter_patch(:)         ! dead stem C litterfall (gC/m2/s)
+     real(r8), pointer :: livecrootc_to_litter_patch(:)        ! coarse root C litterfall (gC/m2/s)
+     real(r8), pointer :: deadcrootc_to_litter_patch(:)        ! dead coarse root C litterfall (gC/m2/s)
+     real(r8), pointer :: pleafc_storage_to_litter_patch(:,:)  ! phytomer leaf storage C to litter (final rotation) (gC/m2/s)     
+     real(r8), pointer :: pleafc_xfer_to_litter_patch(:,:)     ! phytomer leaf transfer C to litterfall (gC/m2/s)     
+     real(r8), pointer :: hrv_n_to_litter_patch(:)             ! total N harvest mortality at final rotation, added for CLM-Palm
+     real(r8), pointer :: leafn_storage_to_litter_patch(:)     ! leaf N storage to litter (final rotation) (gN/m2/s) 
+     real(r8), pointer :: deadstemn_to_litter_patch(:)         ! dead stem N litterfall (gN/m2/s)
+     real(r8), pointer :: livecrootn_to_litter_patch(:)        ! coarse root N litterfall (gN/m2/s)
+     real(r8), pointer :: deadcrootn_to_litter_patch(:)        ! dead coarse root N litterfall (gN/m2/s)
+     real(r8), pointer :: pgrainn_to_food_patch(:,:)           ! phytomer grain N to food (gN/m2/s)     
+     real(r8), pointer :: pleafn_storage_to_litter_patch(:,:)  ! phytomer leaf storage N to litter (gN/m2/s)   
+     real(r8), pointer :: pleafn_xfer_to_litter_patch(:,:)     ! phytomer leaf transfer N to litter (gC/m2/s)
+     
+
 	 
    contains
      ! Public routines
@@ -226,7 +259,7 @@ contains
 
 	!for phytomer structure (Y.Fan)
     allocate(this%yrop_patch          (begp:endp))                   ; this%idop_patch          (:)   = huge(1)
-	allocate(this%lfoutday_patch      (begp:endp))                   ; this%lfoutday_patch      (:)   = huge(1)
+	 allocate(this%lfoutday_patch      (begp:endp))                   ; this%lfoutday_patch      (:)   = huge(1)
     allocate(this%lfoutyr_patch       (begp:endp))                   ; this%lfoutyr_patch       (:)   = huge(1)
     allocate(this%lfdays_patch        (begp:endp))                   ; this%lfdays_patch        (:)   = nan
     allocate(this%idpp_patch          (begp:endp))                   ; this%idpp_patch          (:)   = nan
@@ -243,7 +276,40 @@ contains
     allocate(this%huilfsennp_patch    (begp:endp,1:mxnp))            ; this%huilfsennp_patch    (:)   = nan 
     allocate(this%huilfendnp_patch    (begp:endp,1:mxnp))            ; this%huilfendnp_patch    (:)   = nan 
     allocate(this%huigrnnp_patch      (begp:endp,1:mxnp))            ; this%huigrnnp_patch      (:)   = nan 
-    allocate(this%grnmatnp_patch      (begp:endp,1:mxnp))            ; this%grnmatnp_patch      (:)   = nan 
+    allocate(this%grnmatnp_patch      (begp:endp,1:mxnp))            ; this%grnmatnp_patch      (:)   = nan
+    allocate(this%phyllochron2_patch    (begp:endp))                 ; this%phyllochron2_patch  (:)   = spval 
+    allocate(this%avgvegsink_patch      (begp:endp))                 ; this%avgvegsink_patch    (:)   = 0._r8 
+    allocate(this%avgrepsink_patch      (begp:endp))                 ; this%avgrepsink_patch    (:)   = 0._r8
+    allocate(this%crop_patch            (0:numpft))                  ; this%crop_patch          (:)   = nan 
+    allocate(this%perennial_patch       (0:numpft))                  ; this%perennial_patch     (:)   = nan
+    allocate(this%phytomer_patch        (0:numpft))                  ; this%phytomer_patch      (:)   = nan
+    allocate(this%harvest_flag_patch   (begp:endp))                  ; this%harvest_flag_patch  (:)   = nan
+    allocate(this%harvest_counter_patch (begp:endp))                 ; this%harvest_counter_patch (:) = nan
+    allocate(this%prune_patch           (begp:endp))                 ; this%prune_patch         (:)   = .false.
+    allocate(this%bglfr_p_patch         (begp:endp,1:mxnp))          ; this%bglfr_p_patch       (:,:) = nan
+    allocate(this%bgtr_p_patch         (begp:endp,1:mxnp))           ; this%bgtr_p_patch        (:,:) = nan    
+    allocate(this%h2oleaf_patch        (begp:endp))                  ; this%h2oleaf_patch        (:)  = spval
+    allocate(this%h2ostem_patch        (begp:endp))                  ; this%h2ostem_patch        (:)  = spval    
+    allocate(this%totrepc_patch        (begp:endp))                  ; this%totrepc_patch         (:)   = nan
+    allocate(this%vegsize0_patch       (begp:endp))                  ; this%vegsize0_patch        (:)   = nan    
+    allocate(this%hrv_c_to_litter_patch (begp:endp))                 ; this%hrv_c_to_litter_patch  (:)  = nan
+    allocate(this%leafc_storage_to_litter_patch (begp:endp))         ; this%leafc_storage_to_litter_patch  (:)  = nan
+    allocate(this%deadstemc_to_litter_patch (begp:endp))             ; this%deadstemc_to_litter_patch (:) = nan
+    allocate(this%livecrootc_to_litter_patch (begp:endp))            ; this%livecrootc_to_litter_patch (:) = nan
+    allocate(this%deadcrootc_to_litter_patch (begp:endp))            ; this%deadcrootc_to_litter_patch (:) = nan     
+    allocate(this%pleafc_storage_to_litter_patch (begp:endp,1:mxnp)) ; this%pleafc_storage_to_litter_patch (:,:) = nan
+    allocate(this%pleafc_xfer_to_litter_patch (begp:endp,1:mxnp))    ; this%pleafc_xfer_to_litter_patch  (:,:)  = nan
+    allocate(this%hrv_n_to_litter_patch  (begp:endp))                ; this%hrv_n_to_litter_patch      (:)  = nan
+    allocate(this%leafn_storage_to_litter_patch (begp:endp))         ; this%leafn_storage_to_litter_patch (:)  = nan
+    allocate(this%deadstemn_to_litter_patch (begp:endp))             ; this%deadstemn_to_litter_patch  (:)  = nan
+    allocate(this%livecrootn_to_litter_patch (begp:endp))            ; this%livecrootn_to_litter_patch (:)  = nan
+    allocate(this%deadcrootn_to_litter_patch (begp:endp))            ; this%deadcrootn_to_litter_patch (:)  = nan
+    allocate(this%pgrainn_to_food_patch  (begp:endp,1:mxnp))         ; this%pgrainn_to_food_patch   (:,:)  = nan
+    allocate(this%pleafn_storage_to_litter_patch (begp:endp,1:mxnp)) ; this%pleafn_storage_to_litter_patch  (:,:)  = nan
+    allocate(this%pleafn_xfer_to_litter_patch (begp:endp,1:mxnp))    ; this%pleafn_xfer_to_litter_patch (:,:) = nan
+    
+
+   
 	
   end subroutine InitAllocate
 
@@ -291,6 +357,26 @@ contains
             avgflag='A', long_name='latitude vary base temperature for gddplant', &
             ptr_patch=this%latbaset_patch, default='inactive')
     end if
+
+    this%livenp_patch(begp:endp) = spval
+    call hist_addfld2d (fname='LIVEP', units='none', type2d='phytomer', &
+               avgflag='A', long_name='phytomer alive or not', &
+               ptr_pft=pps%livep, default='inactive')
+
+    this%plai_patch(begp:endp) = spval
+    call hist_addfld2d (fname='PLAI', units='none', type2d='phytomer', &
+               avgflag='A', long_name='phytomer LAI', &
+               ptr_pft=pps%plai, default='inactive')
+    
+    this%harvest_flag_patch(begp:endp) = spval
+    call hist_addfld1d (fname='HARVEST_FLAG', units='none', &
+            avgflag='A', long_name='harvest flag', &
+            ptr_pft=pepv%harvest_flag, default='inactive')
+
+    ! this%harvest_counter_patch(begp:endp) = spval
+    ! call hist_addfld1d (fname='HARVEST_COUNTER', units='none', &
+    !        avgflag='A', long_name='harvest counter', &
+    !        ptr_pft=pepv%harvest_counter, default='inactive')
 
   end subroutine InitHistory
 
@@ -550,6 +636,90 @@ contains
             dim1name='pft', long_name='crop phenology phase', &
             units='0-not planted, 1-planted, 2-leaf emerge, 3-grain fill, 4-harvest', &
             interpinic_flag='interp', readvar=readvar, data=this%cphase_patch)
+
+       call restartvar(ncid=ncid, varname='np', xtype=ncd_int,  &
+				dim1name='pft',long_name='Total number of phytomers having appeared so far', &
+				units='', flag=flag, readvar=readvar, data=pps%np)
+
+       call restartvar(ncid=ncid, varname='rankp', xtype=ncd_int,  &
+				dim1name='pft',dim2name='phytomer', & 
+            long_name='Rank of phytomers from 1=youngest to np=oldest and 0=dead', &
+				units='', flag=flag, readvar=readvar, data=pps%rankp)
+
+       call restartvar(ncid=ncid, varname='plaipeak', xtype=ncd_int,  &
+				dim1name='pft',dim2name='phytomer', & 
+            long_name='Flag, 1: max allowed lai per phytomer; 0: not at max', &
+				units='', flag=flag, readvar=readvar, data=pps%plaipeak)
+
+       call restartvar(ncid=ncid, varname='livep', xtype=ncd_double,  &
+				dim1name='pft',dim2name='phytomer', long_name='Flag, true if this phytomer is alive', &
+				units='', flag=flag, readvar=readvar, data=pps%livep)
+
+       call restartvar(ncid=ncid, varname='lfoutday', xtype=ncd_int,  &
+				dim1name='pft',dim2name='phytomer', long_name='Date of leaf/phytomer emergence', &
+				units='', flag=flag, readvar=readvar, data=pps%lfoutday)
+
+       call restartvar(ncid=ncid, varname='lfoutyr', xtype=ncd_int,  &
+				dim1name='pft',dim2name='phytomer', long_name='Year of leaf/phytomer emergence', &
+				units='', flag=flag, readvar=readvar, data=pps%lfoutyr)
+      
+       call restartvar(ncid=ncid, varname='lfdays', xtype=ncd_int,  &
+				dim1name='pft',dim2name='phytomer', long_name='Days past leaf emergence for each phytomer', &
+				units='', flag=flag, readvar=readvar, data=pps%lfdays)
+
+       call restartvar(ncid=ncid, varname='huileafnp', xtype=ncd_double,  &
+				dim1name='pft',dim2name='phytomer',long_name='hui needed for initiation of successive phytomers', &
+				units='', flag=flag, readvar=readvar, data=pps%huileafnp)
+
+       call restartvar(ncid=ncid, varname='huilfexpnp', xtype=ncd_double,  &
+				dim1name='pft',dim2name='phytomer', & 
+            long_name='hui needed for leaf expansion of successive phytomers', &
+				units='', flag=flag, readvar=readvar, data=pps%huilfexpnp)
+
+       call restartvar(ncid=ncid, varname='huigrnnp', xtype=ncd_double,  &
+				dim1name='pft',dim2name='phytomer', & 
+            long_name='hui needed for starting grainfill of successive phytomers', &
+				units='', flag=flag, readvar=readvar, data=pps%huigrnnp)
+
+       call restartvar(ncid=ncid, varname='huilfmatnp', xtype=ncd_double,  &
+				dim1name='pft',dim2name='phytomer',long_name='hui needed for leaf maturity of successive phytomers', &
+				units='', flag=flag, readvar=readvar, data=pps%huilfmatnp)
+
+       call restartvar(ncid=ncid, varname='grnmatnp', xtype=ncd_double,  &
+				dim1name='pft',dim2name='phytomer', & 
+            long_name='hui needed for grain maturity of successive phytomers',&
+				units='', flag=flag, readvar=readvar, data=pps%grnmatnp)
+
+       call restartvar(ncid=ncid, varname='huilfsennp', xtype=ncd_double,  &
+				dim1name='pft',dim2name='phytomer', & 
+            long_name='hui needed for leaf senescence of successive phytomers', &
+				units='', flag=flag, readvar=readvar, data=pps%huilfsennp)
+
+       call restartvar(ncid=ncid, varname='huilfendnp', xtype=ncd_double,  &
+				dim1name='pft',dim2name='phytomer',long_name='hui needed for end of life of successive phytomers', &
+				units='', flag=flag, readvar=readvar, data=pps%huilfendnp)
+
+       call restartvar(ncid=ncid, varname='harvest_flag', xtype=ncd_double,  &
+            dim1name='pft',long_name='harvest flag',units='unitless', & 
+            flag=flag, readvar=readvar, data=pepv%harvest_flag)
+
+       call restartvar(ncid=ncid, varname='harvest_counter', xtype=ncd_double,  &
+            dim1name='pft',long_name='harvest counter',units='unitless', &
+            flag=flag, readvar=readvar, data=pepv%harvest_counter)
+
+       call restartvar(ncid=ncid, varname='prune', xtype=ncd_log,  &
+				dim1name='pft',long_name='Flag if true do pruning', &
+				flag=flag, readvar=readvar, data=pepv%prune)
+
+       call restartvar(ncid=ncid, varname='bglfr_p', xtype=ncd_double,  &
+				dim1name='pft',dim2name='phytomer',long_name='',units='', &
+				flag=flag, readvar=readvar, data=pepv%bglfr_p)
+
+       call restartvar(ncid=ncid, varname='bgtr_p', xtype=ncd_double,  &
+				dim1name='pft',dim2name='phytomer',long_name='',units='', &
+				flag=flag, readvar=readvar, data=pepv%bgtr_p)
+       
+
        if (flag=='read' )then
           call this%checkDates( )  ! Check that restart date is same calendar date (even if year is different)
                                    ! This is so that it properly goes through

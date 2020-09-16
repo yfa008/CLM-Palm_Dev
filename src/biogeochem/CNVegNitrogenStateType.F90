@@ -71,7 +71,17 @@ module CNVegNitrogenStateType
      real(r8), pointer :: totn_patch               (:) ! (gN/m2) total patch-level nitrogen
      real(r8), pointer :: totn_p2c_col             (:) ! (gN/m2) totn_patch averaged to col
      real(r8), pointer :: totn_col                 (:) ! (gN/m2) total column nitrogen, incl veg
-     real(r8), pointer :: totecosysn_col           (:) ! (gN/m2) total ecosystem nitrogen, incl veg  
+     real(r8), pointer :: totecosysn_col           (:) ! (gN/m2) total ecosystem nitrogen, incl veg 
+     
+     ! Nitrogen variables for oil palm
+     real(r8), pointer :: foodn_patch              (:) ! (gN/m2) pft-level food N
+     real(r8), pointer :: grain_harvestn_patch     (:) ! (gN/m2) pft-level harvested grain N, for each harvest
+     real(r8), pointer :: pleafn_patch             (:,:) ! (gN/m2) phytomer leaf N
+     real(r8), pointer :: pgrainn_patch            (:,:) ! (gN/m2) phytomer grain N
+     real(r8), pointer :: pleafn_xfer_patch        (:,:) ! (gN/m2) phytomer leaf N transfer
+     real(r8), pointer :: pleafn_storage_patch     (:,:) ! (gN/m2) phytomer leaf N transfer
+     real(r8), pointer :: leafn_senescent_patch    (:)   ! (gN/m2) leaf N saved for pruning and transferring to litter pool
+     real(r8), pointer :: totfoodn_patch           (:)   ! (gN/m2) total column food N 
 
    contains
 
@@ -167,6 +177,15 @@ contains
     allocate(this%totn_p2c_col             (begc:endc)) ; this%totn_p2c_col             (:) = nan
     allocate(this%totn_col                 (begc:endc)) ; this%totn_col                 (:) = nan
     allocate(this%totecosysn_col           (begc:endc)) ; this%totecosysn_col           (:) = nan
+
+    allocate(this%foodn_patch              (begp:endp)) ; this%foodn_patch              (:) = nan
+    allocate(this%grain_harvestn_patch     (begp:endp)) ; this%grain_harvestn_patch     (:) = nan
+    allocate(this%pleafn_patch             (begp:endp,1:mxnp))  ; this%pleafn_patch          (:,:) = nan
+    allocate(this%pgrainn_patch            (begp:endp,1:mxnp))  ; this%pgrainn_patch         (:,:) = nan
+    allocate(this%pleafn_xfer_patch        (begp:endp,1:mxnp))  ; this%pleafn_xfer_patch     (:,:) = nan
+    allocate(this%pleafn_storage_patch     (begp:endp,1:mxnp))  ; this%pleafn_storage_patch  (:,:) = nan
+    allocate(this%leafn_senescent_patch    (begp:endp))         ; this%leafn_senescent_patch  (:)  = nan
+    allocate(this%totfoodn_patch           (begp:endp))         ; this%totfoodn_patch         (:)  = nan
 
   end subroutine InitAllocate
 
@@ -347,6 +366,21 @@ contains
     call hist_addfld1d (fname='TOTPFTN', units='gN/m^2', &
          avgflag='A', long_name='total patch-level nitrogen', &
          ptr_patch=this%totn_patch)
+
+    this%foodn_patch(begp:endp) = spval
+    call hist_addfld1d (fname='FOODN', units='gN/m^2', &
+               avgflag='A', long_name='total pft-level food N', &
+               ptr_patch=this%foodn_patch)
+    
+    this%grain_harvestn_patch(begp:endp) = spval
+    call hist_addfld1d (fname='GRAIN_HARVESTN', units='gN/m^2', &
+               avgflag='A', long_name='total pft-level grain harvest N', &
+               ptr_patch=this%grain_harvestn_patch)
+
+    this%totfoodn_patch(begp:endp) = spval
+    call hist_addfld1d (fname='TOTFOODN', units='gN/m^2', &
+            avgflag='A', long_name='total column-level food nitrogen', &
+            ptr_patch=this%totfoodn_patch)
 
     !-------------------------------
     ! column state variables 
@@ -666,6 +700,26 @@ contains
          dim1name='pft', long_name='', units='', &
          interpinic_flag='interp', readvar=readvar, data=this%ntrunc_patch) 
 
+    call restartvar(ncid=ncid, flag=flag, varname='pleafn', xtype=ncd_double,  &
+                dim1name='pft',dim2name='phytomer',long_name='',units='',  & 
+                readvar=readvar, data=this%pleafn_patch)
+
+    call restartvar(ncid=ncid, flag=flag, varname='pgrainn', xtype=ncd_double,  &
+                dim1name='pft',dim2name='phytomer',long_name='',units='', &
+                readvar=readvar, data=this%pgrainn_patch)
+
+    call restartvar(ncid=ncid, flag=flag, varname='pleafn_xfer', xtype=ncd_double,  &
+                dim1name='pft',dim2name='phytomer',long_name='',units='', &
+                readvar=readvar, data=this%pleafn_xfer_patch)
+
+    call restartvar(ncid=ncid, flag=flag, varname='pleafn_storage', xtype=ncd_double,  &
+                dim1name='pft',dim2name='phytomer',long_name='',units='', &
+                readvar=readvar, data=this%pleafn_storage_patch)
+
+    call restartvar(ncid=ncid, flag=flag, varname='leafn_senescent', xtype=ncd_double,  &
+               dim1name='pft',long_name='senescent leaf N saved for pruning',units='gN/m2', &
+               readvar=readvar, data=this%leafn_senescent_patch)
+
     if (use_crop) then
        call restartvar(ncid=ncid, flag=flag,  varname='grainn', xtype=ncd_double,  &
             dim1name='pft',    long_name='grain N', units='gN/m2', &
@@ -776,6 +830,12 @@ contains
              this%livestemn_patch(p)         = 0._r8
              this%livestemn_storage_patch(p) = 0._r8
              this%livestemn_xfer_patch(p)    = 0._r8
+ 
+             this%pleafn_patch(p)            = 0._r8
+             this%pgrainn_patch(p)           = 0._r8
+             this%pleafn_xfer_patch(p)       = 0._r8
+             this%pleafn_storage_patch(p)    = 0._r8
+             this%leafn_senescent_patch(p)    = 0._r8
    
              ! tree types need to be initialized with some stem mass so that
              ! roughness length is not zero in canopy flux calculation

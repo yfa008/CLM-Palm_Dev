@@ -362,6 +362,17 @@ module CNVegCarbonFluxType
      real(r8), pointer :: soilc_change_patch                        (:)     ! Total used C from soil          (gC/m2/s)
  
 !     real(r8), pointer :: soilc_change_col                          (:)     ! Total used C from soil          (gC/m2/s)
+    
+     ! Carbon fluxes for Oil palm
+     real(r8), pointer :: tempsum2_npp_patch                       (:)      ! temporary sum of NPP (gC/m2/yr)
+     real(r8), pointer :: monsum_npp_patch                         (:)      ! monthly sum of NPP (gC/m2/yr)
+     real(r8), pointer :: pgrainc_to_food_patch                    (:,:)    ! phytomer grain C to food (gC/m2/s)
+     real(r8), pointer :: pleafc_to_litter_patch                   (:,:)    ! phytomer leaf C litterfall (gC/m2/s) 
+     real(r8), pointer :: pleafc_xfer_to_pleafc_patch              (:,:)    ! phytomer leaf transfer C to displayed pool (gC/m2/s)
+     real(r8), pointer :: cpool_to_pleafc_patch                    (:,:)    ! allocation to phytomer leaf C (gC/m2/s)
+     real(r8), pointer :: cpool_to_pgrainc_patch                   (:,:)    ! allocation to phytomer grain C (gC/m2/s)
+     real(r8), pointer :: cpool_to_pleafc_storage_patch            (:,:)    ! allocation to phytomer leaf C storage (gC/m2/s)
+     real(r8), pointer :: pleafc_storage_to_xfer_patch             (:,:)    ! leaf C shift storage to transfer for each phytomer (gC/m2/s)
 
      ! Objects that help convert once-per-year dynamic land cover changes into fluxes
      ! that are dribbled throughout the year
@@ -727,6 +738,16 @@ contains
     allocate(this%npp_growth_patch       (begp:endp)) ; this%npp_growth_patch       (:) = nan
     allocate(this%leafc_change_patch      (begp:endp)) ; this%leafc_change_patch      (:) = nan
     allocate(this%soilc_change_patch      (begp:endp)) ; this%soilc_change_patch      (:) = nan
+
+    allocate(this%tempsum2_npp_patch      (begp:endp))               ; this%tempsum2_npp_patch   (:)  = nan
+    allocate(this%monsum_npp_patch        (begp:endp))               ; this%monsum_npp_patch     (:)  = nan
+    allocate(this%pgrainc_to_food_patch   (begp:endp,1:mxnp))        ; this%pgrainn_to_food_patch (:,:) = nan
+    allocate(this%pleafc_to_litter_patch  (begp:endp,1:mxnp))        ; this%pleafc_to_litter_patch (:,:) = nan
+    allocate(this%pleafc_xfer_to_pleafc_patch (begp:endp,1:mxnp))    ; this%pleafc_xfer_to_pleafc_patch  (:,:) = nan
+    allocate(this%cpool_to_pleafc_patch  (begp:endp,1:mxnp))         ; this%cpool_to_pleafc_patch     (:,:)  = nan
+    allocate(this%cpool_to_pgrainc_patch (begp:endp,1:mxnp))         ; this%cpool_to_pgrainc_patch    (:,:)  = nan
+    allocate(this%cpool_to_pleafc_storage_patch (begp:endp,1:mxnp))  ; this%cpool_to_pleafc_storage_patch (:,:) = nan
+    allocate(this%pleafc_storage_to_xfer_patch  (begp:endp,1:mxnp))  ; this%pleafc_storage_to_xfer_patch  (:,:) = nan
 
     ! Construct restart field names consistently to what is done in SpeciesNonIsotope &
     ! SpeciesIsotope, to aid future migration to that infrastructure
@@ -1576,6 +1597,41 @@ contains
         call hist_addfld1d (fname='PFT_FIRE_CLOSS', units='gC/m^2/s', &
              avgflag='A', long_name='total patch-level fire C loss for non-peat fires outside land-type converted region', &
              ptr_patch=this%fire_closs_patch)
+
+        this%pgrainc_to_food_patch(begp:endp) = spval
+        call hist_addfld2d (fname='PGRAINC_TO_FOOD', units='gC/m^2/s', type2d='phytomer', &
+            avgflag='A', long_name='fruit C to food for each phytomer', &
+            ptr_patch=this%pgrainc_to_food_patch, default='inactive')
+
+       this%pgrainc_to_food_patch(begp:endp) = spval
+       call hist_addfld2d (fname='PLEAFC_TO_LITTER', units='gC/m^2/s', type2d='phytomer', &
+            avgflag='A', long_name='leaf C senescence for each phytomer', &
+            ptr_patch=this%pleafc_to_litter_patch, default='inactive')
+
+       this%pleafc_xfer_to_pleafc_patch(begp:endp) = spval
+       call hist_addfld2d (fname='PLEAFC_XFER_TO_PLEAFC', units='gC/m^2/s', type2d='phytomer', &
+            avgflag='A', long_name='leaf C growth from storage for each phytomer', &
+            ptr_patch=this%pleafc_xfer_to_pleafc_patch, default='inactive')
+
+       this%cpool_to_pleafc_patch(begp:endp) = spval
+       call hist_addfld2d (fname='CPOOL_TO_PLEAFC', units='gC/m^2/s', type2d='phytomer', &
+            avgflag='A', long_name='allocation to leaf C for each phytomer', &
+            ptr_patch=this%cpool_to_pleafc_patch, default='inactive')
+     
+       this%cpool_to_pgrainc_patch(begp:endp) = spval
+       call hist_addfld2d (fname='CPOOL_TO_PGRAINC', units='gC/m^2/s', type2d='phytomer', &
+            avgflag='A', long_name='allocation to grain C for each phytomer', &
+            ptr_patch=this%cpool_to_pgrainc_patch, default='inactive')
+
+       this%cpool_to_pleafc_storage_patch(begp:endp) = spval
+       call hist_addfld2d (fname='CPOOL_TO_PLEAFC_STORAGE', units='gC/m^2/s', type2d='phytomer', &
+            avgflag='A', long_name='allocation to leaf C storage for each phytomer', &
+            ptr_patch=this%cpool_to_pleafc_storage_patch, default='inactive')
+
+       this%pleafc_storage_to_xfer_patch(begp:endp) = spval
+       call hist_addfld2d (fname='PLEAFC_STORAGE_TO_XFER', units='gC/m^2/s', type2d='phytomer', &
+            avgflag='A', long_name='leaf C shift storage to transfer for each phytomer', &
+            ptr_patch=this%pleafc_storage_to_xfer_patch, default='inactive')     
 
         if ( use_fun ) then
           this%npp_Nactive_patch(begp:endp)  = spval
@@ -3391,6 +3447,8 @@ contains
           this%tempsum_litfall_patch(p)  = 0._r8
           this%annsum_litfall_patch(p)   = 0._r8
        end if
+          this%tempsum2_npp_patch(p)     = 0._r8
+          this%monsum_npp_patch(p)       = 0._r8
     end do
 
     do c = bounds%begc, bounds%endc
@@ -3580,6 +3638,14 @@ contains
          dim1name='pft', &
          long_name='', units='', &
          interpinic_flag='interp', readvar=readvar, data=this%annsum_litfall_patch)
+
+    call restartvar(ncid=ncid, flag=flag, varname='tempsum2_npp', xtype=ncd_double,  &
+            dim1name='pft',long_name='',units='', &
+            readvar=readvar, data=this%tempsum2_npp_patch)
+
+    call restartvar(ncid=ncid, flag=flag, varname='monsum_npp', xtype=ncd_double,  &
+            dim1name='pft',long_name='',units='', &
+            readvar=readvar, data=this%monsum_npp_patch)
 
     if ( use_fun ) then
        call restartvar(ncid=ncid, flag=flag, varname='leafc_to_litter_fun', xtype=ncd_double,  &

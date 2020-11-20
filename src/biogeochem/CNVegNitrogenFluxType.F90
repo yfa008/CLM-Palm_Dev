@@ -13,7 +13,8 @@ module CNVegNitrogenFluxType
   use SoilBiogeochemDecompCascadeConType , only : decomp_cascade_con
   use LandunitType                       , only : lun                
   use ColumnType                         , only : col                
-  use PatchType                          , only : patch                
+  use PatchType                          , only : patch               
+  use pftconMod                          , only : mxnp 
   ! 
   ! !PUBLIC TYPES:
   implicit none
@@ -206,6 +207,7 @@ module CNVegNitrogenFluxType
 
      ! crop fluxes
      real(r8), pointer :: crop_seedn_to_leaf_patch                  (:)     ! patch (gN/m2/s) seed source to leaf, for crops
+     real(r8), pointer :: crop_seedn_to_livestem_patch              (:)     ! patch (gN/m2/s) seed source to livestem, for woody crops
      
      ! Misc
      real(r8), pointer :: plant_ndemand_patch                       (:)     ! N flux required to support initial GPP (gN/m2/s)
@@ -242,14 +244,22 @@ module CNVegNitrogenFluxType
      real(r8), pointer :: cost_nretrans_patch                       (:)     ! Average cost of retranslocation   (gN/m2/s)
      real(r8), pointer :: nuptake_npp_fraction_patch                (:)    ! frac of npp spent on N acquisition   (gN/m2/s)
 
-     ! Nitrogen fluxes for Oil palm 
+     ! Nitrogen fluxes for Oil palm (Y.Fan) 
+     real(r8), pointer :: pgrainn_to_food_patch                     (:,:)   ! phytomer grain N to food (gN/m2/s)
      real(r8), pointer :: pleafn_to_litter_patch                    (:,:)   ! phytomer leaf N litterfall (gN/m2/s)     
      real(r8), pointer :: pleafn_to_retransn_patch                  (:,:)   ! phytomer leaf N to retranslocated N pool (gN/m2/s)
-     real(r8), pointer :: pleafn_xfer_to_pleafn_patch               (:,:)   ! phytomer leaf transfer N to displayed pool (gC/m2/s)     
-     real(r8), pointer :: pleafn_storage_to_xfer_patch              (:,:)   ! phytomer leaf storage N to transfer pool (gC/m2/s)
+     real(r8), pointer :: pleafn_xfer_to_pleafn_patch               (:,:)   ! phytomer leaf transfer N to displayed pool (gN/m2/s)    
+     real(r8), pointer :: pleafn_xfer_to_litter_patch               (:,:)   ! phytomer leaf transfer N to litter pool (gN/m2/s) 
+     real(r8), pointer :: pleafn_storage_to_xfer_patch              (:,:)   ! phytomer leaf storage N to transfer pool (gN/m2/s)
+     real(r8), pointer :: pleafn_storage_to_litter_patch            (:,:)   ! phytomer leaf storage N to litter (gN/m2/s)
      real(r8), pointer :: npool_to_pleafn_patch                     (:,:)   ! allocation to phytomer leaf N (gN/m2/s)
      real(r8), pointer :: npool_to_pgrainn_patch                    (:,:)   ! allocation to phytomer grain N (gN/m2/s)
      real(r8), pointer :: npool_to_pleafn_storage_patch             (:,:)   ! allocation to phytomer leaf N storage (gN/m2/s)
+     real(r8), pointer :: hrv_n_to_litter_patch                     (:)     ! total N harvest mortality at final rotation, added for CLM-Palm
+     real(r8), pointer :: leafn_storage_to_litter_patch             (:)     ! leaf N storage to litter (final rotation) (gN/m2/s)
+     real(r8), pointer :: deadstemn_to_litter_patch                 (:)     ! dead stem N litterfall (gN/m2/s)
+     real(r8), pointer :: livecrootn_to_litter_patch                (:)     ! coarse root N litterfall (gN/m2/s)
+     real(r8), pointer :: deadcrootn_to_litter_patch                (:)     ! dead coarse root N litterfall (gN/m2/s)
 
    contains
 
@@ -456,6 +466,7 @@ contains
     allocate(this%dwt_deadcrootn_to_cwdn_col   (begc:endc,1:nlevdecomp_full)) ; this%dwt_deadcrootn_to_cwdn_col   (:,:) = nan
 
     allocate(this%crop_seedn_to_leaf_patch     (begp:endp))                   ; this%crop_seedn_to_leaf_patch     (:)   = nan
+    allocate(this%crop_seedn_to_livestem_patch     (begp:endp))               ; this%crop_seedn_to_livestem_patch     (:)   = nan
 
     allocate(this%m_decomp_npools_to_fire_vr_col    (begc:endc,1:nlevdecomp_full,1:ndecomp_pools))
     allocate(this%m_decomp_npools_to_fire_col       (begc:endc,1:ndecomp_pools                  ))
@@ -530,10 +541,18 @@ contains
     allocate(this%pleafn_to_litter_patch        (begp:endp,1:mxnp))      ; this%pleafn_to_litter_patch  (:,:) = nan
     allocate(this%pleafn_to_retransn_patch      (begp:endp,1:mxnp))      ; this%pleafn_to_retransn_patch  (:,:)  = nan
     allocate(this%pleafn_xfer_to_pleafn_patch   (begp:endp,1:mxnp))      ; this%pleafn_xfer_to_pleafn_patch  (:,:)  = nan
+    allocate(this%pleafn_xfer_to_litter_patch   (begp:endp,1:mxnp))      ; this%pleafn_xfer_to_litter_patch  (:,:)  = nan
     allocate(this%pleafn_storage_to_xfer_patch  (begp:endp,1:mxnp))      ; this%pleafn_storage_to_xfer_patch (:,:) = nan
+    allocate(this%pleafn_storage_to_litter_patch (begp:endp,1:mxnp))     ; this%pleafn_storage_to_litter_patch  (:,:)  = nan
     allocate(this%npool_to_pleafn_patch         (begp:endp,1:mxnp))      ; this%npool_to_pleafn_patch   (:,:)  = nan
     allocate(this%npool_to_pgrainn_patch        (begp:endp,1:mxnp))      ; this%npool_to_pgrainn_patch  (:,:)  = nan
     allocate(this%npool_to_pleafn_storage_patch (begp:endp,1:mxnp))      ; this%npool_to_pleafn_storage_patch  (:,:)  = nan
+    allocate(this%hrv_n_to_litter_patch  (begp:endp))                ; this%hrv_n_to_litter_patch      (:)  = nan
+    allocate(this%leafn_storage_to_litter_patch (begp:endp))         ; this%leafn_storage_to_litter_patch (:)  = nan
+    allocate(this%deadstemn_to_litter_patch (begp:endp))             ; this%deadstemn_to_litter_patch  (:)  = nan
+    allocate(this%livecrootn_to_litter_patch (begp:endp))            ; this%livecrootn_to_litter_patch (:)  = nan
+    allocate(this%deadcrootn_to_litter_patch (begp:endp))            ; this%deadcrootn_to_litter_patch (:)  = nan
+    allocate(this%pgrainn_to_food_patch  (begp:endp,1:mxnp))         ; this%pgrainn_to_food_patch   (:,:)  = nan
 
   end subroutine InitAllocate
 
@@ -960,37 +979,42 @@ contains
          avgflag='A', long_name='total patch-level fire N loss', &
          ptr_patch=this%fire_nloss_patch)
     
-    this%pleafn_to_litter_patch(begp:endp) = spval
+    this%pleafn_to_litter_patch(begp:endp,1:mxnp) = spval
     call hist_addfld2d (fname='PLEAFN_TO_LITTER', units='gN/m^2/s', type2d='phytomer', &
             avgflag='A', long_name='leaf N senescence for each phytomer', &
             ptr_patch=this%pleafn_to_litter_patch, default='inactive')
     
-    this%pleafn_to_retransn_patch(begp:endp) = spval
+    this%pleafn_to_retransn_patch(begp:endp,1:mxnp) = spval
     call hist_addfld2d (fname='PLEAFN_TO_RETRANSN', units='gN/m^2/s', type2d='phytomer', &
             avgflag='A', long_name='leaf N to retranslocated N pool for each phytomer', &
             ptr_patch=this%pleafn_to_retransn_patch, default='inactive')
     
-    this%pleafn_xfer_to_pleafn_patch(begp:endp) = spval
+    this%pleafn_xfer_to_pleafn_patch(begp:endp,1:mxnp) = spval
     call hist_addfld2d (fname='PLEAFN_XFER_TO_PLEAFN', units='gN/m^2/s', type2d='phytomer', &
             avgflag='A', long_name='leaf N growth from storage for each phytomer', &
             ptr_patch=this%pleafn_xfer_to_pleafn_patch, default='inactive')
+
+    this%pleafn_xfer_to_litter_patch(begp:endp,1:mxnp) = spval
+    call hist_addfld2d (fname='PLEAFN_XFER_TO_PLEAFN', units='gN/m^2/s', type2d='phytomer', &
+            avgflag='A', long_name='leaf N transfer to litter pool for each phytomer', &
+            ptr_patch=this%pleafn_xfer_to_litter_patch, default='inactive')
     
-    this%pleafn_storage_to_xfer_patch(begp:endp) = spval
+    this%pleafn_storage_to_xfer_patch(begp:endp,1:mxnp) = spval
     call hist_addfld2d (fname='PLEAFN_STORAGE_TO_XFER', units='gN/m^2/s', type2d='phytomer', &
             avgflag='A', long_name='leaf N shift storage to transfer for each phytomer', &
             ptr_patch=this%pleafn_storage_to_xfer_patch, default='inactive')
     
-    this%npool_to_pleafn_patch(begp:endp) = spval
+    this%npool_to_pleafn_patch(begp:endp,1:mxnp) = spval
     call hist_addfld2d (fname='NPOOL_TO_PLEAFN', units='gN/m^2/s', type2d='phytomer', &
             avgflag='A', long_name='allocation to leaf N for each phytomer', &
             ptr_patch=this%npool_to_pleafn_patch, default='inactive')
 
-    this%npool_to_pgrainn_patch(begp:endp) = spval
+    this%npool_to_pgrainn_patch(begp:endp,1:mxnp) = spval
     call hist_addfld2d (fname='NPOOL_TO_PGRAINN', units='gN/m^2/s', type2d='phytomer', &
             avgflag='A', long_name='allocation to grain N for each phytomer', &
             ptr_patch=this%npool_to_pgrainn_patch, default='inactive')
 
-    this%npool_to_pleafn_storage_patch(begp:endp) = spval
+    this%npool_to_pleafn_storage_patch(begp:endp,1:mxnp) = spval
     call hist_addfld2d (fname='NPOOL_TO_PLEAFN_STORAGE', units='gN/m^2/s', type2d='phytomer', &
             avgflag='A', long_name='allocation to leaf N storage for each phytomer', &
             ptr_patch=this%npool_to_pleafn_storage_patch, default='inactive')
@@ -1114,6 +1138,11 @@ contains
     call hist_addfld1d (fname='CROP_SEEDN_TO_LEAF', units='gN/m^2/s', &
          avgflag='A', long_name='crop seed source to leaf', &
          ptr_patch=this%crop_seedn_to_leaf_patch, default='inactive')
+
+    this%crop_seedn_to_livestem_patch(begp:endp) = spval
+    call hist_addfld1d (fname='CROP_SEEDN_TO_LIVESTEM', units='gN/m^2/s', &
+         avgflag='A', long_name='crop seed source to livestem for woody crops(palm)', &
+         ptr_patch=this%crop_seedn_to_livestem_patch, default='inactive')
 
     this%plant_ndemand_patch(begp:endp) = spval
     call hist_addfld1d (fname='PLANT_NDEMAND', units='gN/m^2/s', &
@@ -1724,6 +1753,7 @@ contains
 
        this%crop_seedn_to_leaf_patch(i)                  = value_patch
        this%grainn_to_cropprodn_patch(i)                 = value_patch
+       this%crop_seedn_to_livestem_patch(i)              = value_patch
     end do
 
     if ( use_crop )then

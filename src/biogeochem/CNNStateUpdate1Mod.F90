@@ -169,18 +169,17 @@ contains
          if (ivt(p) >= npcropmin) then ! skip 2 generic crops
             ! lines here for consistency; the transfer terms are zero
            if (woody(ivt(p)) /= 1._r8) then !to avoid repeat for woody crops (Y.Fan)
-
             ns_veg%livestemn_patch(p)       = ns_veg%livestemn_patch(p)      + nf_veg%livestemn_xfer_to_livestemn_patch(p)*dt
             ns_veg%livestemn_xfer_patch(p)  = ns_veg%livestemn_xfer_patch(p) - nf_veg%livestemn_xfer_to_livestemn_patch(p)*dt
-           enf if
+           end if
             ns_veg%grainn_patch(p)          = ns_veg%grainn_patch(p)         + nf_veg%grainn_xfer_to_grainn_patch(p)*dt
             ns_veg%grainn_xfer_patch(p)     = ns_veg%grainn_xfer_patch(p)    - nf_veg%grainn_xfer_to_grainn_patch(p)*dt
          end if
         if (phytomer(ivt(p)) > 0) then ! phytomer-based (Y.Fan)
-          pleafn(p,:)           = pleafn(p,:)       + pleafn_xfer_to_pleafn(p,:)*dt
-          pleafn_xfer(p,:)      = pleafn_xfer(p,:)  - pleafn_xfer_to_pleafn(p,:)*dt
+          ns_veg%pleafn_patch(p,:)           = ns_veg%pleafn_patch(p,:)       + nf_veg%pleafn_xfer_to_pleafn_patch(p,:)*dt
+          ns_veg%pleafn_xfer_patch(p,:)      = ns_veg%pleafn_xfer_patch(p,:)  - nf_veg%pleafn_xfer_to_pleafn_patch(p,:)*dt
           !zero out leaf xfer pools at final rotation
-          pleafn_xfer(p,:)      = pleafn_xfer(p,:)  - pleafn_xfer_to_litter(p,:)*dt
+          ns_veg%pleafn_xfer_patch(p,:)      = ns_veg%pleafn_xfer_patch(p,:)  - nf_veg%pleafn_xfer_to_litter_patch(p,:)*dt
         end if
 
 
@@ -207,15 +206,15 @@ contains
             ns_veg%retransn_patch(p)     = ns_veg%retransn_patch(p)   + nf_veg%frootn_to_retransn_patch(p)*dt
 
             ns_veg%livestemn_patch(p)    = ns_veg%livestemn_patch(p)  - nf_veg%livestemn_to_litter_patch(p)*dt
-           if (woody(ivt(p)) /= 1._r8) then !avoid repeat for possible woody crop
+            if (woody(ivt(p)) /= 1._r8) then !avoid repeat for possible woody crop
 
-            ns_veg%livestemn_patch(p)    = ns_veg%livestemn_patch(p)  - nf_veg%livestemn_to_retransn_patch(p)*dt
-            ns_veg%retransn_patch(p)     = ns_veg%retransn_patch(p)   + nf_veg%livestemn_to_retransn_patch(p)*dt
-           end if
-           !add all litter fluxes for other possible woody crop
-           deadstemn(p)  = deadstemn(p)  - deadstemn_to_litter(p)*dt
-           livecrootn(p) = livecrootn(p) - livecrootn_to_litter(p)*dt
-           deadcrootn(p) = deadcrootn(p) - deadcrootn_to_litter(p)*dt
+             ns_veg%livestemn_patch(p)    = ns_veg%livestemn_patch(p)  - nf_veg%livestemn_to_retransn_patch(p)*dt
+             ns_veg%retransn_patch(p)     = ns_veg%retransn_patch(p)   + nf_veg%livestemn_to_retransn_patch(p)*dt
+            end if
+            !add all litter fluxes for other possible woody crop
+            ns_veg%deadstemn_patch(p)  = ns_veg%deadstemn_patch(p)  - nf_veg%deadstemn_to_litter_patch(p)*dt
+            ns_veg%livecrootn_patch(p) = ns_veg%livecrootn_patch(p) - nf_veg%livecrootn_to_litter_patch(p)*dt
+            ns_veg%deadcrootn_patch(p) = ns_veg%deadcrootn_patch(p) - nf_veg%deadcrootn_to_litter_patch(p)*dt
 
             ns_veg%grainn_patch(p)       = ns_veg%grainn_patch(p) &
                  - (nf_veg%grainn_to_food_patch(p) + nf_veg%grainn_to_seed_patch(p))*dt
@@ -224,11 +223,11 @@ contains
                  + nf_veg%grainn_to_seed_patch(p) * dt
          end if
       if (phytomer(ivt(p)) > 0) then ! phytomer-based (Y.Fan)
-          ns_veg%pleafn(p,:) = ns_veg%pleafn(p,:) - ns_veg%pleafn_to_litter(p,:)*dt
-          ns_veg%pleafn(p,:) = ns_veg%pleafn(p,:) - ns_veg%pleafn_to_retransn(p,:)*dt
-          ns_veg%pgrainn(p,:) = ns_veg%pgrainn(p,:) - ns_veg%pgrainn_to_food(p,:)*dt
+          ns_veg%pleafn_patch(p,:) = ns_veg%pleafn_patch(p,:) - nf_veg%pleafn_to_litter_patch(p,:)*dt
+          ns_veg%pleafn_patch(p,:) = ns_veg%pleafn_patch(p,:) - nf_veg%pleafn_to_retransn_patch(p,:)*dt
+          ns_veg%pgrainn_patch(p,:) = ns_veg%pgrainn_patch(p,:) - nf_veg%pgrainn_to_food_patch(p,:)*dt
           !zero out leaf storage pools at final rotation
-          ns_veg%pleafn_storage(p,:) = ns_veg%pleafn_storage(p,:) - ns_veg%pleafn_storage_to_litter(p,:)*dt
+          ns_veg%pleafn_storage_patch(p,:) = ns_veg%pleafn_storage_patch(p,:) - nf_veg%pleafn_storage_to_litter_patch(p,:)*dt
           !leafn_storage(p) = leafn_storage(p) - leafn_storage_to_litter(p)*dt
       end if
 
@@ -289,9 +288,9 @@ contains
 
 
          if (phytomer(ivt(p)) > 0) then ! phytomer-based allocation (Y.Fan)
-            ns_veg%pleafn(p,:)               = ns_veg%pleafn(p,:)    + ns_veg%npool_to_pleafn(p,:)*dt
-            ns_veg%pleafn_storage(p,:)  = ns_veg%pleafn_storage(p,:)     + ns_veg%npool_to_pleafn_storage(p,:)*dt
-            ns_veg%pgrainn(p,:)            = ns_veg%pgrainn(p,:)      + ns_veg%npool_to_pgrainn(p,:)*dt
+            ns_veg%pleafn_patch(p,:)          = ns_veg%pleafn_patch(p,:)    + nf_veg%npool_to_pleafn_patch(p,:)*dt
+            ns_veg%pleafn_storage_patch(p,:)  = ns_veg%pleafn_storage_patch(p,:)     + nf_veg%npool_to_pleafn_storage_patch(p,:)*dt
+            ns_veg%pgrainn_patch(p,:)         = ns_veg%pgrainn_patch(p,:)      + nf_veg%npool_to_pgrainn_patch(p,:)*dt
          end if
 
          ! move storage pools into transfer pools
@@ -321,8 +320,8 @@ contains
             ns_veg%grainn_xfer_patch(p)        = ns_veg%grainn_xfer_patch(p)       + nf_veg%grainn_storage_to_xfer_patch(p)*dt
          end if
         if (phytomer(ivt(p)) > 0) then ! phytomer-based (Y.Fan)
-          ns_veg%pleafn_xfer(p,:)        = ns_veg%pleafn_xfer(p,:)        + ns_veg%pleafn_storage_to_xfer(p,:)*dt
-          ns_veg%pleafn_storage(p,:)     = ns_veg%pleafn_storage(p,:)     - ns_veg%pleafn_storage_to_xfer(p,:)*dt
+          ns_veg%pleafn_xfer_patch(p,:)        = ns_veg%pleafn_xfer_patch(p,:)        + nf_veg%pleafn_storage_to_xfer_patch(p,:)*dt
+          ns_veg%pleafn_storage_patch(p,:)     = ns_veg%pleafn_storage_patch(p,:)     - nf_veg%pleafn_storage_to_xfer_patch(p,:)*dt
         end if
 
       end do

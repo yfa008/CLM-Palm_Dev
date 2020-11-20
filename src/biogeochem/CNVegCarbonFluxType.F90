@@ -17,7 +17,7 @@ module CNVegCarbonFluxType
   use clm_varctl                         , only : use_grainproduct
   use clm_varctl                         , only : iulog
   use landunit_varcon                    , only : istsoil, istcrop, istdlak 
-  use pftconMod                          , only : npcropmin
+  use pftconMod                          , only : npcropmin, mxnp
   use LandunitType                       , only : lun                
   use ColumnType                         , only : col                
   use PatchType                          , only : patch                
@@ -272,6 +272,7 @@ module CNVegCarbonFluxType
 
      ! crop fluxes
      real(r8), pointer :: crop_seedc_to_leaf_patch                  (:)     ! (gC/m2/s) seed source to leaf, for crops
+     real(r8), pointer :: crop_seedc_to_livestem_patch              (:)     ! (gC/m2/s) seed source to livestem, for w0ody crops (e.g., palm)
 
      ! summary (diagnostic) flux variables, not involved in mass balance
      real(r8), pointer :: gpp_before_downreg_patch                  (:)     ! (gC/m2/s) gross primary production before down regulation
@@ -363,7 +364,7 @@ module CNVegCarbonFluxType
  
 !     real(r8), pointer :: soilc_change_col                          (:)     ! Total used C from soil          (gC/m2/s)
     
-     ! Carbon fluxes for Oil palm
+     ! Carbon fluxes for Oil palm (Y.Fan)
      real(r8), pointer :: tempsum2_npp_patch                       (:)      ! temporary sum of NPP (gC/m2/yr)
      real(r8), pointer :: monsum_npp_patch                         (:)      ! monthly sum of NPP (gC/m2/yr)
      real(r8), pointer :: pgrainc_to_food_patch                    (:,:)    ! phytomer grain C to food (gC/m2/s)
@@ -373,6 +374,13 @@ module CNVegCarbonFluxType
      real(r8), pointer :: cpool_to_pgrainc_patch                   (:,:)    ! allocation to phytomer grain C (gC/m2/s)
      real(r8), pointer :: cpool_to_pleafc_storage_patch            (:,:)    ! allocation to phytomer leaf C storage (gC/m2/s)
      real(r8), pointer :: pleafc_storage_to_xfer_patch             (:,:)    ! leaf C shift storage to transfer for each phytomer (gC/m2/s)
+     real(r8), pointer :: pleafc_storage_to_litter_patch           (:,:)    ! phytomer leaf storage C to litter (final rotation) (gC/m2/s)
+     real(r8), pointer :: pleafc_xfer_to_litter_patch              (:,:)    ! phytomer leaf transfer C to litterfall (gC/m2/s)
+     real(r8), pointer :: hrv_c_to_litter_patch                    (:)      ! total C harvest mortality at final rotation, added for CLM-Palm (gC/m2/s)
+     real(r8), pointer :: leafc_storage_to_litter_patch            (:)      ! leaf storage C to litter (final rotation) (gC/m2/s)
+     real(r8), pointer :: deadstemc_to_litter_patch                (:)      ! dead stem C litterfall (gC/m2/s)
+     real(r8), pointer :: livecrootc_to_litter_patch               (:)      ! coarse root C litterfall (gC/m2/s)
+     real(r8), pointer :: deadcrootc_to_litter_patch               (:)      ! dead coarse root C litterfall (gC/m2/s)
 
      ! Objects that help convert once-per-year dynamic land cover changes into fluxes
      ! that are dribbled throughout the year
@@ -658,6 +666,7 @@ contains
     allocate(this%dwt_crop_productc_gain_patch      (begp:endp))                  ; this%dwt_crop_productc_gain_patch(:) =nan
 
     allocate(this%crop_seedc_to_leaf_patch          (begp:endp))                  ; this%crop_seedc_to_leaf_patch  (:)  =nan
+    allocate(this%crop_seedc_to_livestem_patch      (begp:endp))                  ; this%crop_seedc_to_livestem_patch  (:)  =nan
 
     allocate(this%cwdc_hr_col                       (begc:endc))                  ; this%cwdc_hr_col               (:)  =nan
     allocate(this%cwdc_loss_col                     (begc:endc))                  ; this%cwdc_loss_col             (:)  =nan
@@ -741,13 +750,21 @@ contains
 
     allocate(this%tempsum2_npp_patch      (begp:endp))               ; this%tempsum2_npp_patch   (:)  = nan
     allocate(this%monsum_npp_patch        (begp:endp))               ; this%monsum_npp_patch     (:)  = nan
-    allocate(this%pgrainc_to_food_patch   (begp:endp,1:mxnp))        ; this%pgrainn_to_food_patch (:,:) = nan
+    allocate(this%pgrainc_to_food_patch   (begp:endp,1:mxnp))        ; this%pgrainc_to_food_patch (:,:) = nan
     allocate(this%pleafc_to_litter_patch  (begp:endp,1:mxnp))        ; this%pleafc_to_litter_patch (:,:) = nan
     allocate(this%pleafc_xfer_to_pleafc_patch (begp:endp,1:mxnp))    ; this%pleafc_xfer_to_pleafc_patch  (:,:) = nan
     allocate(this%cpool_to_pleafc_patch  (begp:endp,1:mxnp))         ; this%cpool_to_pleafc_patch     (:,:)  = nan
     allocate(this%cpool_to_pgrainc_patch (begp:endp,1:mxnp))         ; this%cpool_to_pgrainc_patch    (:,:)  = nan
     allocate(this%cpool_to_pleafc_storage_patch (begp:endp,1:mxnp))  ; this%cpool_to_pleafc_storage_patch (:,:) = nan
     allocate(this%pleafc_storage_to_xfer_patch  (begp:endp,1:mxnp))  ; this%pleafc_storage_to_xfer_patch  (:,:) = nan
+    allocate(this%pleafc_storage_to_litter_patch (begp:endp,1:mxnp)) ; this%pleafc_storage_to_litter_patch (:,:) = nan
+    allocate(this%pleafc_xfer_to_litter_patch (begp:endp,1:mxnp))    ; this%pleafc_xfer_to_litter_patch  (:,:)  = nan
+    allocate(this%hrv_c_to_litter_patch (begp:endp))                 ; this%hrv_c_to_litter_patch  (:)  = nan
+    allocate(this%leafc_storage_to_litter_patch (begp:endp))         ; this%leafc_storage_to_litter_patch  (:)  = nan
+    allocate(this%deadstemc_to_litter_patch (begp:endp))             ; this%deadstemc_to_litter_patch (:) = nan
+    allocate(this%livecrootc_to_litter_patch (begp:endp))            ; this%livecrootc_to_litter_patch (:) = nan
+    allocate(this%deadcrootc_to_litter_patch (begp:endp))            ; this%deadcrootc_to_litter_patch (:) = nan
+
 
     ! Construct restart field names consistently to what is done in SpeciesNonIsotope &
     ! SpeciesIsotope, to aid future migration to that infrastructure
@@ -1598,37 +1615,37 @@ contains
              avgflag='A', long_name='total patch-level fire C loss for non-peat fires outside land-type converted region', &
              ptr_patch=this%fire_closs_patch)
 
-        this%pgrainc_to_food_patch(begp:endp) = spval
+        this%pgrainc_to_food_patch(begp:endp,1:mxnp) = spval
         call hist_addfld2d (fname='PGRAINC_TO_FOOD', units='gC/m^2/s', type2d='phytomer', &
             avgflag='A', long_name='fruit C to food for each phytomer', &
             ptr_patch=this%pgrainc_to_food_patch, default='inactive')
 
-       this%pgrainc_to_food_patch(begp:endp) = spval
+       this%pgrainc_to_food_patch(begp:endp,1:mxnp) = spval
        call hist_addfld2d (fname='PLEAFC_TO_LITTER', units='gC/m^2/s', type2d='phytomer', &
             avgflag='A', long_name='leaf C senescence for each phytomer', &
             ptr_patch=this%pleafc_to_litter_patch, default='inactive')
 
-       this%pleafc_xfer_to_pleafc_patch(begp:endp) = spval
+       this%pleafc_xfer_to_pleafc_patch(begp:endp,1:mxnp) = spval
        call hist_addfld2d (fname='PLEAFC_XFER_TO_PLEAFC', units='gC/m^2/s', type2d='phytomer', &
             avgflag='A', long_name='leaf C growth from storage for each phytomer', &
             ptr_patch=this%pleafc_xfer_to_pleafc_patch, default='inactive')
 
-       this%cpool_to_pleafc_patch(begp:endp) = spval
+       this%cpool_to_pleafc_patch(begp:endp,1:mxnp) = spval
        call hist_addfld2d (fname='CPOOL_TO_PLEAFC', units='gC/m^2/s', type2d='phytomer', &
             avgflag='A', long_name='allocation to leaf C for each phytomer', &
             ptr_patch=this%cpool_to_pleafc_patch, default='inactive')
      
-       this%cpool_to_pgrainc_patch(begp:endp) = spval
+       this%cpool_to_pgrainc_patch(begp:endp,1:mxnp) = spval
        call hist_addfld2d (fname='CPOOL_TO_PGRAINC', units='gC/m^2/s', type2d='phytomer', &
             avgflag='A', long_name='allocation to grain C for each phytomer', &
             ptr_patch=this%cpool_to_pgrainc_patch, default='inactive')
 
-       this%cpool_to_pleafc_storage_patch(begp:endp) = spval
+       this%cpool_to_pleafc_storage_patch(begp:endp,1:mxnp) = spval
        call hist_addfld2d (fname='CPOOL_TO_PLEAFC_STORAGE', units='gC/m^2/s', type2d='phytomer', &
             avgflag='A', long_name='allocation to leaf C storage for each phytomer', &
             ptr_patch=this%cpool_to_pleafc_storage_patch, default='inactive')
 
-       this%pleafc_storage_to_xfer_patch(begp:endp) = spval
+       this%pleafc_storage_to_xfer_patch(begp:endp,1:mxnp) = spval
        call hist_addfld2d (fname='PLEAFC_STORAGE_TO_XFER', units='gC/m^2/s', type2d='phytomer', &
             avgflag='A', long_name='leaf C shift storage to transfer for each phytomer', &
             ptr_patch=this%pleafc_storage_to_xfer_patch, default='inactive')     
@@ -2967,6 +2984,11 @@ contains
             avgflag='A', long_name='crop seed source to leaf', &
             ptr_patch=this%crop_seedc_to_leaf_patch, default='inactive')
 
+       this%crop_seedc_to_livestem_patch(begp:endp) = spval
+       call hist_addfld1d (fname='CROP_SEEDC_TO_LIVESTEM', units='gC/m^2/s', &
+            avgflag='A', long_name='crop seed source to livestem for woody crop (palm)', &
+            ptr_patch=this%crop_seedc_to_livestem_patch, default='inactive')
+
         this%sr_col(begc:endc) = spval
         call hist_addfld1d (fname='SR', units='gC/m^2/s', &
              avgflag='A', long_name='total soil respiration (HR + root resp)', &
@@ -3641,11 +3663,11 @@ contains
 
     call restartvar(ncid=ncid, flag=flag, varname='tempsum2_npp', xtype=ncd_double,  &
             dim1name='pft',long_name='',units='', &
-            readvar=readvar, data=this%tempsum2_npp_patch)
+            interpinic_flag='interp', readvar=readvar, data=this%tempsum2_npp_patch)
 
     call restartvar(ncid=ncid, flag=flag, varname='monsum_npp', xtype=ncd_double,  &
             dim1name='pft',long_name='',units='', &
-            readvar=readvar, data=this%monsum_npp_patch)
+            interpinic_flag='interp', readvar=readvar, data=this%monsum_npp_patch)
 
     if ( use_fun ) then
        call restartvar(ncid=ncid, flag=flag, varname='leafc_to_litter_fun', xtype=ncd_double,  &
@@ -3878,6 +3900,7 @@ contains
 
        this%crop_seedc_to_leaf_patch(i)                  = value_patch
        this%grainc_to_cropprodc_patch(i)                 = value_patch
+       this%crop_seedc_to_livestem_patch(i)              = value_patch
     end do
 
     if ( use_crop )then

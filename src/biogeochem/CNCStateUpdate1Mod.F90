@@ -277,10 +277,10 @@ contains
 
 
             if (phytomer(ivt(p)) > 0) then ! phytomer-based (Y.Fan)
-               cs_veg%pleafc(p,:)      = cs_veg%pleafc(p,:)   + cs_veg%pleafc_xfer_to_pleafc(p,:)*dt
-               cs_veg%pleafc_xfer(p,:)      = cs_veg%pleafc_xfer(p,:)  - cs_veg%pleafc_xfer_to_pleafc(p,:)*dt
+               cs_veg%pleafc_patch(p,:)        = cs_veg%pleafc_patch(p,:)   + cf_veg%pleafc_xfer_to_pleafc_patch(p,:)*dt
+               cs_veg%pleafc_xfer_patch(p,:)   = cs_veg%pleafc_xfer_patch(p,:)  - cf_veg%pleafc_xfer_to_pleafc_patch(p,:)*dt
                !zero out leaf xfer pool at final rotation
-               cs_veg%pleafc_xfer(p,:)      = cs_veg%pleafc_xfer(p,:)  - cs_veg%pleafc_xfer_to_litter(p,:)*dt
+               cs_veg%pleafc_xfer_patch(p,:)   = cs_veg%pleafc_xfer_patch(p,:)  - cf_veg%pleafc_xfer_to_litter_patch(p,:)*dt
            end if
 
          end if
@@ -307,17 +307,17 @@ contains
                  - cf_veg%crop_seedc_to_leaf_patch(p) * dt &
                  + cf_veg%grainc_to_seed_patch(p) * dt
             !add other C state variables for crops; terms are zero except woody crops (Y.Fan)
-            cs_veg%deadstemc_patch(p)  = cs_veg%deadstemc_patch(p)  - cs_veg%deadstemc_to_litter_patch(p)*dt
-            cs_veg%livecrootc_patch(p) = cs_veg%livecrootc_patch(p) - cs_veg%livecrootc_to_litter_patch(p)*dt
-            cs_veg%deadcrootc_patch(p) = cs_veg%deadcrootc_patch(p) - cs_veg%deadcrootc_to_litter_patch(p)*dt
+            cs_veg%deadstemc_patch(p)  = cs_veg%deadstemc_patch(p)  - cf_veg%deadstemc_to_litter_patch(p)*dt
+            cs_veg%livecrootc_patch(p) = cs_veg%livecrootc_patch(p) - cf_veg%livecrootc_to_litter_patch(p)*dt
+            cs_veg%deadcrootc_patch(p) = cs_veg%deadcrootc_patch(p) - cf_veg%deadcrootc_to_litter_patch(p)*dt
 
          end if
 
          if (phytomer(ivt(p)) > 0) then ! phytomer-based (Y.Fan)
-           cs_veg%pleafc(p,:) = cs_veg%pleafc(p,:) - cs_veg%pleafc_to_litter(p,:)*dt
-           cs_veg%pgrainc(p,:) = cs_veg%pgrainc(p,:) - cs_veg%pgrainc_to_food(p,:)*dt
+           cs_veg%pleafc_patch(p,:) = cs_veg%pleafc_patch(p,:) - cf_veg%pleafc_to_litter_patch(p,:)*dt
+           cs_veg%pgrainc_patch(p,:) = cs_veg%pgrainc_patch(p,:) - cf_veg%pgrainc_to_food_patch(p,:)*dt
            !zero out leaf storage pools at final rotation
-           cs_veg%pleafc_storage(p,:) = cs_veg%pleafc_storage(p,:) - cs_veg%pleafc_storage_to_litter(p,:)*dt
+           cs_veg%pleafc_storage_patch(p,:) = cs_veg%pleafc_storage_patch(p,:) - cf_veg%pleafc_storage_to_litter_patch(p,:)*dt
            !leafc_storage(p) = leafc_storage(p) - leafc_storage_to_litter(p)*dt !this is done by hrv_ flux in CNCStateUpdate2Mod
          end if
 
@@ -421,9 +421,9 @@ contains
             cs_veg%grainc_storage_patch(p)     = cs_veg%grainc_storage_patch(p)     + cf_veg%cpool_to_grainc_storage_patch(p)*dt
          end if
         if (phytomer(ivt(p)) > 0) then ! phytomer-based allocation (Y.Fan)
-           cs_veg%pleafc(p,:)             = cs_veg%pleafc(p,:)             + cs_veg%cpool_to_pleafc(p,:)*dt
-           cs_veg%pleafc_storage(p,:)     = cs_veg%pleafc_storage(p,:)     + cs_veg%cpool_to_pleafc_storage(p,:)*dt
-           cs_veg%pgrainc(p,:)            = cs_veg%pgrainc(p,:)            + cs_veg%cpool_to_pgrainc(p,:)*dt
+           cs_veg%pleafc_patch(p,:)             = cs_veg%pleafc_patch(p,:)             + cf_veg%cpool_to_pleafc_patch(p,:)*dt
+           cs_veg%pleafc_storage_patch(p,:)     = cs_veg%pleafc_storage_patch(p,:)     + cf_veg%cpool_to_pleafc_storage_patch(p,:)*dt
+           cs_veg%pgrainc_patch(p,:)            = cs_veg%pgrainc_patch(p,:)            + cf_veg%cpool_to_pgrainc_patch(p,:)*dt
         end if
 
 
@@ -514,8 +514,8 @@ contains
             cs_veg%grainc_xfer_patch(p)        = cs_veg%grainc_xfer_patch(p)       + cf_veg%grainc_storage_to_xfer_patch(p)*dt
          end if
          if (phytomer(ivt(p)) > 0) then ! phytomer-based (Y.Fan)
-           cs_veg%pleafc_xfer(p,:)        = cs_veg%pleafc_xfer(p,:)        + cs_veg%pleafc_storage_to_xfer(p,:)*dt
-           cs_veg%pleafc_storage(p,:)     = cs_veg%pleafc_storage(p,:)     - cs_veg%pleafc_storage_to_xfer(p,:)*dt
+           cs_veg%pleafc_xfer_patch(p,:)        = cs_veg%pleafc_xfer_patch(p,:)        + cf_veg%pleafc_storage_to_xfer_patch(p,:)*dt
+           cs_veg%pleafc_storage_patch(p,:)     = cs_veg%pleafc_storage_patch(p,:)     - cf_veg%pleafc_storage_to_xfer_patch(p,:)*dt
          end if
 
 

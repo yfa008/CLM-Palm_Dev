@@ -26,7 +26,7 @@ module NutrientCompetitionFlexibleCNMod
   use NutrientCompetitionMethodMod, only : nutrient_competition_method_type
   use NutrientCompetitionMethodMod, only : params_inst
   use clm_varctl          , only : iulog
-  use pftvarcon           , only : mxnp  !max number of phytomers for multilayer structure
+  use pftconMod           , only : mxnp  !max number of phytomers for multilayer structure
   !
   implicit none
   private
@@ -341,17 +341,17 @@ contains
          !frootcnr                  =>    pftcon%frootcnr                                           , & ! Input:  [real(r8) (:)]  range of departure from default fineroot C:N ratio, used to determine max/min C:N (gC/gN)
          !livewdcnr                 =>    pftcon%livewdcnr                                          , & ! Input:  [real(r8) (:)]  range of departure from default livestem C:N ratio, used to determine max/min C:N (gC/gN)
          !graincnr                  =>    pftcon%graincnr                                           , & ! Input:  [real(r8) (:)]  range of departure from default grain C:N ratio, used to determine max/min C:N (gC/gN)
-         huileafnp                    => cnveg_state_inst%huileafnp                , & ! Input:  [real(r8) (:,:)]  hui needed for initiation of successive phytomers
-         huilfexpnp                   => cnveg_state_inst%huilfexpnp               , & ! Input:  [real(r8) (:,:)]  hui needed for leaf expansion of successive phytomers
-         huilfmatnp                   => cnveg_state_inst%huilfmatnp               , & ! Input:  [real(r8) (:,:)]  hui needed for leaf maturity of successive phytomers
-         pleafc                    => cnveg_carbonstate_inst%pleafc                   , & ! InOut:  [real(r8) (:,:)]  (gC/m2) phytomer leaf C
-         pleafn                    => cnveg_nitrogenstate_inst%pleafn                   , & ! InOut:  [real(r8) (:,:)]  (gN/m2) phytomer leaf N
-         cpool_to_pleafc           => cnveg_carbonflux_inst%cpool_to_pleafc          , & ! InOut:  [real(r8) (:,:)]  allocation to phytomer leaf C (gC/m2/s)
-         cpool_to_pleafc_storage   => cnveg_carbonflux_inst%cpool_to_pleafc_storage  , & ! Input:  [real(r8) (:,:)]
-         cpool_to_pgrainc          => cnveg_carbonflux_inst%cpool_to_pgrainc         , & ! InOut:  [real(r8) (:,:)]  allocation to phytomer grain C (gC/m2/s)
-         npool_to_pleafn           => cnveg_nitrogenflux_inst%npool_to_pleafn          , & ! InOut:  [real(r8) (:,:)]  allocation to phytomer leaf N (gN/m2/s)
-         npool_to_pleafn_storage   => cnveg_nitrogenflux_inst%npool_to_pleafn_storage  , & ! Input:  [real(r8) (:,:)]
-         npool_to_pgrainn          => cnveg_nitrogenflux_inst%npool_to_pgrainn         , & ! InOut:  [real(r8) (:,:)]  allocation to phytomer grain N (gN/m2/s)
+         huileafnp                    => crop_inst%huileafnp_patch                , & ! Input:  [real(r8) (:,:)]  hui needed for initiation of successive phytomers
+         huilfexpnp                   => crop_inst%huilfexpnp_patch               , & ! Input:  [real(r8) (:,:)]  hui needed for leaf expansion of successive phytomers
+         huilfmatnp                   => crop_inst%huilfmatnp_patch               , & ! Input:  [real(r8) (:,:)]  hui needed for leaf maturity of successive phytomers
+         pleafc                    => cnveg_carbonstate_inst%pleafc_patch                   , & ! InOut:  [real(r8) (:,:)]  (gC/m2) phytomer leaf C
+         pleafn                    => cnveg_nitrogenstate_inst%pleafn_patch                 , & ! InOut:  [real(r8) (:,:)]  (gN/m2) phytomer leaf N
+         cpool_to_pleafc           => cnveg_carbonflux_inst%cpool_to_pleafc_patch           , & ! InOut:  [real(r8) (:,:)]  allocation to phytomer leaf C (gC/m2/s)
+         cpool_to_pleafc_storage   => cnveg_carbonflux_inst%cpool_to_pleafc_storage_patch   , & ! Input:  [real(r8) (:,:)]
+         cpool_to_pgrainc          => cnveg_carbonflux_inst%cpool_to_pgrainc_patch          , & ! InOut:  [real(r8) (:,:)]  allocation to phytomer grain C (gC/m2/s)
+         npool_to_pleafn           => cnveg_nitrogenflux_inst%npool_to_pleafn_patch         , & ! InOut:  [real(r8) (:,:)]  allocation to phytomer leaf N (gN/m2/s)
+         npool_to_pleafn_storage   => cnveg_nitrogenflux_inst%npool_to_pleafn_storage_patch  , & ! Input:  [real(r8) (:,:)]
+         npool_to_pgrainn          => cnveg_nitrogenflux_inst%npool_to_pgrainn_patch         , & ! InOut:  [real(r8) (:,:)]  allocation to phytomer grain N (gN/m2/s)
 
          croplive                     => crop_inst%croplive_patch                                  , & ! Input:  [logical  (:)   ]  flag, true if planted, not harvested
 
@@ -1380,9 +1380,8 @@ contains
     use pftconMod              , only : npcropmin, pftcon
     use pftconMod              , only : ntmp_soybean, nirrig_tmp_soybean
     use pftconMod              , only : ntrp_soybean, nirrig_trp_soybean
-    use pftconMod              , only : oilpalm, nirrig_oilpalm, mxmat, mxlivenp, &
-						  lfmat, lfexp, lfemerg, grnfill, laimx, afact, sfact, &
-						  phyllochron, arepri, areprf, grnmx, a_par, b_par, kn_up
+    use pftconMod              , only : noilpalm, nirrig_oilpalm, mxnp
+! mxmat, a_par, b_par 
     use clm_varcon             , only : secspday, dzsoi_decomp
     use clm_varctl             , only : use_c13, use_c14
     use clm_varctl             , only : nscalar_opt, plant_ndemand_opt, substrate_term_opt, temp_scalar_opt
@@ -1532,24 +1531,28 @@ contains
          phytomer              => pftcon%phytomer                                   , & ! Input:  [integer (:)]   total number of phytomers in life time (if >0 use phytomer phenology)
          leaf_long             => pftcon%leaf_long                                  , & ! Input:  [real(r8) (:)]  leaf longevity (yrs)
          slatop                => pftcon%slatop                                     , & ! Input:  [real(r8) (:)]  specific leaf area at top of canopy, projected area basis [m^2/gC]
-         gddmaturity2          => cnveg_state_inst%gddmaturity2_patch               , & ! Input:  [real(r8) (:)   ]  gdd needed to harvest since previous harvest (Y.Fan)
-         huigrain2             => cnveg_state_inst%huigrain2_patch                  , & ! Input:  [real(r8) (:)]  gdd needed from last harvest to start of next grainfill (Y.Fan)
-         idpp                  => cnveg_state_inst%idpp_patch                       , & ! Input:  [integer (:)]  days past planting (Y.Fan)
-         idpp2                 => cnveg_state_inst%idpp2_patch                      , & ! InOut:  [integer (:)]  Saved idpp from phase2 before grainfill starts
-         gdd15                 => temperature_inst%gdd15_patch                      , & ! Input:  [real(r8) (:)]  growing deg. days base 15 deg C (ddays) (Y.Fan)
-        !gdd1520               => temperature_inst%gdd1520_patch                    , & ! Input:  [real(r8) (:)]  20 yr mean of gdd15
-         aleaf0                => cnveg_state_inst%aleaf0_patch                     , & ! Input:  [real(r8) (:)]  initial leaf allocation coefficient
-         livep                 => crop_inst%livep                    , & ! Input:  [logical(r8) (:,:)]  Flag, true if this phytomer is alive
-         plaipeak                  => crop_inst%plaipeak                 , & ! Input:  [integer (:,:)]   Flag, 1: max allowed lai per phytomer; 0: not at max
-         huileafnp                 => crop_inst%huileafnp                , & ! Input:  [real(r8) (:,:)]  hui needed for initiation of successive phytomers
-         huilfexpnp                => crop_inst%huilfexpnp               , & ! Input:  [real(r8) (:,:)]  hui needed for leaf expansion of successive phytomers
-         huilfmatnp                => crop_inst%huilfmatnp               , & ! Input:  [real(r8) (:,:)]  hui needed for leaf maturity of successive phytomers
-         huigrnnp                  => crop_inst%huigrnnp                 , & ! Input:  [real(r8) (:,:)]  hui needed for start of grainfill of successive phytomers
-         grnmatnp                  => crop_inst%grnmatnp                 , & ! Input:  [real(r8) (:,:)]  hui needed for grain maturity of successive phytomers
-         pgrainc                   => cnveg_carbonstate_inst%pgrainc                  , & ! InOut:  [real(r8) (:,:)]  (gC/m2) phytomer grain C
-         pgrainn                   => cnveg_nitrogenstate_inst%pgrainn                  , & ! InOut:  [real(r8) (:,:)]  (gN/m2) phytomer grain N
-         tlai                      => cnveg_state_inst%tlai                     , & ! Input:  [real(r8) (:)] one-sided leaf area index, no burying by snow
-         plai                      => cnveg_state_inst%plai                     , & ! Input:  [real(r8) (:,:)]  one-sided leaf area index of each phytomer
+         mxmat                 =>    pftcon%mxmat                                   , & ! Input:
+         a_par                 =>    pftcon%a_par                                   , & ! Input:
+         b_par                 =>    pftcon%b_par                                   , & ! Input:
+         gddmaturity2          => crop_inst%gddmaturity2_patch               , & ! Input:  [real(r8) (:)   ]  gdd needed to harvest since previous harvest (Y.Fan)
+         huigrain2             => crop_inst%huigrain2_patch                  , & ! Input:  [real(r8) (:)]  gdd needed from last harvest to start of next grainfill (Y.Fan)
+         idpp                  => crop_inst%idpp_patch                       , & ! Input:  [integer (:)]  days past planting (Y.Fan)
+         idpp2                 => crop_inst%idpp2_patch                      , & ! InOut:  [integer (:)]  Saved idpp from phase2 before grainfill starts
+
+         gdd15                 => temperature_inst%gdd15_patch               , & ! Input:  [real(r8) (:)]  growing deg. days base 15 deg C (ddays) (Y.Fan)
+        !gdd1520               => temperature_inst%gdd1520_patch             , & ! Input:  [real(r8) (:)]  20 yr mean of gdd15
+         aleaf0                => crop_inst%aleaf0_patch                     , & ! Input:  [real(r8) (:)]  initial leaf allocation coefficient
+         livep                 => crop_inst%livep_patch                      , & ! Input:  [logical(r8) (:,:)]  Flag, true if this phytomer is alive
+         plaipeak                  => crop_inst%plaipeak_patch                 , & ! Input:  [integer (:,:)]   Flag, 1: max allowed lai per phytomer; 0: not at max
+         huileafnp                 => crop_inst%huileafnp_patch                , & ! Input:  [real(r8) (:,:)]  hui needed for initiation of successive phytomers
+         huilfexpnp                => crop_inst%huilfexpnp_patch               , & ! Input:  [real(r8) (:,:)]  hui needed for leaf expansion of successive phytomers
+         huilfmatnp                => crop_inst%huilfmatnp_patch               , & ! Input:  [real(r8) (:,:)]  hui needed for leaf maturity of successive phytomers
+         huigrnnp                  => crop_inst%huigrnnp_patch                 , & ! Input:  [real(r8) (:,:)]  hui needed for start of grainfill of successive phytomers
+         grnmatnp                  => crop_inst%grnmatnp_patch                 , & ! Input:  [real(r8) (:,:)]  hui needed for grain maturity of successive phytomers
+         pgrainc                   => cnveg_carbonstate_inst%pgrainc_patch     , & ! InOut:  [real(r8) (:,:)]  (gC/m2) phytomer grain C
+         pgrainn                   => cnveg_nitrogenstate_inst%pgrainn_patch   , & ! InOut:  [real(r8) (:,:)]  (gN/m2) phytomer grain N
+         tlai                      => cnveg_state_inst%tlai_patch              , & ! Input:  [real(r8) (:)] one-sided leaf area index, no burying by snow
+         plai                      => crop_inst%plai_patch              , & ! Input:  [real(r8) (:,:)]  one-sided leaf area index of each phytomer
 
          xsmrpool              => cnveg_carbonstate_inst%xsmrpool_patch             , & ! Input:  [real(r8) (:)   ]  (gC/m2) temporary photosynthate C pool
          leafc                 => cnveg_carbonstate_inst%leafc_patch                , & ! Input:  [real(r8) (:)   ]
@@ -1788,8 +1791,8 @@ contains
 			 end if
 			 grain_flag(p) = 0._r8
 
-			 !astem2(p) = astem(p) ! save for use by equations after shift
-			 aleaf2(p) = aleaf(p) ! to reproductive phenology stage
+			 !astemi(p) = astem(p) ! save for use by equations after shift
+			 aleafi(p) = aleaf(p) ! to reproductive phenology stage
 			 idpp2(p)  = idpp(p)
 		  else if (hui(p) >= huigrain(p)) then
 			 grain_flag(p) = 1._r8
@@ -1799,8 +1802,8 @@ contains
 						   (arooti(ivt(p)) - arootf(ivt(p))) * &
 							min(1._r8, real(idpp(p))/mxmat(ivt(p)))))
 
-			 aleaf(p) = max(1.e-5_r8, min(1._r8, aleaf2(p) - &
-						   (aleaf2(p) - aleaff(ivt(p))) * &
+			 aleaf(p) = max(1.e-5_r8, min(1._r8, aleafi(p) - &
+						   (aleafi(p) - aleaff(ivt(p))) * &
 							max(0._r8, min(1._r8, real(idpp(p) - idpp2(p))/ &
 						   (declfact(ivt(p))*mxmat(ivt(p))- idpp2(p))))**allconsl(ivt(p)) ))
 

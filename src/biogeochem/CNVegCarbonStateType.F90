@@ -9,7 +9,7 @@ module CNVegCarbonStateType
   use shr_infnan_mod , only : nan => shr_infnan_nan, assignment(=)
   use shr_const_mod  , only : SHR_CONST_PDB
   use shr_log_mod    , only : errMsg => shr_log_errMsg
-  use pftconMod	     , only : noveg, npcropmin, pftcon
+  use pftconMod      , only : noveg, npcropmin, pftcon, mxnp
   use clm_varcon     , only : spval, c3_r2, c4_r2, c14ratio
   use clm_varctl     , only : iulog, use_cndv, use_crop
   use decompMod      , only : bounds_type
@@ -91,7 +91,7 @@ module CNVegCarbonStateType
      real(r8), pointer :: pleafc_xfer_patch        (:,:) ! (gC/m2) phytomer leaf C transfer
      real(r8), pointer :: pleafc_storage_patch     (:,:) ! (gC/m2) phytomer leaf C storage
      real(r8), pointer :: leafc_senescent_patch    (:)   ! (gC/m2) leaf C saved for pruning and transferring to litter pool
-     real(r8), pointer :: totfoodc_patch           (:)   ! (gC/m2) total column food carbon
+     real(r8), pointer :: totfoodc_col             (:)   ! (gC/m2) total column food carbon
 
    contains
 
@@ -274,14 +274,14 @@ contains
     allocate(this%totc_col                 (begc:endc)) ; this%totc_col                 (:) = nan
     allocate(this%totecosysc_col           (begc:endc)) ; this%totecosysc_col           (:) = nan
 
-    allocate(this%foodc_patch              (begp:endp))             ; this%foodc_patch         (:,:) = nan
-    allocate(this%grain_harvestc_patch     (begp:endp))             ; this%grain_harvestc_patch (:,:) = nan
+    allocate(this%foodc_patch              (begp:endp))             ; this%foodc_patch          (:) = nan
+    allocate(this%grain_harvestc_patch     (begp:endp))             ; this%grain_harvestc_patch (:) = nan
     allocate(this%pleafc_patch             (begp:endp,1:mxnp))      ; this%pleafc_patch         (:,:) = nan
     allocate(this%pgrainc_patch            (begp:endp,1:mxnp))      ; this%pgrainc_patch        (:,:) = nan
     allocate(this%pleafc_xfer_patch        (begp:endp,1:mxnp))      ; this%pleafc_xfer_patch    (:,:) = nan
     allocate(this%pleafc_storage_patch     (begp:endp,1:mxnp))      ; this%pleafc_storage_patch (:,:) = nan
-    allocate(this%leafc_senescent_patch    (begp:endp))             ; this%leafc_senescent_patch (:,:) = nan
-    allocate(this%totfoodc_patch           (begp:endp))             ; this%totfoodc_patch        (:)  = nan
+    allocate(this%leafc_senescent_patch    (begp:endp))             ; this%leafc_senescent_patch (:) = nan
+    allocate(this%totfoodc_col             (begc:endc))             ; this%totfoodc_col        (:)  = nan
 
   end subroutine InitAllocate
 
@@ -503,35 +503,35 @@ contains
             avgflag='A', long_name='total ecosystem carbon, incl veg but excl cpool and product pools', &
             ptr_col=this%totecosysc_col)
        
-       this%foodc_patch(begc:endc) = spval
+       this%foodc_patch(begp:endp) = spval
        call hist_addfld1d (fname='FOODC', units='gC/m^2', &
                avgflag='A', long_name='total pft-level food carbon', &
                ptr_patch=this%foodc_patch)
        
-       this%grain_harvestc_patch(begc:endc) = spval
+       this%grain_harvestc_patch(begp:endp) = spval
        call hist_addfld1d (fname='GRAIN_HARVESTC', units='gC/m^2', &
                avgflag='A', long_name='total pft-level grain harvest carbon', &
                ptr_patch=this%grain_harvestc_patch)
        
-       this%pleafc_patch(begc:endc) = spval
+       this%pleafc_patch(begp:endp,1:mxnp) = spval
        call hist_addfld2d (fname='PLEAFC', units='gC/m^2', type2d='phytomer', &
                avgflag='A', long_name='phytomer leaf C', &
                ptr_patch=this%pleafc_patch, default='inactive')
        
-       this%pgrainc_patch(begc:endc) = spval
+       this%pgrainc_patch(begp:endp,1:mxnp) = spval
        call hist_addfld2d (fname='PGRAINC', units='gC/m^2', type2d='phytomer', &
                avgflag='A', long_name='phytomer grain C', &
                ptr_patch=this%pgrainc_patch, default='inactive')
        
-       this%pleafc_storage_patch(begc:endc) = spval
+       this%pleafc_storage_patch(begp:endp,1:mxnp) = spval
        call hist_addfld2d (fname='PLEAFC_STORAGE', units='gC/m^2', type2d='phytomer', &
                avgflag='A', long_name='phytomer leaf C storage', &
                ptr_patch=this%pleafc_storage_patch, default='inactive')
 
-       this%totfoodc_patch(begc:endc) = spval
+       this%totfoodc_col(begc:endc) = spval
        call hist_addfld1d (fname='TOTFOODC', units='gC/m^2', &
             avgflag='A', long_name='total column-level food C', &
-            ptr_patch=this%totfoodc_patch)
+            ptr_col=this%totfoodc_col)
 
     end if
 
@@ -1018,11 +1018,11 @@ contains
           this%woodc_patch(p)              = 0._r8
           this%totc_patch(p)               = 0._r8 
 
-          this%pleafc_patch(p)             = 0._r8 
-          this%pgrainc_patch(p)            = 0._r8 
-          this%pleafc_xfer_patch(p)        = 0._r8 
-          this%pleafc_storage_patch(p)     = 0._r8 
-          this%leafc_senescent_patch(p)    = 0._r8 
+          this%pleafc_patch(p,:)             = 0._r8 
+          this%pgrainc_patch(p,:)            = 0._r8 
+          this%pleafc_xfer_patch(p,:)        = 0._r8 
+          this%pleafc_storage_patch(p,:)     = 0._r8 
+          this%leafc_senescent_patch(p)      = 0._r8 
 
           if ( use_crop )then
              this%grainc_patch(p)         = 0._r8 
@@ -1271,23 +1271,23 @@ contains
 
        call restartvar(ncid=ncid, flag=flag, varname='pleafc', xtype=ncd_double,  &
                 dim1name='pft',dim2name='phytomer',long_name='',units='', &
-                readvar=readvar, data=this%pleafc_patch)
+                interpinic_flag='interp', readvar=readvar, data=this%pleafc_patch)
 
        call restartvar(ncid=ncid, flag=flag, varname='pgrainc', xtype=ncd_double,  &
                 dim1name='pft',dim2name='phytomer',long_name='',units='', &
-                readvar=readvar, data=this%pgrainc_patch)
+                interpinic_flag='interp', readvar=readvar, data=this%pgrainc_patch)
 
        call restartvar(ncid=ncid, flag=flag, varname='pleafc_xfer', xtype=ncd_double,  &
                 dim1name='pft',dim2name='phytomer',long_name='',units='', &
-                readvar=readvar, data=this%pleafc_xfer_patch)
+                interpinic_flag='interp', readvar=readvar, data=this%pleafc_xfer_patch)
 
        call restartvar(ncid=ncid, flag=flag, varname='pleafc_storage', xtype=ncd_double,  &
                 dim1name='pft',dim2name='phytomer',long_name='',units='', &
-                readvar=readvar, data=this%pleafc_storage_patch)
+                interpinic_flag='interp', readvar=readvar, data=this%pleafc_storage_patch)
 
        call restartvar(ncid=ncid, flag=flag, varname='leafc_senescent', xtype=ncd_double,  &
                dim1name='pft',long_name='senescent leaf C saved for pruning', units='gC/m2', &
-               readvar=readvar, data=this%leafc_senescent_patch)
+               interpinic_flag='interp', readvar=readvar, data=this%leafc_senescent_patch)
 
 
        if (flag == 'read') then

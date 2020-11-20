@@ -1116,7 +1116,7 @@ contains
             coszen_patch(bounds%begp:bounds%endp), &
             rho(bounds%begp:bounds%endp, :), &
             tau(bounds%begp:bounds%endp, :), &
-            atm2lnd_inst, temperature_inst, waterstate_inst, surfalb_inst)
+            atm2lnd_inst, temperature_inst, waterdiagnosticbulk_inst, surfalb_inst)
     else
 
        call TwoStream (bounds, filter_vegsol, num_vegsol, &
@@ -1819,7 +1819,7 @@ contains
 
    !-----------------------------------------------------------------------
    subroutine Multilayer (bounds, filter_vegsol, num_vegsol, coszen, rho, tau, &
-              atm2lnd_inst, temperature_inst, waterstate_inst, surfalb_inst)
+              atm2lnd_inst, temperature_inst, waterdiagnosticbulk_inst, surfalb_inst)
      !
      ! !DESCRIPTION: (Y.Fan 01.12.2014)
      ! Multilayer canopy radiative transfer
@@ -1846,7 +1846,8 @@ contains
      real(r8), intent(in)  :: rho( bounds%begp: , 1: ) ! leaf/stem refl weighted by fraction LAI and SAI [pft, numrad]
      real(r8), intent(in)  :: tau( bounds%begp: , 1: ) ! leaf/stem tran weighted by fraction LAI and SAI [pft, numrad]
      type(temperature_type) , intent(in)    :: temperature_inst
-     type(waterstate_type)  , intent(in)    :: waterstate_inst
+     type(waterdiagnosticbulk_type)  , intent(in)    :: waterdiagnosticbulk_inst
+     !type(waterstate_type)  , intent(in)    :: waterstate_inst
      type(surfalb_type)     , intent(inout) :: surfalb_inst
      type(atm2lnd_type)     , intent(in)    :: atm2lnd_inst
      !
@@ -1895,7 +1896,7 @@ contains
           albgrd       =>    surfalb_inst%albgrd_col             , & ! Input:  [real(r8) (:,:) ]  ground albedo (direct) (column-level)
           albgri       =>    surfalb_inst%albgri_col             , & ! Input:  [real(r8) (:,:) ]  ground albedo (diffuse)(column-level)
           t_veg        =>    temperature_inst%t_veg_patch        , & ! Input:  [real(r8) (:)   ]  vegetation temperature (Kelvin)
-          fwet         =>    waterstate_inst%fwet_patch          , & ! Input:  [real(r8) (:)   ]  fraction of canopy that is wet (0 to 1)
+          fwet         =>    waterdiagnosticbulk_inst%fwet_patch          , & ! Input:  [real(r8) (:)   ]  fraction of canopy that is wet (0 to 1)
           albd         =>    surfalb_inst%albd_patch             , & ! Output: [real(r8) (:,:) ]  surface albedo (direct)
           albi         =>    surfalb_inst%albi_patch             , & ! Output: [real(r8) (:,:) ]  surface albedo (diffuse)
           fabd         =>    surfalb_inst%fabd_patch             , & ! Output: [real(r8) (:,:) ]  flux absorbed by canopy per unit direct flux

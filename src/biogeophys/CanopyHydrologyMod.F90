@@ -272,11 +272,11 @@ contains
           h2osoi_liq           => waterstatebulk_inst%h2osoi_liq_col          , & ! Output: [real(r8) (:,:) ]  liquid water (kg/m2)                  
           swe_old              => waterdiagnosticbulk_inst%swe_old_col             , & ! Output: [real(r8) (:,:) ]  snow water before update              
 
-          ivt                     => patch%itype                             , & ! Input:  [integer  (:)   ]  patch vegetation type 
+          ivt                  => patch%itype                             , & ! Input:  [integer  (:)   ]  patch vegetation type 
           h2oleaf              => waterstatebulk_inst%h2oleaf_patch           , & ! Output: [real(r8) (:)   ]  canopy water on leaf surfaces (mm H2O) (Y.Fan)
           h2ostem              => waterstatebulk_inst%h2ostem_patch           , & ! Output: [real(r8) (:)   ]  canopy water on stem surfaces (mm H2O) (Y.Fan)
           accum_h2ocan     => waterstatebulk_inst%accum_h2ocan_patch      , & ! Output: [real(r8) (:)   ]  total canopy water of the previous time step (mm H2O) for model evaluation (Y.Fan)		  
-          dewmxl                => pftcon%dewmxl                           , & ! Input:  [real(r8) (:)   ]  max dew thickness on leaf surface (Y.Fan)
+          dewmxl               => pftcon%dewmxl                           , & ! Input:  [real(r8) (:)   ]  max dew thickness on leaf surface (Y.Fan)
           dewmxs               => pftcon%dewmxs                           , & ! Input:  [real(r8) (:)   ]  max dew thickness on stem surface (Y.Fan)
           fpimx                => pftcon%fpimx                            , & ! Input:  [real(r8) (:)   ]  max water interception ratio (Y.Fan)   
           qflx_floodc          => waterfluxbulk_inst%qflx_floodc_col          , & ! Output: [real(r8) (:)   ]  column flux of flood water from RTM     
@@ -372,7 +372,7 @@ contains
                   if (dewmxs(ivt(p)) > 0._r8) then 
                      !applicable to both forest and oil palm, use dewmxs=0 to turn off separate treatment of leaf and stem
                      liqcanmx = dewmxl(ivt(p)) * elai(p) + dewmxs(ivt(p)) * esai(p)
-                     dewmx(p) = liqcanmx / (elai(p) + esai(p))
+                     !dewmx(p) = liqcanmx / (elai(p) + esai(p))
                   end if  !use identical dewmx1 and dewmxs will be same as one dewmx
 
                    fpisnow = (1._r8 - exp(-0.5_r8*(elai(p) + esai(p))))  ! max interception of 1
@@ -431,7 +431,7 @@ contains
    
                   !use the following to accumulate total water interception per pft (Y.Fan)
                   !interception minus canopy runoff
-                  accum_h2ocan(p) =  max(0._r8, accum_h2ocan(p) + dtime*(qflx_prec_intr(p)-qflx_candrip(p)))
+                  accum_h2ocan(p) =  max(0._r8, accum_h2ocan(p) + dtime*(qflx_prec_intr(p)-(qflx_snocanfall(p) + qflx_liqcanfall(p))))
 
 !                 !add monthly summary of interception
 !                 if (is_end_curr_month()) then

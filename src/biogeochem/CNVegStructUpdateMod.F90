@@ -42,7 +42,7 @@ contains
     use pftconMod        , only : ntrp_corn, nirrig_trp_corn
     use pftconMod        , only : nsugarcane, nirrig_sugarcane
     use pftconMod        , only : pftcon
-    use pftconMod        , only : noilpalm, nirrig_oilpalm,ztopmx, laimx, mxlivenp (Y.Fan)
+    use pftconMod        , only : noilpalm, nirrig_oilpalm !(Y.Fan)
     use clm_varpar       , only : nlevcan ! N canopy layers: nlevcan =1 big leaf; nlevcan >1 multilayer canopy (Y.Fan)
     use clm_varctl       , only : spinup_state
     use clm_time_manager , only : get_rad_step_size, get_days_per_year ! added get_days (Y.Fan)
@@ -119,14 +119,14 @@ contains
       !  huigrnnp            =>  pps%huigrnnp             , & ! Input:  [real(r8) (:,:)]  hui needed for start of grainfill of successive phytomers
       !  huilfmatnp          =>  pps%huilfmatnp           , & ! Input: [real(r8) (:,:)]  hui needed for leaf maturity of successive phytomers
       !  leaf_long           =>  pftcon%leaf_long         , & ! Input:  [real(r8) (:)]  leaf longevity (yrs)
-        lfdays              =>  canopystate_inst%lfdays_patch               , & ! Input:  [integer (:,:)]  days past leaf emergence for each phytomer (Y.Fan)
-        np                  =>  canopystate_inst%np_patch                   , & ! Input:  [integer (:)]   total number of phytomers having appeared so far
-        rankp               =>  canopystate_inst%rankp_patch                , & ! Input:  [integer (:,:)]  rank of phytomers 1=youngest and 0=dead
+        lfdays              =>  crop_inst%lfdays_patch               , & ! Input:  [integer (:,:)]  days past leaf emergence for each phytomer (Y.Fan)
+        np                  =>  crop_inst%np_patch                   , & ! Input:  [integer (:)]   total number of phytomers having appeared so far
+        rankp               =>  crop_inst%rankp_patch                , & ! Input:  [integer (:,:)]  rank of phytomers 1=youngest and 0=dead
         !livep               =>  pps%livep                , & ! Input:  [real(r8) (:,:)] Flag, true if this phytomer is alive
-        sla                 =>  canopystate_inst%sla_patch                  , & ! Input:  [real(r8) (:,:)] specific leaf area of each phytomer (added by Y.Fan)
-        plai                =>  canopystate_inst%plai_patch                 , & ! Input:  [real(r8) (:,:)] one-sided leaf area index of each phytomer
+        sla                 =>  crop_inst%sla_patch                  , & ! Input:  [real(r8) (:,:)] specific leaf area of each phytomer (added by Y.Fan)
+        plai                =>  crop_inst%plai_patch                 , & ! Input:  [real(r8) (:,:)] one-sided leaf area index of each phytomer
         pleafc              =>  cnveg_carbonstate_inst%pleafc_patch               , & ! Input:  [real(r8) (:,:)] (gC/m2) phytomer leaf C
-        plaipeak           =>  cnveg_state_inst%plaipeak_patch         , & ! Output: [integer  (:) ] Flag, 1: max allowed lai; 0: not at max (Y.Fan)
+        plaipeak            =>  crop_inst%plaipeak_patch         , & ! Output: [integer  (:) ] Flag, 1: max allowed lai; 0: not at max (Y.Fan)
 
          leafc              =>  cnveg_carbonstate_inst%leafc_patch      , & ! Input:  [real(r8) (:) ] (gC/m2) leaf C
          deadstemc          =>  cnveg_carbonstate_inst%deadstemc_patch  , & ! Input:  [real(r8) (:) ] (gC/m2) dead stem C
@@ -249,8 +249,8 @@ contains
              !sai should consider the vertical thickness (height) of stem as well as the rachis of phytomers. LAI and SAI are affected by stocking to the same degree.
              tsai(p) = max(0.1_r8 * tlai(p), tsai_min) !0.1 is the similar ratio as trees
 
-			 !canopy top and bottom height follow trees
-			 stocking = stocking / 10000._r8 !convert from stems/ha -> stems/m^2
+             !canopy top and bottom height follow trees
+             stocking = stocking / 10000._r8 !convert from stems/ha -> stems/m^2
              !correct height calculation if doing accelerated spinup
              if (spinup_state == 2) then
                  htop(p) = ((3._r8 * deadstemc(p) * 10._r8 * taper * taper)/ &
@@ -259,7 +259,7 @@ contains
                  htop(p) = ((3._r8 * deadstemc(p) * taper * taper)/ &
                      (SHR_CONST_PI * stocking * dwood(ivt(p))))**(1._r8/3._r8)
              end if
-             htop(p) = max(0.05_r8, min(htop(p),(forc_hgt_u_pft(p)/(displar(ivt(p))+z0mr(ivt(p))))-3._r8))
+             htop(p) = max(0.05_r8, min(htop(p),(forc_hgt_u_patch(p)/(displar(ivt(p))+z0mr(ivt(p))))-3._r8))
              htop(p) = min(ztopmx(ivt(p)),htop(p))
              hbot(p) = max(0._r8, htop(p)-2._r8)  !assume palm canopy thichness == 2m
             ! "stubble" after harvest
@@ -326,7 +326,7 @@ contains
                if (tlai(p) >= laimx(ivt(p))) peaklai(p) = 1 ! used in CNAllocation
               if (perennial(ivt(p)) == 1) then
                 if (tlai(p) >= laimx(ivt(p))) then
-				   peaklai(p) = 1
+                   peaklai(p) = 1
                 else  !allow leaf regrowth for perennial crops if tlai drop below laimx (Y.Fan)
                    peaklai(p) = 0
                 end if

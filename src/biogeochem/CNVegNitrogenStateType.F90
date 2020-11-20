@@ -14,7 +14,7 @@ module CNVegNitrogenStateType
   use clm_varctl                         , only : use_crop
   use CNSharedParamsMod                  , only : use_fun
   use decompMod                          , only : bounds_type
-  use pftconMod                          , only : npcropmin, noveg, pftcon
+  use pftconMod                          , only : npcropmin, noveg, pftcon, mxnp
   use SoilBiogeochemDecompCascadeConType , only : decomp_cascade_con
   use abortutils                         , only : endrun
   use spmdMod                            , only : masterproc 
@@ -81,7 +81,7 @@ module CNVegNitrogenStateType
      real(r8), pointer :: pleafn_xfer_patch        (:,:) ! (gN/m2) phytomer leaf N transfer
      real(r8), pointer :: pleafn_storage_patch     (:,:) ! (gN/m2) phytomer leaf N transfer
      real(r8), pointer :: leafn_senescent_patch    (:)   ! (gN/m2) leaf N saved for pruning and transferring to litter pool
-     real(r8), pointer :: totfoodn_patch           (:)   ! (gN/m2) total column food N 
+     real(r8), pointer :: totfoodn_col             (:)   ! (gN/m2) total column food N 
 
    contains
 
@@ -185,7 +185,7 @@ contains
     allocate(this%pleafn_xfer_patch        (begp:endp,1:mxnp))  ; this%pleafn_xfer_patch     (:,:) = nan
     allocate(this%pleafn_storage_patch     (begp:endp,1:mxnp))  ; this%pleafn_storage_patch  (:,:) = nan
     allocate(this%leafn_senescent_patch    (begp:endp))         ; this%leafn_senescent_patch  (:)  = nan
-    allocate(this%totfoodn_patch           (begp:endp))         ; this%totfoodn_patch         (:)  = nan
+    allocate(this%totfoodn_col             (begc:endc))         ; this%totfoodn_col           (:)  = nan
 
   end subroutine InitAllocate
 
@@ -377,10 +377,10 @@ contains
                avgflag='A', long_name='total pft-level grain harvest N', &
                ptr_patch=this%grain_harvestn_patch)
 
-    this%totfoodn_patch(begp:endp) = spval
+    this%totfoodn_col(begc:endc) = spval
     call hist_addfld1d (fname='TOTFOODN', units='gN/m^2', &
             avgflag='A', long_name='total column-level food nitrogen', &
-            ptr_patch=this%totfoodn_patch)
+            ptr_col=this%totfoodn_col)
 
     !-------------------------------
     ! column state variables 
@@ -702,23 +702,23 @@ contains
 
     call restartvar(ncid=ncid, flag=flag, varname='pleafn', xtype=ncd_double,  &
                 dim1name='pft',dim2name='phytomer',long_name='',units='',  & 
-                readvar=readvar, data=this%pleafn_patch)
+                interpinic_flag='interp', readvar=readvar, data=this%pleafn_patch)
 
     call restartvar(ncid=ncid, flag=flag, varname='pgrainn', xtype=ncd_double,  &
                 dim1name='pft',dim2name='phytomer',long_name='',units='', &
-                readvar=readvar, data=this%pgrainn_patch)
+                interpinic_flag='interp', readvar=readvar, data=this%pgrainn_patch)
 
     call restartvar(ncid=ncid, flag=flag, varname='pleafn_xfer', xtype=ncd_double,  &
                 dim1name='pft',dim2name='phytomer',long_name='',units='', &
-                readvar=readvar, data=this%pleafn_xfer_patch)
+                interpinic_flag='interp', readvar=readvar, data=this%pleafn_xfer_patch)
 
     call restartvar(ncid=ncid, flag=flag, varname='pleafn_storage', xtype=ncd_double,  &
                 dim1name='pft',dim2name='phytomer',long_name='',units='', &
-                readvar=readvar, data=this%pleafn_storage_patch)
+                interpinic_flag='interp', readvar=readvar, data=this%pleafn_storage_patch)
 
     call restartvar(ncid=ncid, flag=flag, varname='leafn_senescent', xtype=ncd_double,  &
                dim1name='pft',long_name='senescent leaf N saved for pruning',units='gN/m2', &
-               readvar=readvar, data=this%leafn_senescent_patch)
+               interpinic_flag='interp', readvar=readvar, data=this%leafn_senescent_patch)
 
     if (use_crop) then
        call restartvar(ncid=ncid, flag=flag,  varname='grainn', xtype=ncd_double,  &
@@ -831,10 +831,10 @@ contains
              this%livestemn_storage_patch(p) = 0._r8
              this%livestemn_xfer_patch(p)    = 0._r8
  
-             this%pleafn_patch(p)            = 0._r8
-             this%pgrainn_patch(p)           = 0._r8
-             this%pleafn_xfer_patch(p)       = 0._r8
-             this%pleafn_storage_patch(p)    = 0._r8
+             this%pleafn_patch(p,:)            = 0._r8
+             this%pgrainn_patch(p,:)           = 0._r8
+             this%pleafn_xfer_patch(p,:)       = 0._r8
+             this%pleafn_storage_patch(p,:)    = 0._r8
              this%leafn_senescent_patch(p)    = 0._r8
    
              ! tree types need to be initialized with some stem mass so that

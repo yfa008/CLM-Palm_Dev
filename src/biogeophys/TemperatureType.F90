@@ -92,6 +92,8 @@ module TemperatureType
      real(r8), pointer :: gdd020_patch            (:)   ! patch 20-year average of gdd0                     (ddays)
      real(r8), pointer :: gdd820_patch            (:)   ! patch 20-year average of gdd8                     (ddays)
      real(r8), pointer :: gdd1020_patch           (:)   ! patch 20-year average of gdd10                    (ddays)
+     real(r8), pointer :: gdd15_patch             (:)   ! growing degree-days base 15C from planting for palm  (ddays)
+     real(r8), pointer :: gdd1520_patch           (:)   ! 20-year average of gdd15   (ddays)
 
      ! Heat content
      real(r8), pointer :: beta_col                 (:)   ! coefficient of convective velocity [-]
@@ -258,6 +260,8 @@ contains
     allocate(this%gdd020_patch             (begp:endp))                      ; this%gdd020_patch             (:)   = spval
     allocate(this%gdd820_patch             (begp:endp))                      ; this%gdd820_patch             (:)   = spval
     allocate(this%gdd1020_patch            (begp:endp))                      ; this%gdd1020_patch            (:)   = spval
+    allocate(this%gdd15_patch              (begp:endp))                      ; this%gdd15_patch              (:)   = spval
+    allocate(this%gdd1520_patch            (begp:endp))                      ; this%gdd1520_patch            (:)   = spval
 
     ! Heat content
     allocate(this%beta_col                 (begc:endc))                      ; this%beta_col                 (:)   = nan
@@ -607,6 +611,16 @@ contains
        call hist_addfld1d (fname='GDD1020', units='ddays', &
             avgflag='A', long_name='Twenty year average of growing degree days base 10C from planting', &
             ptr_patch=this%gdd1020_patch, default='inactive')
+
+       this%gdd15_patch(begp:endp) = spval
+       call hist_addfld1d (fname='GDD15', units='ddays', &
+            avgflag='A', long_name='Growing degree days base 15C from planting', &
+            ptr_patch=this%gdd15_patch, default='inactive')
+
+       this%gdd1520_patch(begp:endp) = spval
+       call hist_addfld1d (fname='GDD1520', units='ddays', &
+            avgflag='A', long_name='Twenty year average of growing degree days base 15C from planting', &
+            ptr_patch=this%gdd1520_patch, default='inactive')
 
     end if
     if(use_luna)then
@@ -1010,6 +1024,11 @@ contains
        call restartvar(ncid=ncid, flag=flag,  varname='gdd020', xtype=ncd_double,  &
             dim1name='pft', long_name='20 year average of growing degree-days base 0C from planting', units='ddays', &
             interpinic_flag='interp', readvar=readvar, data=this%gdd020_patch)
+
+       call restartvar(ncid=ncid, flag=flag,  varname='gdd1520', xtype=ncd_double,  &
+            dim1name='pft', long_name='20 year average of growing degree-days base 15C from planting', units='ddays', &
+            interpinic_flag='interp', readvar=readvar, data=this%gdd1520_patch)
+
     end if
 
     if(use_luna)then
@@ -1287,6 +1306,9 @@ contains
        call extract_accum_field ('GDD10', rbufslp, nstep)
        this%gdd10_patch(begp:endp) = rbufslp(begp:endp)
 
+       call extract_accum_field ('GDD15', rbufslp, nstep)
+       this%gdd15_patch(begp:endp) = rbufslp(begp:endp)
+
     end if
 
     deallocate(rbufslp)
@@ -1508,6 +1530,26 @@ contains
        end do
        call update_accum_field  ('GDD10', rbufslp, nstep)
        call extract_accum_field ('GDD10', this%gdd10_patch, nstep)
+
+       ! Accumulate and extract GDD15 for tropic crops throughout a year
+       ! instead of April-Sep (Y.Fan)
+
+       do p = begp,endp
+          if (patch%active(p)) then
+             g = patch%gridcell(p)
+             if (month==1 .and. day==1 .and. secs==dtime) then
+                rbufslp(p) = accumResetVal ! reset gdd
+             else if (( month >= 1 .and. month <= 12)) then
+                rbufslp(p) = max(0._r8, min(25._r8, &
+                     this%t_ref2m_patch(p)-(SHR_CONST_TKFRZ + 15._r8))) * dtime/SHR_CONST_CDAY
+             else
+                rbufslp(p) = 0._r8  ! keeps gdd unchanged at other times (eg, through Dec in NH)
+             end if
+          end if
+       end do
+       call update_accum_field  ('GDD15', rbufslp, nstep)
+       call extract_accum_field ('GDD15', this%gdd15_patch, nstep)
+
 
     end if
 

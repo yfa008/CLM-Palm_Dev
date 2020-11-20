@@ -42,7 +42,7 @@ module CNVegStateType
      real(r8) , pointer :: astem_patch                 (:)     ! patch stem allocation coefficient
      real(r8) , pointer :: htmx_patch                  (:)     ! patch max hgt attained by a crop during yr (m)
      integer  , pointer :: peaklai_patch               (:)     ! patch 1: max allowed lai; 0: not at max
-
+     !integer  , pointer :: plaipeak_patch              (:)     ! peaklai indicator for each phytomer (defined in CropType)
      integer  , pointer :: idop_patch                  (:)     ! patch date of planting
 	 
      real(r8) , pointer :: gdp_lf_col                  (:)     ! col global real gdp data (k US$/capita)

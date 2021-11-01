@@ -106,6 +106,7 @@ contains
           c13_cnveg_carbonflux_inst, c14_cnveg_carbonflux_inst,       &
           cnveg_nitrogenstate_inst, cnveg_nitrogenflux_inst,          &
           soilbiogeochem_nitrogenstate_inst,                          &
+          !aleafn, afruitn, &
           aroot, arepr, fpg_col)
     !
     ! !USES:
@@ -136,12 +137,16 @@ contains
     type(soilbiogeochem_nitrogenstate_type), intent(in)    :: soilbiogeochem_nitrogenstate_inst
     real(r8)                        , intent(in)    :: aroot(bounds%begp:)
     real(r8)                        , intent(in)    :: arepr(bounds%begp:)
+!    real(r8)                        , intent(in)    :: aleafn(bounds%begp:,1:)
+!    real(r8)                        , intent(in)    :: afruitn(bounds%begp:,1:)
     real(r8)                        , intent(in)    :: fpg_col(bounds%begc:)
 
     call this%calc_plant_cn_alloc (bounds, num_soilp, filter_soilp,        &
          cnveg_state_inst, crop_inst, canopystate_inst, &
-         cnveg_carbonstate_inst, cnveg_carbonflux_inst, c13_cnveg_carbonflux_inst, &
+         cnveg_carbonflux_inst, c13_cnveg_carbonflux_inst, &
          c14_cnveg_carbonflux_inst, cnveg_nitrogenflux_inst,                 &
+!         aleafn=aleafn(bounds%begp:bounds%endp,1:mxnp),                      &
+!         afruitn=afruitn(bounds%begp:bounds%endp,1:mxnp),                    &
          aroot=aroot(bounds%begp:bounds%endp),                               &
          arepr=arepr(bounds%begp:bounds%endp),                               &
          fpg_col=fpg_col(bounds%begc:bounds%endc))
@@ -151,8 +156,9 @@ contains
   !-----------------------------------------------------------------------
   subroutine calc_plant_cn_alloc (this, bounds, num_soilp, filter_soilp,   &
        cnveg_state_inst, crop_inst, canopystate_inst, &
-       cnveg_carbonstate_inst, cnveg_carbonflux_inst, c13_cnveg_carbonflux_inst, &
+       cnveg_carbonflux_inst, c13_cnveg_carbonflux_inst, &
        c14_cnveg_carbonflux_inst, cnveg_nitrogenflux_inst,                 &
+       !aleafn, afruitn, &
        aroot, arepr, fpg_col)                                              
     !
     ! !USES:
@@ -161,7 +167,8 @@ contains
     use CNVegStateType        , only : cnveg_state_type
     use CropType              , only : crop_type
     use CanopyStateType        , only : canopystate_type
-    use CNVegCarbonStateType   , only : cnveg_carbonstate_type
+    !use CNVegCarbonStateType   , only : cnveg_carbonstate_type
+    !use CNVegNitrogenStateType , only : cnveg_nitrogenstate_type
     use CNVegCarbonFluxType   , only : cnveg_carbonflux_type
     use CNVegNitrogenFluxType , only : cnveg_nitrogenflux_type
     use CNSharedParamsMod     , only : use_fun
@@ -176,13 +183,15 @@ contains
     type(cnveg_state_type)          , intent(inout) :: cnveg_state_inst
     type(crop_type)                 , intent(in)    :: crop_inst
     type(canopystate_type)          , intent(in)    :: canopystate_inst
-    type(cnveg_carbonstate_type)    , intent(in)    :: cnveg_carbonstate_inst
+    !type(cnveg_carbonstate_type)    , intent(in)    :: cnveg_carbonstate_inst
     type(cnveg_carbonflux_type)     , intent(inout) :: cnveg_carbonflux_inst
     type(cnveg_carbonflux_type)     , intent(inout) :: c13_cnveg_carbonflux_inst
     type(cnveg_carbonflux_type)     , intent(inout) :: c14_cnveg_carbonflux_inst
     type(cnveg_nitrogenflux_type)   , intent(inout) :: cnveg_nitrogenflux_inst
     real(r8)                        , intent(in)    :: aroot(bounds%begp:)
     real(r8)                        , intent(in)    :: arepr(bounds%begp:)
+!    real(r8)                        , intent(in)    :: aleafn(bounds%begp:,1:)
+!    real(r8)                        , intent(in)    :: afruitn(bounds%begp:,1:)
     real(r8)                        , intent(in)    :: fpg_col(bounds%begc:)
     !
     ! !LOCAL VARIABLES:
@@ -232,11 +241,13 @@ contains
          !frootcnr                  =>    pftcon%frootcnr                                           , & ! Input:  [real(r8) (:)]  range of departure from default fineroot C:N ratio, used to determine max/min C:N (gC/gN)
          !livewdcnr                 =>    pftcon%livewdcnr                                          , & ! Input:  [real(r8) (:)]  range of departure from default livestem C:N ratio, used to determine max/min C:N (gC/gN)
          !graincnr                  =>    pftcon%graincnr                                           , & ! Input:  [real(r8) (:)]  range of departure from default grain C:N ratio, used to determine max/min C:N (gC/gN)
-         huileafnp                    => crop_inst%huileafnp_patch                , & ! Input:  [real(r8) (:,:)]  hui needed for initiation of successive phytomers
-         huilfexpnp                   => crop_inst%huilfexpnp_patch               , & ! Input:  [real(r8) (:,:)]  hui needed for leaf expansion of successive phytomers
-         huilfmatnp                   => crop_inst%huilfmatnp_patch               , & ! Input:  [real(r8) (:,:)]  hui needed for leaf maturity of successive phytomers
-         pleafc                    => cnveg_carbonstate_inst%pleafc_patch                    , & ! InOut:  [real(r8) (:,:)]  (gC/m2) phytomer leaf C
-         pleafn                    => cnveg_nitrogenstate_inst%pleafn_patch                  , & ! InOut:  [real(r8) (:,:)]  (gN/m2) phytomer leaf N
+         huileafnp                 => crop_inst%huileafnp_patch                , & ! Input:  [real(r8) (:,:)]  hui needed for initiation of successive phytomers
+         huilfexpnp                => crop_inst%huilfexpnp_patch               , & ! Input:  [real(r8) (:,:)]  hui needed for leaf expansion of successive phytomers
+         huilfmatnp                => crop_inst%huilfmatnp_patch               , & ! Input:  [real(r8) (:,:)]  hui needed for leaf maturity of successive phytomers
+         hui                       => crop_inst%gddplant_patch                 , & ! Input:  [real(r8) (:)   ]  =gdd since planting (gddplant)
+
+!         pleafc                    => cnveg_carbonstate_inst%pleafc_patch                    , & ! InOut:  [real(r8) (:,:)]  (gC/m2) phytomer leaf C
+!         pleafn                    => cnveg_nitrogenstate_inst%pleafn_patch                  , & ! InOut:  [real(r8) (:,:)]  (gN/m2) phytomer leaf N
          cpool_to_pleafc           => cnveg_carbonflux_inst%cpool_to_pleafc_patch            , & ! InOut:  [real(r8) (:,:)]  allocation to phytomer leaf C (gC/m2/s)
          cpool_to_pleafc_storage   => cnveg_carbonflux_inst%cpool_to_pleafc_storage_patch    , & ! Input:  [real(r8) (:,:)]
          cpool_to_pgrainc          => cnveg_carbonflux_inst%cpool_to_pgrainc_patch           , & ! InOut:  [real(r8) (:,:)]  allocation to phytomer grain C (gC/m2/s)
@@ -445,7 +456,7 @@ contains
             cpool_to_pleafc(p,:) = cpool_to_leafc(p) * this%aleafn(p,:)
          endwhere
          cpool_to_pgrainc(p,:) = cpool_to_grainc(p) * this%afruitn(p,:)
-       end if	
+       end if
 
          ! corresponding N fluxes
          npool_to_leafn(p)          = (nlc / cnl) * fcur
@@ -553,6 +564,7 @@ contains
        cnveg_nitrogenstate_inst, cnveg_nitrogenflux_inst,                      &
        soilbiogeochem_carbonflux_inst, soilbiogeochem_nitrogenstate_inst,      &
        energyflux_inst,                                                        &
+       !aleafn, afruitn,&
        aroot, arepr)
     !
     ! !USES:
@@ -589,13 +601,18 @@ contains
     type(energyflux_type)           , intent(in)    :: energyflux_inst
     real(r8)                        , intent(out)   :: aroot(bounds%begp:)
     real(r8)                        , intent(out)   :: arepr(bounds%begp:)
+!    real(r8)                        , intent(out)    :: aleafn(bounds%begp:,1:)
+!    real(r8)                        , intent(out)    :: afruitn(bounds%begp:,1:)
+
     !-----------------------------------------------------------------------
 
     call this%calc_plant_nitrogen_demand(bounds,  num_soilp, filter_soilp, &
        photosyns_inst, crop_inst, canopystate_inst,                        &
        cnveg_state_inst, cnveg_carbonstate_inst, cnveg_carbonflux_inst,    &
        c13_cnveg_carbonflux_inst, c14_cnveg_carbonflux_inst,               &
-       cnveg_nitrogenstate_inst, cnveg_nitrogenflux_inst,                  & 
+       cnveg_nitrogenstate_inst, cnveg_nitrogenflux_inst,                  &
+!       aleafn=aleafn(bounds%begp:bounds%endp,1:mxnp),                      &
+!       afruitn=afruitn(bounds%begp:bounds%endp,1:mxnp),                    & 
        aroot=aroot(bounds%begp:bounds%endp),                               &
        arepr=arepr(bounds%begp:bounds%endp))
 
@@ -607,6 +624,7 @@ contains
        cnveg_state_inst, cnveg_carbonstate_inst, cnveg_carbonflux_inst,         &
        c13_cnveg_carbonflux_inst, c14_cnveg_carbonflux_inst,                    &
        cnveg_nitrogenstate_inst, cnveg_nitrogenflux_inst,                       &
+       !aleafn, afruitn, &
        aroot, arepr)
     !
     ! !USES:
@@ -628,7 +646,8 @@ contains
     use CNSharedParamsMod      , only : use_fun
     !
     ! !ARGUMENTS:
-    class(nutrient_competition_clm45default_type), intent(in) :: this
+    !class(nutrient_competition_clm45default_type), intent(in) :: this
+    class(nutrient_competition_clm45default_type), intent(inout) :: this
     type(bounds_type)               , intent(in)    :: bounds
     integer                         , intent(in)    :: num_soilp        ! number of soil patches in filter
     integer                         , intent(in)    :: filter_soilp(:)  ! filter for soil patches
@@ -644,6 +663,9 @@ contains
     type(cnveg_nitrogenflux_type)   , intent(inout) :: cnveg_nitrogenflux_inst
     real(r8)                        , intent(out)   :: aroot(bounds%begp:)
     real(r8)                        , intent(out)   :: arepr(bounds%begp:)
+!    real(r8)                        , intent(out)   :: aleafn(bounds%begp:,1:)
+!    real(r8)                        , intent(out)   :: afruitn(bounds%begp:,1:)
+
     !
     ! !LOCAL VARIABLES:
     integer :: c,p,l,j            ! indices
@@ -748,7 +770,7 @@ contains
          huigrain2             => crop_inst%huigrain2_patch                  , & ! Input:  [real(r8) (:)]  gdd needed from last harvest to start of next grainfill (Y.Fan)
          idpp                  => crop_inst%idpp_patch                       , & ! Input:  [integer (:)]  days past planting (Y.Fan)
          idpp2                 => crop_inst%idpp2_patch                      , & ! InOut:  [integer (:)]  Saved idpp from phase2 before grainfill starts
-         gdd15                 => temperature_inst%gdd15_patch                 , & ! Input:  [real(r8) (:)]  growing deg. days base 15 deg C (ddays) (Y.Fan)
+        ! gdd15                 => temperature_inst%gdd15_patch                 , & ! Input:  [real(r8) (:)]  growing deg. days base 15 deg C (ddays) (Y.Fan)
         !gdd1520               => temperature_inst%gdd1520_patch               , & ! Input:  [real(r8) (:)]  20 yr mean of gdd15
          aleaf0                    => crop_inst%aleaf0_patch                   , & ! Input:  [real(r8) (:)]  initial leaf allocation coefficient
          livep                     => crop_inst%livep_patch                    , & ! Input:  [logical(r8) (:,:)]  Flag, true if this phytomer is alive
@@ -760,7 +782,7 @@ contains
          grnmatnp                  => crop_inst%grnmatnp_patch                 , & ! Input:  [real(r8) (:,:)]  hui needed for grain maturity of successive phytomers
          pgrainc                   => cnveg_carbonstate_inst%pgrainc_patch            , & ! InOut:  [real(r8) (:,:)]  (gC/m2) phytomer grain C
          pgrainn                   => cnveg_nitrogenstate_inst%pgrainn_patch          , & ! InOut:  [real(r8) (:,:)]  (gN/m2) phytomer grain N
-         tlai                      => cnveg_state_inst%tlai_patch                     , & ! Input:  [real(r8) (:)] one-sided leaf area index, no burying by snow
+         tlai                      => canopystate_inst%tlai_patch                     , & ! Input:  [real(r8) (:)] one-sided leaf area index, no burying by snow
          plai                      => crop_inst%plai_patch                     , & ! Input:  [real(r8) (:,:)]  one-sided leaf area index of each phytomer
 
          xsmrpool              => cnveg_carbonstate_inst%xsmrpool_patch             , & ! Input:  [real(r8) (:)   ]  (gC/m2) temporary photosynthate C pool
@@ -806,7 +828,7 @@ contains
       dt = real( get_step_size(), r8 )
       dayspyr = get_days_per_year()
       jday    = get_curr_calday()
-      gddperday = max(10._r8, gdd15(p)/jday)
+      !gddperday = max(10._r8, gdd15(p)/jday)
 
       ! set number of days to recover negative cpool
       dayscrecover = params_inst%dayscrecover

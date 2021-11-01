@@ -1,0 +1,35 @@
+2020-08-20 15:57:37: case.setup starting 
+ ---------------------------------------------------
+2020-08-20 15:57:38: case.setup success 
+ ---------------------------------------------------
+2020-08-20 15:57:57: xmlchange success <command> ./xmlchange CLM_USRDAT_NAME=1x1pt_Jambi,DATM_MODE=CLM1PT,CLM_BLDNML_OPTS=-mask navy -bgc bgc  </command>
+ ---------------------------------------------------
+2020-08-20 15:57:58: xmlchange success <command> ./xmlchange CLM_ACCELERATED_SPINUP=on  </command>
+ ---------------------------------------------------
+2020-08-20 15:57:58: xmlchange success <command> ./xmlchange CLM_FORCE_COLDSTART=on  </command>
+ ---------------------------------------------------
+2020-08-20 15:57:58: xmlchange success <command> ./xmlchange DATM_PRESAERO=clim_1850  </command>
+ ---------------------------------------------------
+2020-08-20 15:57:58: xmlchange success <command> ./xmlchange STOP_N=5,STOP_OPTION=nyears  </command>
+ ---------------------------------------------------
+2020-08-20 15:57:58: xmlchange success <command> ./xmlchange RUN_STARTDATE=0001-01-01  </command>
+ ---------------------------------------------------
+2020-08-20 15:57:58: xmlchange success <command> ./xmlchange CCSM_CO2_PPMV=284.7  </command>
+ ---------------------------------------------------
+2020-08-20 15:57:59: xmlchange success <command> ./xmlchange ATM_DOMAIN_FILE=domain.lnd.${CLM_USRDAT_NAME}_navy.nc  </command>
+ ---------------------------------------------------
+2020-08-20 15:57:59: xmlchange success <command> ./xmlchange ATM_DOMAIN_PATH=$DIN_LOC_ROOT/share/domains/domain.clm  </command>
+ ---------------------------------------------------
+2020-08-20 15:57:59: xmlchange success <command> ./xmlchange LND_DOMAIN_FILE=domain.lnd.${CLM_USRDAT_NAME}_navy.nc  </command>
+ ---------------------------------------------------
+2020-08-20 15:57:59: xmlchange success <command> ./xmlchange LND_DOMAIN_PATH=$DIN_LOC_ROOT/share/domains/domain.clm  </command>
+ ---------------------------------------------------
+2020-08-20 15:58:16: case.setup starting 
+ ---------------------------------------------------
+2020-08-20 15:58:16: case.setup success 
+ ---------------------------------------------------
+2020-08-20 15:58:26: case.build starting 
+ ---------------------------------------------------
+2020-08-20 15:59:58: case.build error 
+argument of type 'NoneType' is not iterable
+ ---------------------------------------------------

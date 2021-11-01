@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+<file id="env_mach_specific.xml" version="2.0">
+  <header>
+    These variables control the machine dependent environment including
+    the paths to compilers and libraries external to cime such as netcdf,
+    environment variables for use in the running job should also be set	here.
+    </header>
+  <group id="compliant_values">
+    <entry id="run_exe" value="${EXEROOT}/cesm.exe ">
+      <type>char</type>
+      <desc>executable name</desc>
+    </entry>
+    <entry id="run_misc_suffix" value=" &gt;&gt; cesm.log.$LID 2&gt;&amp;1 ">
+      <type>char</type>
+      <desc>redirect for job output</desc>
+    </entry>
+  </group>
+  <module_system type="module">
+    <init_path lang="sh">/opt/sw/etc/lmod/profile</init_path>
+    <cmd_path lang="sh">module -q</cmd_path>
+    <cmd_path lang="python">module -q</cmd_path>
+    <modules>
+      <command name="purge"/>
+      <command name="load">subversion</command>
+    </modules>
+    <modules compiler="intel">
+      <command name="load">intel-parallel-studio</command>
+      <command name="load">intel</command>
+      <command name="load">netcdf-c</command>
+      <command name="load">netcdf-fortran</command>
+    </modules>
+    <modules compiler="gnu">
+      <command name="load">gcc</command>
+      <command name="load">netcdf-c</command>
+      <command name="load">netcdf-fortran</command>
+      <command name="load">openblas</command>
+    </modules>
+    <modules mpilib="impi">
+      <command name="load">intel-mpi</command>
+      <command name="load">hdf5</command>
+      <command name="load">netcdf-c</command>
+      <command name="load">netcdf-fortran</command>
+    </modules>
+    <modules mpilib="openmpi">
+      <command name="load">openmpi</command>
+      <command name="load">netcdf-c</command>
+      <command name="load">netcdf-fortran</command>
+    </modules>
+  </module_system>
+  <environment_variables>
+    <env name="OMP_STACKSIZE">64M</env>
+    <env name="MPI_TYPE_DEPTH">16</env>
+  </environment_variables>
+  <resource_limits>
+    <resource name="RLIMIT_STACK">-1</resource>
+  </resource_limits>
+  <mpirun mpilib="default">
+    <executable>mpiexec</executable>
+    <arguments>
+      <arg name="ntasks"> -np {{ total_tasks }} </arg>
+    </arguments>
+  </mpirun>
+  <mpirun mpilib="openmpi">
+    <executable>mpiexec</executable>
+  </mpirun>
+</file>

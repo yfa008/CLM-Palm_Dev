@@ -1,0 +1,23 @@
+&comp_inparm 
+
+dtlimit = 1.5,1.5,1.5
+
+fillalgo = 'nn','nn','nn'
+
+fillmask = 'nomask','nomask','nomask'
+
+mapalgo = 'nn','nn','nn'
+
+mapmask = 'nomask','nomask','nomask'
+
+streams = 'datm.streams.txt.TOWER_Jambi.Solar 1 2009 2018',
+
+'datm.streams.txt.TOWER_Jambi.Precip 1 2009 2018',
+
+'datm.streams.txt.TOWER_Jambi.TPQW 1 2009 2018'
+
+taxmode = 'cycle','cycle','cycle'
+
+tintalgo = 'coszen','nearest','linear'
+
+/ 

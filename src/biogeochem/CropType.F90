@@ -45,7 +45,7 @@ module CropType
 
      !oil palm related new state variables  (Y.Fan)
      integer  , pointer :: yrop_patch(:)                       ! year of planting
-     !integer  , pointer :: idop_patch(:)                       ! date of planting
+     !integer  , pointer :: idop_patch(:)                       ! date of planting (defined in cnveg_state_type)
      integer  , pointer :: idpp_patch(:)                       ! days past planting
      integer  , pointer :: idpp2_patch(:)                      ! saved from phase 2
      real(r8) , pointer :: aleaf0_patch(:)                     ! initial leaf allocation coefficient

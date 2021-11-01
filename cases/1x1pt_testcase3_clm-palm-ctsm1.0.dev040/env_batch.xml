@@ -1,0 +1,144 @@
+<?xml version="1.0"?>
+<file id="env_batch.xml" version="2.0">
+  <header>
+      These variables may be changed anytime during a run, they
+      control arguments to the batch submit command.
+    </header>
+  <group id="config_batch">
+    <entry id="BATCH_SYSTEM" value="slurm">
+      <type>char</type>
+      <valid_values>nersc_slurm,lc_slurm,moab,pbs,lsf,slurm,cobalt,cobalt_theta,none</valid_values>
+      <desc>The batch system type to use for this machine.</desc>
+    </entry>
+  </group>
+  <batch_system type="slurm">
+    <batch_query per_job_arg="-j">squeue</batch_query>
+    <batch_cancel>scancel</batch_cancel>
+    <batch_directive>#SBATCH</batch_directive>
+    <jobid_pattern>(\d+)$</jobid_pattern>
+    <depend_string> --dependency=afterok:jobid</depend_string>
+    <depend_allow_string> --dependency=afterany:jobid</depend_allow_string>
+    <depend_separator>,</depend_separator>
+    <walltime_format>%H:%M:%S</walltime_format>
+    <batch_mail_flag>--mail-user</batch_mail_flag>
+    <batch_mail_type_flag>--mail-type</batch_mail_type_flag>
+    <batch_mail_type>none, all, begin, end, fail</batch_mail_type>
+    <directives>
+      <directive> -J {{ job_id }}</directive>
+      <directive> -N {{ num_nodes }}</directive>
+      <directive> --ntasks-per-node {{ tasks_per_node }}</directive>
+      <directive> -o slurm.%j.%X.stdout</directive>
+      <directive> -e slurm.%j.%X.stderr</directive>
+      <directive> -C fas</directive>
+      <directive> --mem-per-cpu=30G</directive>
+    </directives>
+  </batch_system>
+  <batch_system MACH="gwdg" type="slurm">
+    <batch_submit>sbatch</batch_submit>
+    <submit_args>
+      <arg flag="--time" name="$JOB_WALLCLOCK_TIME"/>
+      <arg flag="-p" name="$JOB_QUEUE"/>
+    </submit_args>
+    <queues>
+      <queue default="true" walltimemax="48:00:00" walltimemin="00:00:00">medium</queue>
+      <queue walltimemax="48:00:00" walltimemin="00:00:00">fat</queue>
+    </queues>
+  </batch_system>
+  <group id="case.run">
+    <entry id="prereq" value="$BUILD_COMPLETE and not $TEST">
+      <type>char</type>
+    </entry>
+    <entry id="template" value="template.case.run">
+      <type>char</type>
+    </entry>
+    <entry id="PROJECT_REQUIRED" value="FALSE">
+      <type>logical</type>
+      <valid_values>TRUE,FALSE</valid_values>
+      <desc>whether the PROJECT value is required on this machine</desc>
+    </entry>
+    <entry id="CHARGE_ACCOUNT" value="couldbethis">
+      <type>char</type>
+      <desc>project to charge in scripts if different from PROJECT</desc>
+    </entry>
+    <entry id="PROJECT" value="couldbethis">
+      <type>char</type>
+      <desc>project for project-sensitive build and run paths, and job scripts</desc>
+    </entry>
+    <entry id="BATCH_COMMAND_FLAGS">
+      <type>char</type>
+      <valid_values/>
+      <desc>Override the batch submit command this job. Do not include executable or dependencies</desc>
+    </entry>
+    <entry id="JOB_WALLCLOCK_TIME" value="1:00:00">
+      <type>char</type>
+      <valid_values/>
+      <desc>The machine wallclock setting.  Default determined in config_machines.xml can be overwritten by testing</desc>
+    </entry>
+    <entry id="JOB_QUEUE" value="medium">
+      <type>char</type>
+      <valid_values/>
+      <desc>The machine queue in which to submit the job.  Default determined in config_machines.xml can be overwritten by testing</desc>
+    </entry>
+    <entry id="USER_REQUESTED_WALLTIME" value="1:00:00">
+      <type>char</type>
+      <desc>Store user override for walltime</desc>
+    </entry>
+    <entry id="USER_REQUESTED_QUEUE" value="medium">
+      <type>char</type>
+      <desc>Store user override for queue</desc>
+    </entry>
+  </group>
+  <group id="case.st_archive">
+    <entry id="dependency" value="case.run or case.test">
+      <type>char</type>
+    </entry>
+    <entry id="prereq" value="$DOUT_S">
+      <type>char</type>
+    </entry>
+    <entry id="task_count" value="1">
+      <type>char</type>
+    </entry>
+    <entry id="template" value="template.st_archive">
+      <type>char</type>
+    </entry>
+    <entry id="walltime" value="0:20:00">
+      <type>char</type>
+    </entry>
+    <entry id="PROJECT_REQUIRED" value="FALSE">
+      <type>logical</type>
+      <valid_values>TRUE,FALSE</valid_values>
+      <desc>whether the PROJECT value is required on this machine</desc>
+    </entry>
+    <entry id="CHARGE_ACCOUNT" value="couldbethis">
+      <type>char</type>
+      <desc>project to charge in scripts if different from PROJECT</desc>
+    </entry>
+    <entry id="PROJECT" value="couldbethis">
+      <type>char</type>
+      <desc>project for project-sensitive build and run paths, and job scripts</desc>
+    </entry>
+    <entry id="BATCH_COMMAND_FLAGS">
+      <type>char</type>
+      <valid_values/>
+      <desc>Override the batch submit command this job. Do not include executable or dependencies</desc>
+    </entry>
+    <entry id="JOB_WALLCLOCK_TIME" value="1:00:00">
+      <type>char</type>
+      <valid_values/>
+      <desc>The machine wallclock setting.  Default determined in config_machines.xml can be overwritten by testing</desc>
+    </entry>
+    <entry id="JOB_QUEUE" value="medium">
+      <type>char</type>
+      <valid_values/>
+      <desc>The machine queue in which to submit the job.  Default determined in config_machines.xml can be overwritten by testing</desc>
+    </entry>
+    <entry id="USER_REQUESTED_WALLTIME" value="1:00:00">
+      <type>char</type>
+      <desc>Store user override for walltime</desc>
+    </entry>
+    <entry id="USER_REQUESTED_QUEUE" value="medium">
+      <type>char</type>
+      <desc>Store user override for queue</desc>
+    </entry>
+  </group>
+</file>

@@ -1,0 +1,247 @@
+2021-08-20 12:12:52: case.setup starting 
+ ---------------------------------------------------
+2021-08-20 12:13:01: case.setup success 
+ ---------------------------------------------------
+2021-08-20 14:57:06: xmlchange success <command> ./xmlchange CLM_ACCELERATED_SPINUP=on  </command>
+ ---------------------------------------------------
+2021-08-20 14:57:06: xmlchange success <command> ./xmlchange CLM_FORCE_COLDSTART=on  </command>
+ ---------------------------------------------------
+2021-08-20 14:57:06: xmlchange success <command> ./xmlchange DATM_PRESAERO=clim_1850  </command>
+ ---------------------------------------------------
+2021-08-20 14:57:07: xmlchange success <command> ./xmlchange STOP_N=5,STOP_OPTION=nyears  </command>
+ ---------------------------------------------------
+2021-08-20 14:57:07: xmlchange success <command> ./xmlchange RUN_STARTDATE=0001-01-01  </command>
+ ---------------------------------------------------
+2021-08-20 14:57:07: xmlchange success <command> ./xmlchange CCSM_CO2_PPMV=284.7  </command>
+ ---------------------------------------------------
+2021-08-20 14:57:08: xmlchange success <command> ./xmlchange ATM_DOMAIN_FILE=domain.lnd.${CLM_USRDAT_NAME}_navy.nc  </command>
+ ---------------------------------------------------
+2021-08-20 14:57:08: xmlchange success <command> ./xmlchange ATM_DOMAIN_PATH=$DIN_LOC_ROOT/share/domains/domain.clm  </command>
+ ---------------------------------------------------
+2021-08-20 14:57:08: xmlchange success <command> ./xmlchange LND_DOMAIN_FILE=domain.lnd.${CLM_USRDAT_NAME}_navy.nc  </command>
+ ---------------------------------------------------
+2021-08-20 14:57:09: xmlchange success <command> ./xmlchange LND_DOMAIN_PATH=$DIN_LOC_ROOT/share/domains/domain.clm  </command>
+ ---------------------------------------------------
+2021-08-20 14:58:31: xmlchange success <command> ./xmlchange JOB_WALLCLOCK_TIME=1:00:00  </command>
+ ---------------------------------------------------
+2021-08-20 14:58:32: xmlchange success <command> ./xmlchange JOB_QUEUE=medium  </command>
+ ---------------------------------------------------
+2021-08-20 14:58:32: xmlchange success <command> ./xmlchange CLM_USRDAT_NAME=1x1pt_Jambi,DATM_MODE=CLM1PT,CLM_BLDNML_OPTS=-mask navy -bgc bgc  </command>
+ ---------------------------------------------------
+2021-08-20 14:58:32: xmlchange success <command> ./xmlchange CLM_ACCELERATED_SPINUP=on  </command>
+ ---------------------------------------------------
+2021-08-20 14:58:33: xmlchange success <command> ./xmlchange CLM_FORCE_COLDSTART=on  </command>
+ ---------------------------------------------------
+2021-08-20 14:58:33: xmlchange success <command> ./xmlchange DATM_PRESAERO=clim_1850  </command>
+ ---------------------------------------------------
+2021-08-20 14:58:33: xmlchange success <command> ./xmlchange STOP_N=5,STOP_OPTION=nyears  </command>
+ ---------------------------------------------------
+2021-08-20 14:58:34: xmlchange success <command> ./xmlchange RUN_STARTDATE=0001-01-01  </command>
+ ---------------------------------------------------
+2021-08-20 14:58:34: xmlchange success <command> ./xmlchange CCSM_CO2_PPMV=284.7  </command>
+ ---------------------------------------------------
+2021-08-20 14:58:34: xmlchange success <command> ./xmlchange ATM_DOMAIN_FILE=domain.lnd.${CLM_USRDAT_NAME}_navy.nc  </command>
+ ---------------------------------------------------
+2021-08-20 14:58:34: xmlchange success <command> ./xmlchange ATM_DOMAIN_PATH=$DIN_LOC_ROOT/share/domains/domain.clm  </command>
+ ---------------------------------------------------
+2021-08-20 14:58:35: xmlchange success <command> ./xmlchange LND_DOMAIN_FILE=domain.lnd.${CLM_USRDAT_NAME}_navy.nc  </command>
+ ---------------------------------------------------
+2021-08-20 14:58:35: xmlchange success <command> ./xmlchange LND_DOMAIN_PATH=$DIN_LOC_ROOT/share/domains/domain.clm  </command>
+ ---------------------------------------------------
+2021-08-20 15:11:08: case.setup starting 
+ ---------------------------------------------------
+2021-08-20 15:11:17: case.setup success 
+ ---------------------------------------------------
+2021-08-20 15:11:34: case.build starting 
+ ---------------------------------------------------
+2021-08-20 15:15:52: case.build error 
+ERROR: BUILD FAIL: clm.buildlib failed, cat /usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/bld/lnd.bldlog.210820-151135
+ ---------------------------------------------------
+2021-08-21 09:45:23: case.build starting 
+ ---------------------------------------------------
+2021-08-21 09:45:28: case.build error 
+ERROR: /home/uni05/yfan1/clm_efforts_palm/cime/src/build_scripts/buildlib.mct FAILED, cat /usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/bld/mct.bldlog.210821-094523
+ ---------------------------------------------------
+2021-08-21 09:45:54: build.clean starting 
+ ---------------------------------------------------
+2021-08-21 09:45:54: build.clean success 
+ ---------------------------------------------------
+2021-08-21 09:45:59: case.build starting 
+ ---------------------------------------------------
+2021-08-21 09:46:02: case.build error 
+ERROR: /home/uni05/yfan1/clm_efforts_palm/cime/src/build_scripts/buildlib.mct FAILED, cat /usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/bld/mct.bldlog.210821-094559
+ ---------------------------------------------------
+2021-08-21 09:46:07: build.clean starting 
+ ---------------------------------------------------
+2021-08-21 09:46:07: build.clean success 
+ ---------------------------------------------------
+2021-08-21 09:46:11: case.build starting 
+ ---------------------------------------------------
+2021-08-21 09:46:14: case.build error 
+ERROR: /home/uni05/yfan1/clm_efforts_palm/cime/src/build_scripts/buildlib.gptl FAILED, cat /usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/bld/gptl.bldlog.210821-094611
+ ---------------------------------------------------
+2021-08-21 09:47:09: case.build starting 
+ ---------------------------------------------------
+2021-08-21 09:51:07: case.build error 
+ERROR: BUILD FAIL: clm.buildlib failed, cat /usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/bld/lnd.bldlog.210821-094709
+ ---------------------------------------------------
+2021-08-21 09:54:17: case.build starting 
+ ---------------------------------------------------
+2021-08-21 09:54:26: case.build error 
+ERROR: BUILD FAIL: clm.buildlib failed, cat /usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/bld/lnd.bldlog.210821-095418
+ ---------------------------------------------------
+2021-08-21 10:09:37: case.build starting 
+ ---------------------------------------------------
+2021-08-21 10:09:45: case.build error 
+ERROR: BUILD FAIL: clm.buildlib failed, cat /usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/bld/lnd.bldlog.210821-100937
+ ---------------------------------------------------
+2021-08-21 10:32:40: case.build starting 
+ ---------------------------------------------------
+2021-08-21 10:32:54: case.build error 
+ERROR: BUILD FAIL: clm.buildlib failed, cat /usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/bld/lnd.bldlog.210821-103240
+ ---------------------------------------------------
+2021-08-21 12:23:59: case.build starting 
+ ---------------------------------------------------
+2021-08-21 12:24:15: case.build error 
+ERROR: BUILD FAIL: clm.buildlib failed, cat /usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/bld/lnd.bldlog.210821-122359
+ ---------------------------------------------------
+2021-08-21 13:09:06: case.build starting 
+ ---------------------------------------------------
+2021-08-21 13:09:17: case.build error 
+ERROR: BUILD FAIL: clm.buildlib failed, cat /usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/bld/lnd.bldlog.210821-130906
+ ---------------------------------------------------
+2021-08-21 13:15:06: case.build starting 
+ ---------------------------------------------------
+2021-08-21 13:15:11: case.build error 
+ERROR: BUILD FAIL: clm.buildlib failed, cat /usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/bld/lnd.bldlog.210821-131506
+ ---------------------------------------------------
+2021-08-21 13:16:54: case.build starting 
+ ---------------------------------------------------
+2021-08-21 13:16:59: case.build error 
+ERROR: BUILD FAIL: clm.buildlib failed, cat /usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/bld/lnd.bldlog.210821-131654
+ ---------------------------------------------------
+2021-08-22 11:57:07: case.build starting 
+ ---------------------------------------------------
+2021-08-22 11:57:13: case.build error 
+ERROR: /home/uni05/yfan1/clm_efforts_palm/cime/src/build_scripts/buildlib.mct FAILED, cat /usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/bld/mct.bldlog.210822-115707
+ ---------------------------------------------------
+2021-08-22 11:58:12: case.build starting 
+ ---------------------------------------------------
+2021-08-22 11:58:18: case.build error 
+ERROR: BUILD FAIL: clm.buildlib failed, cat /usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/bld/lnd.bldlog.210822-115812
+ ---------------------------------------------------
+2021-08-22 13:38:00: case.build starting 
+ ---------------------------------------------------
+2021-08-22 13:38:06: case.build error 
+ERROR: BUILD FAIL: clm.buildlib failed, cat /usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/bld/lnd.bldlog.210822-133800
+ ---------------------------------------------------
+2021-08-22 14:07:25: case.build starting 
+ ---------------------------------------------------
+2021-08-22 14:07:31: case.build error 
+ERROR: BUILD FAIL: clm.buildlib failed, cat /usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/bld/lnd.bldlog.210822-140725
+ ---------------------------------------------------
+2021-08-22 15:12:42: case.build starting 
+ ---------------------------------------------------
+2021-08-22 15:12:47: case.build error 
+ERROR: BUILD FAIL: clm.buildlib failed, cat /usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/bld/lnd.bldlog.210822-151242
+ ---------------------------------------------------
+2021-08-22 15:37:02: case.build starting 
+ ---------------------------------------------------
+2021-08-22 15:37:22: case.build error 
+ERROR: BUILD FAIL: clm.buildlib failed, cat /usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/bld/lnd.bldlog.210822-153702
+ ---------------------------------------------------
+2021-08-22 16:55:05: case.build starting 
+ ---------------------------------------------------
+2021-08-22 16:55:19: case.build error 
+ERROR: BUILD FAIL: clm.buildlib failed, cat /usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/bld/lnd.bldlog.210822-165505
+ ---------------------------------------------------
+2021-08-22 16:59:11: case.build starting 
+ ---------------------------------------------------
+2021-08-22 16:59:20: case.build error 
+ERROR: BUILD FAIL: clm.buildlib failed, cat /usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/bld/lnd.bldlog.210822-165911
+ ---------------------------------------------------
+2021-08-22 17:14:32: case.build starting 
+ ---------------------------------------------------
+2021-08-22 17:14:40: case.build error 
+ERROR: BUILD FAIL: clm.buildlib failed, cat /usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/bld/lnd.bldlog.210822-171432
+ ---------------------------------------------------
+2021-08-22 17:16:00: case.build starting 
+ ---------------------------------------------------
+2021-08-22 17:16:53: case.build error 
+ERROR: BUILD FAIL: buildexe failed, cat /usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/bld/cesm.bldlog.210822-171600
+ ---------------------------------------------------
+2021-08-22 17:43:05: case.build starting 
+ ---------------------------------------------------
+2021-08-22 17:43:16: case.build error 
+ERROR: BUILD FAIL: clm.buildlib failed, cat /usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/bld/lnd.bldlog.210822-174305
+ ---------------------------------------------------
+2021-08-22 17:51:41: case.build starting 
+ ---------------------------------------------------
+2021-08-22 17:51:47: case.build error 
+ERROR: BUILD FAIL: clm.buildlib failed, cat /usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/bld/lnd.bldlog.210822-175141
+ ---------------------------------------------------
+2021-08-22 18:01:06: case.build starting 
+ ---------------------------------------------------
+2021-08-22 18:01:12: case.build error 
+ERROR: BUILD FAIL: clm.buildlib failed, cat /usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/bld/lnd.bldlog.210822-180106
+ ---------------------------------------------------
+2021-08-22 18:02:47: case.build starting 
+ ---------------------------------------------------
+2021-08-22 18:02:53: case.build error 
+ERROR: BUILD FAIL: clm.buildlib failed, cat /usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/bld/lnd.bldlog.210822-180247
+ ---------------------------------------------------
+2021-08-22 18:06:00: case.build starting 
+ ---------------------------------------------------
+2021-08-22 18:06:06: case.build error 
+ERROR: BUILD FAIL: clm.buildlib failed, cat /usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/bld/lnd.bldlog.210822-180600
+ ---------------------------------------------------
+2021-08-22 18:06:41: case.build starting 
+ ---------------------------------------------------
+2021-08-22 18:06:46: case.build error 
+ERROR: BUILD FAIL: clm.buildlib failed, cat /usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/bld/lnd.bldlog.210822-180641
+ ---------------------------------------------------
+2021-08-22 18:08:10: case.build starting 
+ ---------------------------------------------------
+2021-08-22 18:08:17: case.build error 
+ERROR: BUILD FAIL: clm.buildlib failed, cat /usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/bld/lnd.bldlog.210822-180811
+ ---------------------------------------------------
+2021-08-22 18:12:50: case.build starting 
+ ---------------------------------------------------
+2021-08-22 18:12:56: case.build error 
+ERROR: BUILD FAIL: clm.buildlib failed, cat /usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/bld/lnd.bldlog.210822-181250
+ ---------------------------------------------------
+2021-08-22 18:17:37: case.build starting 
+ ---------------------------------------------------
+2021-08-22 18:17:43: case.build error 
+ERROR: BUILD FAIL: clm.buildlib failed, cat /usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/bld/lnd.bldlog.210822-181738
+ ---------------------------------------------------
+2021-08-22 18:27:23: case.build starting 
+ ---------------------------------------------------
+2021-08-22 18:27:29: case.build error 
+ERROR: BUILD FAIL: clm.buildlib failed, cat /usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/bld/lnd.bldlog.210822-182723
+ ---------------------------------------------------
+2021-08-22 18:31:58: case.build starting 
+ ---------------------------------------------------
+2021-08-22 18:32:04: case.build error 
+ERROR: BUILD FAIL: clm.buildlib failed, cat /usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/bld/lnd.bldlog.210822-183158
+ ---------------------------------------------------
+2021-08-22 18:40:34: case.build starting 
+ ---------------------------------------------------
+2021-08-22 18:40:40: case.build error 
+ERROR: BUILD FAIL: clm.buildlib failed, cat /usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/bld/lnd.bldlog.210822-184034
+ ---------------------------------------------------
+2021-08-22 18:42:01: case.build starting 
+ ---------------------------------------------------
+2021-08-22 18:42:07: case.build error 
+ERROR: BUILD FAIL: clm.buildlib failed, cat /usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/bld/lnd.bldlog.210822-184201
+ ---------------------------------------------------
+2021-08-22 18:44:29: case.build starting 
+ ---------------------------------------------------
+2021-08-22 18:44:54: case.build error 
+ERROR: BUILD FAIL: buildexe failed, cat /usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/bld/cesm.bldlog.210822-184430
+ ---------------------------------------------------
+2021-08-22 18:51:15: case.build starting 
+ ---------------------------------------------------
+2021-08-22 18:51:21: case.build error 
+ERROR: BUILD FAIL: clm.buildlib failed, cat /usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/bld/lnd.bldlog.210822-185115
+ ---------------------------------------------------

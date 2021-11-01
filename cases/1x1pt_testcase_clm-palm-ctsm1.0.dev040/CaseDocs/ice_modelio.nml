@@ -1,0 +1,13 @@
+&modelio
+  diri = "/usr/users/yfan1/cesm/exeroot/1x1pt_testcase_clm-palm-ctsm1.0.dev040/bld/ice"
+  diro = "/usr/users/yfan1/cesm/exeroot/1x1pt_testcase_clm-palm-ctsm1.0.dev040/run"
+  logfile = "ice.log.200820-155826"
+/
+&pio_inparm
+  pio_netcdf_format = "64bit_offset"
+  pio_numiotasks = -99
+  pio_rearranger = 1
+  pio_root = 1
+  pio_stride = 24
+  pio_typename = "netcdf"
+/

@@ -1269,6 +1269,9 @@ contains
             long_name='', units='', &
             interpinic_flag='interp', readvar=readvar, data=this%leafcmax_patch)
 
+       ! Modified as per Y.Fan discussion 28/3/22
+       if ( mxnp .gt. 0 ) then
+
        call restartvar(ncid=ncid, flag=flag, varname='pleafc', xtype=ncd_double,  &
                 dim1name='pft',dim2name='phytomer',long_name='',units='', &
                 interpinic_flag='interp', readvar=readvar, data=this%pleafc_patch)
@@ -1289,7 +1292,8 @@ contains
                dim1name='pft',long_name='senescent leaf C saved for pruning', units='gC/m2', &
                interpinic_flag='interp', readvar=readvar, data=this%leafc_senescent_patch)
 
-
+       end if
+       
        if (flag == 'read') then
           call restartvar(ncid=ncid, flag=flag, varname='spinup_state', xtype=ncd_int, &
             long_name='Spinup state of the model that wrote this restart file: ' &

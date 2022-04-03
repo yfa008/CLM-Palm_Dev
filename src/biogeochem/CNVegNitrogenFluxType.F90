@@ -994,8 +994,9 @@ contains
             avgflag='A', long_name='leaf N growth from storage for each phytomer', &
             ptr_patch=this%pleafn_xfer_to_pleafn_patch, default='inactive')
 
+    ! litter was missing in the fname AAli 3/4/22
     this%pleafn_xfer_to_litter_patch(begp:endp,1:mxnp) = spval
-    call hist_addfld2d (fname='PLEAFN_XFER_TO_PLEAFN', units='gN/m^2/s', type2d='phytomer', &
+    call hist_addfld2d (fname='PLEAFN_XFER_TO_LITTER', units='gN/m^2/s', type2d='phytomer', &
             avgflag='A', long_name='leaf N transfer to litter pool for each phytomer', &
             ptr_patch=this%pleafn_xfer_to_litter_patch, default='inactive')
     

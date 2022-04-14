@@ -350,7 +350,7 @@ contains
        ! gather all patch-level litterfall fluxes to the column for litter C and N inputs
 
        call CNLitterToColumn(bounds, num_soilc, filter_soilc, &
-            cnveg_state_inst, cnveg_carbonflux_inst, cnveg_nitrogenflux_inst, &
+            soilbiogeochem_state_inst, cnveg_state_inst, cnveg_carbonflux_inst, cnveg_nitrogenflux_inst, &
             crop_inst,cnveg_carbonstate_inst,cnveg_nitrogenstate_inst, &
             leaf_prof_patch(bounds%begp:bounds%endp,1:nlevdecomp_full), & 
             froot_prof_patch(bounds%begp:bounds%endp,1:nlevdecomp_full))
@@ -3834,7 +3834,7 @@ contains
 
   !-----------------------------------------------------------------------
   subroutine CNLitterToColumn (bounds, num_soilc, filter_soilc,         &
-       cnveg_state_inst,cnveg_carbonflux_inst, cnveg_nitrogenflux_inst, &
+       soilbiogeochem_state_inst,cnveg_state_inst,cnveg_carbonflux_inst, cnveg_nitrogenflux_inst, &
        crop_inst,cnveg_carbonstate_inst,cnveg_nitrogenstate_inst, & 
        leaf_prof_patch, froot_prof_patch)
     !
@@ -3855,6 +3855,7 @@ contains
     type(cnveg_state_type)          , intent(in)    :: cnveg_state_inst
     type(crop_type)                , intent(inout) :: crop_inst
     type(cnveg_carbonstate_type)   , intent(in)    :: cnveg_carbonstate_inst
+    type(soilbiogeochem_state_type), intent(in)    :: soilbiogeochem_state_inst
     type(cnveg_nitrogenstate_type) , intent(in)    :: cnveg_nitrogenstate_inst
     type(cnveg_carbonflux_type)     , intent(inout) :: cnveg_carbonflux_inst
     type(cnveg_nitrogenflux_type)   , intent(inout) :: cnveg_nitrogenflux_inst
@@ -3949,11 +3950,12 @@ contains
                           leafc_senescent(p) = 0._r8
                           leafn_senescent(p) = 0._r8
 
-                          !at final rotation
-                          if (offset_flag(p) == 1._r8) then
-                             call CNHarvestPftToColumn(num_soilc, filter_soilc)
-                             !must need to summarize hrv fluxes to column level, use the function from pftdynMod
-                          end if
+                          !at final rotation (don't worry about harvest fluxes
+                          !of some inmmature palm fruits at the final rotation, 14.03.2022
+                      !    if (offset_flag(p) == 1._r8) then
+                      !       call CNHarvestPftToColumn(num_soilc, filter_soilc)
+                      !       !must need to summarize hrv fluxes to column level, use the function from pftdynMod
+                      !    end if
                           !the CNHarvestPftToColumn function will summarize both leaf/froot/livestem pools to litter materials met_c/cel_c/lig_c &
                           !and also summarize wood product pools (hrv_deadstemc_to_prod10c/hrv_deadstemc_to_prod100c) to column level
 

@@ -1854,7 +1854,7 @@ contains
                 dwt_seedc_to_leaf(c) = dwt_seedc_to_leaf(c) - leafc_xfer(p)/dt
                 dwt_seedn_to_leaf(c) = dwt_seedn_to_leaf(c) - leafn_xfer(p)/dt
                 leafc_xfer(p) = 0._r8  ! revert planting transfers
-                leafn_xfer(p) = 0._r8^M
+                leafn_xfer(p) = 0._r8
                 dwt_seedc_to_livestem(c) = dwt_seedc_to_livestem(c) - livestemc_xfer(p)/dt
                 dwt_seedn_to_livestem(c) = dwt_seedn_to_livestem(c) - livestemn_xfer(p)/dt
                 livestemc_xfer(p) = 0._r8  ! revert planting transfers

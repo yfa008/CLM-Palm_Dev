@@ -700,6 +700,10 @@ contains
          dim1name='pft', long_name='', units='', &
          interpinic_flag='interp', readvar=readvar, data=this%ntrunc_patch) 
 
+    ! Modified by A.Ali 28/3/22 following Y.Fan
+    
+    if ( mxnp .gt. 0 ) then
+
     call restartvar(ncid=ncid, flag=flag, varname='pleafn', xtype=ncd_double,  &
                 dim1name='pft',dim2name='phytomer',long_name='',units='',  & 
                 interpinic_flag='interp', readvar=readvar, data=this%pleafn_patch)
@@ -719,6 +723,8 @@ contains
     call restartvar(ncid=ncid, flag=flag, varname='leafn_senescent', xtype=ncd_double,  &
                dim1name='pft',long_name='senescent leaf N saved for pruning',units='gN/m2', &
                interpinic_flag='interp', readvar=readvar, data=this%leafn_senescent_patch)
+
+    end if 
 
     if (use_crop) then
        call restartvar(ncid=ncid, flag=flag,  varname='grainn', xtype=ncd_double,  &

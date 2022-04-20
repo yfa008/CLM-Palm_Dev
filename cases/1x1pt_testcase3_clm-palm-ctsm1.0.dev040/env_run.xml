@@ -252,7 +252,7 @@
       timing tests.
     </desc>
     </entry>
-    <entry id="JOB_IDS">
+    <entry id="JOB_IDS" value="case.run:11905913, case.st_archive:11905914">
       <type>char</type>
       <desc>List of job ids for most recent case.submit</desc>
     </entry>
@@ -1351,7 +1351,7 @@
       This is normally set by the component set. This is an advanced flag and should only be
       used by expert users.</desc>
     </entry>
-    <entry id="CLM_BLDNML_OPTS" value="-mask navy -bgc bgc">
+    <entry id="CLM_BLDNML_OPTS" value="-mask navy -bgc bgc -crop">
       <type>char</type>
       <desc>CLM build-namelist options</desc>
     </entry>

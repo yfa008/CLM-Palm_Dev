@@ -245,3 +245,396 @@ ERROR: BUILD FAIL: buildexe failed, cat /usr/users/yfan1/cesm/exeroot/1x1pt_test
 2021-08-22 18:51:21: case.build error 
 ERROR: BUILD FAIL: clm.buildlib failed, cat /usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/bld/lnd.bldlog.210822-185115
  ---------------------------------------------------
+2022-04-19 05:52:27: build.clean starting 
+ ---------------------------------------------------
+2022-04-19 05:52:27: build.clean success 
+ ---------------------------------------------------
+2022-04-19 05:52:35: setup.clean starting 
+ ---------------------------------------------------
+2022-04-19 05:52:35: setup.clean success 
+ ---------------------------------------------------
+2022-04-19 05:56:59: case.setup starting 
+ ---------------------------------------------------
+2022-04-19 05:57:11: case.setup error 
+ERROR: module command module -q load subversion intel-parallel-studio intel netcdf-c netcdf-fortran intel-mpi hdf5 netcdf-c netcdf-fortran failed with message:
+Lmod has detected the following error: These module(s) or extension(s) exist but cannot be loaded as requested:
+"intel-mpi"
+   Try: "module spider intel-mpi" to see how to load the module(s).
+ ---------------------------------------------------
+2022-04-19 05:59:48: case.setup starting 
+ ---------------------------------------------------
+2022-04-19 05:59:50: case.setup error 
+ERROR: module command module -q load subversion intel-parallel-studio intel netcdf-c netcdf-fortran intel-mpi hdf5 netcdf-c netcdf-fortran failed with message:
+Lmod has detected the following error: These module(s) or extension(s) exist but cannot be loaded as requested:
+"intel-mpi"
+   Try: "module spider intel-mpi" to see how to load the module(s).
+ ---------------------------------------------------
+2022-04-19 06:03:12: case.setup starting 
+ ---------------------------------------------------
+2022-04-19 06:03:15: case.setup success 
+ ---------------------------------------------------
+2022-04-19 06:03:21: case.build starting 
+ ---------------------------------------------------
+2022-04-19 06:03:25: case.build error 
+ERROR: /home/uni05/yfan1/clm_efforts_palm/cime/src/build_scripts/buildlib.mct FAILED, cat /usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/bld/mct.bldlog.220419-060321
+ ---------------------------------------------------
+2022-04-19 06:05:54: build.clean starting 
+ ---------------------------------------------------
+2022-04-19 06:05:54: build.clean success 
+ ---------------------------------------------------
+2022-04-19 06:06:00: case.build starting 
+ ---------------------------------------------------
+2022-04-19 06:06:04: case.build error 
+ERROR: /home/uni05/yfan1/clm_efforts_palm/cime/src/build_scripts/buildlib.gptl FAILED, cat /usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/bld/gptl.bldlog.220419-060600
+ ---------------------------------------------------
+2022-04-19 06:11:15: build.clean starting 
+ ---------------------------------------------------
+2022-04-19 06:11:15: build.clean success 
+ ---------------------------------------------------
+2022-04-19 06:11:19: case.build starting 
+ ---------------------------------------------------
+CESM version is ctsm1.0.dev040-23-g2648f36
+Processing externals description file : Externals.cfg
+Processing externals description file : Externals_CISM.cfg
+Processing externals description file : Externals_CLM.cfg
+Checking status of externals: cism, source_cism, clm, fates, ptclm, mosart, cime, rtm, 
+    ./cime
+        clean sandbox, on ctsm/ctsm1.0/cime5.7.9/n05
+    ./components/cism
+        clean sandbox, on release-cesm2.0.04
+    ./components/cism/source_cism
+        clean sandbox, on release-cism2.1.03
+    ./components/mosart
+        clean sandbox, on nldas-grid.n01_mosart1_0_31
+    ./components/rtm
+        clean sandbox, on release-cesm2.0.00
+    ./src/fates
+        clean sandbox, on fates_s1.8.1_a3.0.0_rev2
+    ./tools/PTCLM
+        clean sandbox, on PTCLM2_180611
+2022-04-19 06:16:14: case.build success 
+ ---------------------------------------------------
+2022-04-19 06:22:22: case.submit starting 
+ ---------------------------------------------------
+2022-04-19 06:22:31: case.submit success case.run:11900097, case.st_archive:11900098
+ ---------------------------------------------------
+2022-04-19 06:22:33: case.run starting 
+ ---------------------------------------------------
+2022-04-19 06:22:38: model execution starting 
+ ---------------------------------------------------
+2022-04-19 06:22:39: model execution success 
+ ---------------------------------------------------
+2022-04-19 06:22:39: case.run error 
+ERROR: RUN FAIL: Command 'mpiexec  -np 1  /usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/bld/cesm.exe  >> cesm.log.$LID 2>&1 ' failed
+See log file for details: /usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/run/cesm.log.11900097.220419-062233
+ ---------------------------------------------------
+2022-04-19 06:25:50: case.submit starting 
+ ---------------------------------------------------
+2022-04-19 06:25:58: case.submit success case.run:11900099, case.st_archive:11900100
+ ---------------------------------------------------
+2022-04-19 06:26:00: case.run starting 
+ ---------------------------------------------------
+2022-04-19 06:26:05: model execution starting 
+ ---------------------------------------------------
+2022-04-19 06:28:23: model execution success 
+ ---------------------------------------------------
+2022-04-19 06:28:23: case.run error 
+ERROR: RUN FAIL: Command 'mpiexec  -np 1  /usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/bld/cesm.exe  >> cesm.log.$LID 2>&1 ' failed
+See log file for details: /usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/run/cesm.log.11900099.220419-062600
+ ---------------------------------------------------
+2022-04-19 08:10:22: case.submit starting 
+ ---------------------------------------------------
+2022-04-19 08:10:31: case.submit success case.run:11900110, case.st_archive:11900111
+ ---------------------------------------------------
+2022-04-19 08:10:32: case.run starting 
+ ---------------------------------------------------
+2022-04-19 08:10:37: model execution starting 
+ ---------------------------------------------------
+2022-04-19 08:12:49: model execution success 
+ ---------------------------------------------------
+2022-04-19 08:12:49: case.run error 
+ERROR: RUN FAIL: Command 'mpiexec  -np 1  /usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/bld/cesm.exe  >> cesm.log.$LID 2>&1 ' failed
+See log file for details: /usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/run/cesm.log.11900110.220419-081032
+ ---------------------------------------------------
+2022-04-19 08:48:57: case.submit starting 
+ ---------------------------------------------------
+2022-04-19 08:49:06: case.submit success case.run:11900116, case.st_archive:11900117
+ ---------------------------------------------------
+2022-04-19 08:49:07: case.run starting 
+ ---------------------------------------------------
+2022-04-19 08:49:12: model execution starting 
+ ---------------------------------------------------
+2022-04-19 08:58:00: model execution success 
+ ---------------------------------------------------
+2022-04-19 08:58:00: case.run error 
+ERROR: RUN FAIL: Command 'mpiexec  -np 1  /usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/bld/cesm.exe  >> cesm.log.$LID 2>&1 ' failed
+See log file for details: /usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/run/cesm.log.11900116.220419-084907
+ ---------------------------------------------------
+2022-04-19 09:09:00: case.submit starting 
+ ---------------------------------------------------
+2022-04-19 09:09:09: case.submit success case.run:11900121, case.st_archive:11900122
+ ---------------------------------------------------
+2022-04-19 09:54:35: case.run starting 
+ ---------------------------------------------------
+2022-04-19 09:54:42: model execution starting 
+ ---------------------------------------------------
+2022-04-19 10:03:40: model execution success 
+ ---------------------------------------------------
+2022-04-19 10:03:40: case.run error 
+ERROR: RUN FAIL: Command 'mpiexec  -np 1  /usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/bld/cesm.exe  >> cesm.log.$LID 2>&1 ' failed
+See log file for details: /usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/run/cesm.log.11900121.220419-095435
+ ---------------------------------------------------
+2022-04-20 08:12:57: case.submit starting 
+ ---------------------------------------------------
+2022-04-20 08:13:11: case.submit error 
+ERROR: module command module -q load rev/20.12 subversion intel-parallel-studio intel netcdf-c netcdf-fortran intel-mpi hdf5 netcdf-c netcdf-fortran failed with message:
+Lmod has detected the following error: These module(s) or extension(s) exist but cannot be loaded as requested: "openmpi/4.1.1"
+   Try: "module spider openmpi/4.1.1" to see how to load the module(s).
+ ---------------------------------------------------
+2022-04-20 08:14:57: case.submit starting 
+ ---------------------------------------------------
+2022-04-20 08:15:00: case.submit error 
+ERROR: module command module -q load rev/20.12 subversion intel-parallel-studio intel netcdf-c netcdf-fortran intel-mpi hdf5 netcdf-c netcdf-fortran failed with message:
+Lmod has detected the following error: These module(s) or extension(s) exist but cannot be loaded as requested: "openmpi/4.1.1"
+   Try: "module spider openmpi/4.1.1" to see how to load the module(s).
+ ---------------------------------------------------
+2022-04-20 08:41:24: case.submit starting 
+ ---------------------------------------------------
+2022-04-20 08:41:33: case.submit success case.run:11905830, case.st_archive:11905831
+ ---------------------------------------------------
+2022-04-20 08:41:36: case.run starting 
+ ---------------------------------------------------
+2022-04-20 08:41:47: case.run error 
+ERROR: module command module -q load subversion intel-parallel-studio intel netcdf-c netcdf-fortran intel-mpi hdf5 netcdf-c netcdf-fortran failed with message:
+Lmod has detected the following error: These module(s) or extension(s) exist
+but cannot be loaded as requested: "openmpi/4.1.1"
+   Try: "module spider openmpi/4.1.1" to see how to load the module(s).
+ ---------------------------------------------------
+2022-04-20 08:42:55: build.clean starting 
+ ---------------------------------------------------
+2022-04-20 08:42:55: build.clean success 
+ ---------------------------------------------------
+2022-04-20 08:43:04: setup.clean starting 
+ ---------------------------------------------------
+2022-04-20 08:43:04: setup.clean success 
+ ---------------------------------------------------
+2022-04-20 08:43:12: case.setup starting 
+ ---------------------------------------------------
+2022-04-20 08:43:17: case.setup success 
+ ---------------------------------------------------
+2022-04-20 08:43:25: case.build starting 
+ ---------------------------------------------------
+CESM version is ctsm1.0.dev040-23-g2648f36
+Processing externals description file : Externals.cfg
+Processing externals description file : Externals_CISM.cfg
+Processing externals description file : Externals_CLM.cfg
+Checking status of externals: cism, source_cism, clm, fates, ptclm, mosart, cime, rtm, 
+    ./cime
+        clean sandbox, on ctsm/ctsm1.0/cime5.7.9/n05
+    ./components/cism
+        clean sandbox, on release-cesm2.0.04
+    ./components/cism/source_cism
+        clean sandbox, on release-cism2.1.03
+    ./components/mosart
+        clean sandbox, on nldas-grid.n01_mosart1_0_31
+    ./components/rtm
+        clean sandbox, on release-cesm2.0.00
+    ./src/fates
+        clean sandbox, on fates_s1.8.1_a3.0.0_rev2
+    ./tools/PTCLM
+        clean sandbox, on PTCLM2_180611
+2022-04-20 08:43:37: case.build success 
+ ---------------------------------------------------
+2022-04-20 08:46:56: case.submit starting 
+ ---------------------------------------------------
+2022-04-20 08:46:58: case.submit error 
+current limit exceeds maximum limit
+ ---------------------------------------------------
+2022-04-20 08:47:52: case.submit starting 
+ ---------------------------------------------------
+2022-04-20 08:47:54: case.submit error 
+current limit exceeds maximum limit
+ ---------------------------------------------------
+2022-04-20 08:48:25: build.clean starting 
+ ---------------------------------------------------
+2022-04-20 08:48:26: build.clean success 
+ ---------------------------------------------------
+2022-04-20 08:48:32: build.clean starting 
+ ---------------------------------------------------
+2022-04-20 08:48:33: build.clean success 
+ ---------------------------------------------------
+2022-04-20 08:48:43: setup.clean starting 
+ ---------------------------------------------------
+2022-04-20 08:48:43: setup.clean success 
+ ---------------------------------------------------
+2022-04-20 08:48:49: case.setup starting 
+ ---------------------------------------------------
+2022-04-20 08:48:51: case.setup error 
+current limit exceeds maximum limit
+ ---------------------------------------------------
+2022-04-20 08:49:33: case.setup starting 
+ ---------------------------------------------------
+2022-04-20 08:49:35: case.setup error 
+current limit exceeds maximum limit
+ ---------------------------------------------------
+2022-04-20 08:50:53: case.setup starting 
+ ---------------------------------------------------
+2022-04-20 08:50:57: case.setup error 
+current limit exceeds maximum limit
+ ---------------------------------------------------
+2022-04-20 08:51:47: case.setup starting 
+ ---------------------------------------------------
+2022-04-20 08:51:48: case.setup error 
+ERROR: module command module -q load subversion intel-parallel-studio intel netcdf-c netcdf-fortran intel-mpi hdf5 netcdf-c netcdf-fortran failed with message:
+Lmod has detected the following error: These module(s) or extension(s) exist but cannot be loaded as requested:
+"intel-mpi"
+   Try: "module spider intel-mpi" to see how to load the module(s).
+ ---------------------------------------------------
+2022-04-20 08:52:08: case.setup starting 
+ ---------------------------------------------------
+2022-04-20 08:52:11: case.setup success 
+ ---------------------------------------------------
+2022-04-20 08:52:18: case.build starting 
+ ---------------------------------------------------
+2022-04-20 08:52:21: case.build error 
+ERROR: /home/uni05/yfan1/clm_efforts_palm/cime/src/build_scripts/buildlib.gptl FAILED, cat /usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/bld/gptl.bldlog.220420-085218
+ ---------------------------------------------------
+2022-04-20 08:52:39: case.build starting 
+ ---------------------------------------------------
+CESM version is ctsm1.0.dev040-23-g2648f36
+Processing externals description file : Externals.cfg
+Processing externals description file : Externals_CISM.cfg
+Processing externals description file : Externals_CLM.cfg
+Checking status of externals: cism, source_cism, clm, fates, ptclm, mosart, cime, rtm, 
+    ./cime
+        clean sandbox, on ctsm/ctsm1.0/cime5.7.9/n05
+    ./components/cism
+        clean sandbox, on release-cesm2.0.04
+    ./components/cism/source_cism
+        clean sandbox, on release-cism2.1.03
+    ./components/mosart
+        clean sandbox, on nldas-grid.n01_mosart1_0_31
+    ./components/rtm
+        clean sandbox, on release-cesm2.0.00
+    ./src/fates
+        clean sandbox, on fates_s1.8.1_a3.0.0_rev2
+    ./tools/PTCLM
+        clean sandbox, on PTCLM2_180611
+2022-04-20 08:57:29: case.build success 
+ ---------------------------------------------------
+2022-04-20 08:57:49: case.submit starting 
+ ---------------------------------------------------
+2022-04-20 08:57:56: case.submit success case.run:11905843, case.st_archive:11905844
+ ---------------------------------------------------
+2022-04-20 08:58:01: case.run starting 
+ ---------------------------------------------------
+2022-04-20 08:58:07: model execution starting 
+ ---------------------------------------------------
+2022-04-20 09:07:12: model execution success 
+ ---------------------------------------------------
+2022-04-20 09:07:12: case.run error 
+ERROR: RUN FAIL: Command 'mpiexec  -np 1  /usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/bld/cesm.exe  >> cesm.log.$LID 2>&1 ' failed
+See log file for details: /usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/run/cesm.log.11905843.220420-085801
+ ---------------------------------------------------
+2022-04-20 09:28:25: case.submit starting 
+ ---------------------------------------------------
+2022-04-20 09:28:31: case.submit success case.run:11905860, case.st_archive:11905861
+ ---------------------------------------------------
+2022-04-20 09:28:33: case.run starting 
+ ---------------------------------------------------
+2022-04-20 09:28:43: case.run error 
+ERROR: module command module -q load subversion intel-parallel-studio intel netcdf-c netcdf-fortran intel-mpi hdf5 netcdf-c netcdf-fortran failed with message:
+Lmod has detected the following error: These module(s) or extension(s) exist
+but cannot be loaded as requested: "openmpi/4.1.1"
+   Try: "module spider openmpi/4.1.1" to see how to load the module(s).
+ ---------------------------------------------------
+2022-04-20 09:35:43: build.clean starting 
+ ---------------------------------------------------
+2022-04-20 09:35:43: build.clean success 
+ ---------------------------------------------------
+2022-04-20 09:35:47: build.clean starting 
+ ---------------------------------------------------
+2022-04-20 09:35:47: build.clean success 
+ ---------------------------------------------------
+2022-04-20 09:35:52: case.build starting 
+ ---------------------------------------------------
+CESM version is ctsm1.0.dev040-23-g2648f36
+Processing externals description file : Externals.cfg
+Processing externals description file : Externals_CISM.cfg
+Processing externals description file : Externals_CLM.cfg
+Checking status of externals: cism, source_cism, clm, fates, ptclm, mosart, cime, rtm, 
+    ./cime
+        clean sandbox, on ctsm/ctsm1.0/cime5.7.9/n05
+    ./components/cism
+        clean sandbox, on release-cesm2.0.04
+    ./components/cism/source_cism
+        clean sandbox, on release-cism2.1.03
+    ./components/mosart
+        clean sandbox, on nldas-grid.n01_mosart1_0_31
+    ./components/rtm
+        clean sandbox, on release-cesm2.0.00
+    ./src/fates
+        clean sandbox, on fates_s1.8.1_a3.0.0_rev2
+    ./tools/PTCLM
+        clean sandbox, on PTCLM2_180611
+2022-04-20 09:40:38: case.build success 
+ ---------------------------------------------------
+2022-04-20 09:43:57: case.submit starting 
+ ---------------------------------------------------
+2022-04-20 09:44:05: case.submit success case.run:11905869, case.st_archive:11905870
+ ---------------------------------------------------
+2022-04-20 09:44:05: case.run starting 
+ ---------------------------------------------------
+2022-04-20 09:44:15: case.run error 
+ERROR: module command module -q load subversion intel-parallel-studio intel netcdf-c netcdf-fortran intel-mpi hdf5 netcdf-c netcdf-fortran failed with message:
+Lmod has detected the following error: These module(s) or extension(s) exist
+but cannot be loaded as requested: "openmpi/4.1.1"
+   Try: "module spider openmpi/4.1.1" to see how to load the module(s).
+ ---------------------------------------------------
+2022-04-20 09:48:53: case.submit starting 
+ ---------------------------------------------------
+2022-04-20 09:48:59: case.submit success case.run:11905872, case.st_archive:11905873
+ ---------------------------------------------------
+2022-04-20 09:49:01: case.run starting 
+ ---------------------------------------------------
+2022-04-20 09:49:11: case.run error 
+ERROR: module command module -q load subversion intel-parallel-studio intel netcdf-c netcdf-fortran intel-mpi hdf5 netcdf-c netcdf-fortran failed with message:
+Lmod has detected the following error: These module(s) or extension(s) exist
+but cannot be loaded as requested: "openmpi/4.1.1"
+   Try: "module spider openmpi/4.1.1" to see how to load the module(s).
+ ---------------------------------------------------
+2022-04-20 09:52:15: case.submit starting 
+ ---------------------------------------------------
+2022-04-20 09:52:21: case.submit success case.run:11905874, case.st_archive:11905875
+ ---------------------------------------------------
+2022-04-20 09:52:22: case.run starting 
+ ---------------------------------------------------
+2022-04-20 09:52:27: model execution starting 
+ ---------------------------------------------------
+2022-04-20 09:54:12: model execution success 
+ ---------------------------------------------------
+2022-04-20 09:54:12: case.run error 
+ERROR: RUN FAIL: Command 'mpiexec  -np 1  /usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/bld/cesm.exe  >> cesm.log.$LID 2>&1 ' failed
+See log file for details: /usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/run/cesm.log.11905874.220420-095222
+ ---------------------------------------------------
+2022-04-20 10:24:01: case.submit starting 
+ ---------------------------------------------------
+2022-04-20 10:24:04: case.submit error 
+
+ ---------------------------------------------------
+2022-04-20 10:24:21: case.submit starting 
+ ---------------------------------------------------
+2022-04-20 10:24:27: case.submit success case.run:11905913, case.st_archive:11905914
+ ---------------------------------------------------
+2022-04-20 10:24:28: case.run starting 
+ ---------------------------------------------------
+2022-04-20 10:24:33: model execution starting 
+ ---------------------------------------------------
+2022-04-20 10:33:34: model execution success 
+ ---------------------------------------------------
+2022-04-20 10:33:34: case.run success 
+ ---------------------------------------------------
+2022-04-20 10:33:47: st_archive starting 
+ ---------------------------------------------------
+2022-04-20 10:33:51: st_archive success 
+ ---------------------------------------------------

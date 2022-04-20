@@ -4,13 +4,12 @@
  co2_type = 'constant'
  collapse_urban = .false.
  create_crop_landunit = .true.
- crop_fsat_equals_zero = .false.
  dtime = 1800
  fatmlndfrc = '/usr/users/model4bk/CESM/INPUT/share/domains/domain.clm/domain.lnd.1x1pt_Jambi_navy.nc'
  finidat = ' '
  fsnowaging = '/usr/users/model4bk/CESM/INPUT/lnd/clm2/snicardata/snicar_drdt_bst_fit_60_c070416.nc'
  fsnowoptics = '/usr/users/model4bk/CESM/INPUT/lnd/clm2/snicardata/snicar_optics_5bnd_c090915.nc'
- fsurdat = '/usr/users/model4bk/CESM/INPUT/lnd/clm2/surfdata_map/Harapan-surfdata_1x1_Jambi_16pfts_Irrig_CMIP6_simyr2000.nc'
+ fsurdat = '/usr/users/model4bk/CESM/INPUT/lnd/clm2/surfdata_map/surfdata_1x1pt_Jambi_forest_78pfts_CMIP6_simyr1850_c171214.nc'
  glc_do_dynglacier = .false.
  glc_snow_persistence_max_days = 0
  h2osno_max = 10000.0
@@ -21,16 +20,17 @@
  int_snow_max = 2000.
  irrigate = .true.
  maxpatch_glcmec = 10
- maxpatch_pft = 17
+ maxpatch_pft = 79
  n_dom_landunits = 0
  n_dom_pfts = 0
  n_melt_glcmec = 10.0d00
  nlevsno = 12
  nsegspc = 35
- paramfile = '/usr/users/model4bk/CESM/INPUT/lnd/clm2/pftdata/clm5_params.c171117.nc'
+ paramfile = '/usr/users/model4bk/CESM/INPUT/lnd/clm2/pftdata/clm5_params.c190502_new.nc'
  run_zero_weight_urban = .false.
  soil_layerstruct = '20SL_8.5m'
  spinup_state = 2
+ suplnitro = 'NONE'
  toosmall_crop = 0.d00
  toosmall_glacier = 0.d00
  toosmall_lake = 0.d00
@@ -40,13 +40,13 @@
  use_bedrock = .true.
  use_century_decomp = .true.
  use_cn = .true.
- use_crop = .false.
+ use_crop = .true.
  use_dynroot = .false.
  use_fates = .false.
- use_fertilizer = .false.
+ use_fertilizer = .true.
  use_flexiblecn = .true.
  use_fun = .true.
- use_grainproduct = .false.
+ use_grainproduct = .true.
  use_hydrstress = .true.
  use_lch4 = .true.
  use_luna = .true.
@@ -100,6 +100,7 @@
  use_clm5_fpi = .true.
 /
 &cnphenology
+ initial_seed_at_planting = 3.d00
 /
 &clm_soilhydrology_inparm
 /
@@ -204,6 +205,9 @@
  glacier_region_melt_behavior = 'remains_in_place','replaced_by_ice','replaced_by_ice','replaced_by_ice'
 /
 &crop
+ baset_latvary_intercept = 12.0d00
+ baset_latvary_slope = 0.4d00
+ baset_mapping = 'varytropicsbylat'
 /
 &irrigation_inparm
  irrig_depth = 0.6
@@ -271,6 +275,6 @@
 !#--------------------------------------------------------------------------------------------------------------------------
 !# lnd_in:: Comment:
 !# This namelist was created using the following command-line:
-!#     /home/uni05/yfan1/clm_efforts_palm/bld/CLM build-namelist -cimeroot /home/uni05/yfan1/clm_efforts_palm/cime -infile /home/uni05/yfan1/clm_efforts_palm/cases/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/Buildconf/clmconf/namelist -csmdata /usr/users/model4bk/CESM/INPUT -inputdata /home/uni05/yfan1/clm_efforts_palm/cases/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/Buildconf/clm.input_data_list -ignore_ic_year -namelist &clm_inparm  start_ymd=00010101 /  -use_case 2000_control -res 1x1pt_Jambi -clm_usr_name 1x1pt_Jambi -clm_start_type cold -envxml_dir /home/uni05/yfan1/clm_efforts_palm/cases/1x1pt_testcase3_clm-palm-ctsm1.0.dev040 -l_ncpl 48 -configuration clm -structure standard -lnd_frac /usr/users/model4bk/CESM/INPUT/share/domains/domain.clm/domain.lnd.1x1pt_Jambi_navy.nc -glc_nec 10 -co2_ppmv 284.7 -co2_type constant -config /home/uni05/yfan1/clm_efforts_palm/cases/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/Buildconf/clmconf/config_cache.xml -mask navy -bgc bgc -clm_accelerated_spinup on -lnd_tuning_mode clm5_0_CRUv7
+!#     /home/uni05/yfan1/clm_efforts_palm/bld/CLM build-namelist -cimeroot /home/uni05/yfan1/clm_efforts_palm/cime/scripts/Tools/../.. -infile /home/uni05/yfan1/clm_efforts_palm/cases/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/Buildconf/clmconf/namelist -csmdata /usr/users/model4bk/CESM/INPUT -inputdata /home/uni05/yfan1/clm_efforts_palm/cases/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/Buildconf/clm.input_data_list -ignore_ic_year -namelist &clm_inparm  start_ymd=00010101 /  -use_case 2000_control -res 1x1pt_Jambi -clm_usr_name 1x1pt_Jambi -clm_start_type cold -envxml_dir /home/uni05/yfan1/clm_efforts_palm/cases/1x1pt_testcase3_clm-palm-ctsm1.0.dev040 -l_ncpl 48 -configuration clm -structure standard -lnd_frac /usr/users/model4bk/CESM/INPUT/share/domains/domain.clm/domain.lnd.1x1pt_Jambi_navy.nc -glc_nec 10 -co2_ppmv 284.7 -co2_type constant -config /home/uni05/yfan1/clm_efforts_palm/cases/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/Buildconf/clmconf/config_cache.xml -mask navy -bgc bgc -crop -clm_accelerated_spinup on -lnd_tuning_mode clm5_0_CRUv7
 !# For help on options use: /home/uni05/yfan1/clm_efforts_palm/bld/CLM build-namelist -help
 !#--------------------------------------------------------------------------------------------------------------------------

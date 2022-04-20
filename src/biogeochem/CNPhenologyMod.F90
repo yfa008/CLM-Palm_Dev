@@ -350,7 +350,7 @@ contains
        ! gather all patch-level litterfall fluxes to the column for litter C and N inputs
 
        call CNLitterToColumn(bounds, num_soilc, filter_soilc, &
-            soilbiogeochem_state_inst, cnveg_state_inst, cnveg_carbonflux_inst, cnveg_nitrogenflux_inst, &
+            cnveg_state_inst, cnveg_carbonflux_inst, cnveg_nitrogenflux_inst, &
             crop_inst,cnveg_carbonstate_inst,cnveg_nitrogenstate_inst, &
             leaf_prof_patch(bounds%begp:bounds%endp,1:nlevdecomp_full), & 
             froot_prof_patch(bounds%begp:bounds%endp,1:nlevdecomp_full))
@@ -3834,7 +3834,7 @@ contains
 
   !-----------------------------------------------------------------------
   subroutine CNLitterToColumn (bounds, num_soilc, filter_soilc,         &
-       soilbiogeochem_state_inst,cnveg_state_inst,cnveg_carbonflux_inst, cnveg_nitrogenflux_inst, &
+       cnveg_state_inst,cnveg_carbonflux_inst, cnveg_nitrogenflux_inst, &
        crop_inst,cnveg_carbonstate_inst,cnveg_nitrogenstate_inst, & 
        leaf_prof_patch, froot_prof_patch)
     !
@@ -3846,7 +3846,7 @@ contains
     use clm_varpar , only : max_patch_per_col, nlevdecomp
     use pftconMod  , only : npcropmin
     use clm_varctl , only : use_grainproduct
-    use dynHarvestMod , only: CNHarvestPftToColumn !need to make this subroutine public
+    !use dynHarvestMod , only: CNHarvestPftToColumn !need to make this subroutine public
     !
     ! !ARGUMENTS:
     type(bounds_type)               , intent(in)    :: bounds
@@ -3855,7 +3855,7 @@ contains
     type(cnveg_state_type)          , intent(in)    :: cnveg_state_inst
     type(crop_type)                , intent(inout) :: crop_inst
     type(cnveg_carbonstate_type)   , intent(in)    :: cnveg_carbonstate_inst
-    type(soilbiogeochem_state_type), intent(in)    :: soilbiogeochem_state_inst
+    !type(soilbiogeochem_state_type), intent(in)    :: soilbiogeochem_state_inst
     type(cnveg_nitrogenstate_type) , intent(in)    :: cnveg_nitrogenstate_inst
     type(cnveg_carbonflux_type)     , intent(inout) :: cnveg_carbonflux_inst
     type(cnveg_nitrogenflux_type)   , intent(inout) :: cnveg_nitrogenflux_inst

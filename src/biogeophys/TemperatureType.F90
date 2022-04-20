@@ -1206,6 +1206,11 @@ contains
             desc='growing degree-days base 10C from planting', accum_type='runaccum', accum_period=not_used,  &
             subgrid_type='pft', numlev=1, init_value=0._r8)
 
+       ! Ashehad Ali 4/4/2022
+       call init_accum_field (name='GDD15', units='K', &
+            desc='growing degree-days base 15C from planting', accum_type='runaccum', accum_period=not_used,  &
+            subgrid_type='pft', numlev=1, init_value=0._r8)
+
     end if
 
     if (use_cndv) then

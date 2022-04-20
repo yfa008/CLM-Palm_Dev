@@ -995,7 +995,7 @@ contains
             ptr_patch=this%pleafn_xfer_to_pleafn_patch, default='inactive')
 
     this%pleafn_xfer_to_litter_patch(begp:endp,1:mxnp) = spval
-    call hist_addfld2d (fname='PLEAFN_XFER_TO_PLEAFN', units='gN/m^2/s', type2d='phytomer', &
+    call hist_addfld2d (fname='PLEAFN_XFER_TO_LITTER', units='gN/m^2/s', type2d='phytomer', &
             avgflag='A', long_name='leaf N transfer to litter pool for each phytomer', &
             ptr_patch=this%pleafn_xfer_to_litter_patch, default='inactive')
     

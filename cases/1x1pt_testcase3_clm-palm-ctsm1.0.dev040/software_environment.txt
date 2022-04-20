@@ -1,137 +1,152 @@
 Currently Loaded Modules:
-  1) subversion/1.14.0                      3) intel/2020.4           5) openjdk/11.0.2   7) netcdf-fortran/4.5.3
-  2) intel-parallel-studio/cluster.2020.4   4) intel-mpi/2019.9.304   6) netcdf-c/4.7.4   8) hdf5/1.10.7
+  1) rev/20.12
 
-CPLUS_INCLUDE_PATH=/opt/sw/rev/20.12/haswell/intel-2020.4/hdf5-1.10.7-sw4p4g/include:/opt/sw/rev/20.12/haswell/intel-2020.4/netcdf-fortran-4.5.3-5vmy2h/include:/opt/sw/rev/20.12/haswell/intel-2020.4/netcdf-c-4.7.4-nzzdts/include:/opt/sw/rev/20.12/haswell/intel-2020.4/openjdk-11.0.2-6t4lkz/include:/opt/sw/rev/20.12/cascadelake/intel-2020.4/intel-mpi-2019.9.304-oypfv2/impi/2019.9.304/intel64/include:/opt/sw/rev/20.12/haswell/intel-2020.4/intel-2020.4-q3jkmd/include:/opt/sw/rev/20.12/haswell/gcc-9.3.0/subversion-1.14.0-nq53qj/include
-LMOD_FAMILY_COMPILER_VERSION=2020.4
-MKLROOT=/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/mkl
-MANPATH=/opt/sw/rev/20.12/haswell/intel-2020.4/netcdf-fortran-4.5.3-5vmy2h/share/man:/opt/sw/rev/20.12/haswell/intel-2020.4/netcdf-c-4.7.4-nzzdts/share/man:/opt/sw/rev/20.12/cascadelake/intel-2020.4/intel-mpi-2019.9.304-oypfv2/compilers_and_libraries_2020.4.304/linux/mpi/man:/opt/sw/rev/20.12/haswell/intel-2020.4/intel-2020.4-q3jkmd/man:/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/itac_latest/man:/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/man:/opt/sw/rev/20.12/haswell/gcc-9.3.0/subversion-1.14.0-nq53qj/share/man:/opt/sw/rev/scc/lmod/lmod/lmod/share/man:/opt/slurm/share/man:/usr/local/share/man:/usr/share/man/overrides:/usr/share/man:/cm/local/apps/environment-modules/current/share/man
-XDG_SESSION_ID=10745
+MANPATH=/opt/sw/rev/scc/lmod/lmod/lmod/share/man:/opt/slurm/share/man:/cm/local/apps/environment-modules/4.2.1//share/man:/usr/local/share/man:/usr/share/man/overrides:/usr/share/man:/cm/local/apps/environment-modules/current/share/man
+XDG_SESSION_ID=34011
 HOSTNAME=gwdu102
-_ModuleTable003_=cmFsbGVsLXN0dWRpbyJdPXtbImZuIl09Ii9vcHQvc3cvbW9kdWxlcy8yMC4xMi9jYXNjYWRlbGFrZS9Db3JlL2ludGVsLXBhcmFsbGVsLXN0dWRpby9jbHVzdGVyLjIwMjAuNC5sdWEiLFsiZnVsbE5hbWUiXT0iaW50ZWwtcGFyYWxsZWwtc3R1ZGlvL2NsdXN0ZXIuMjAyMC40IixbImxvYWRPcmRlciJdPTIscHJvcFQ9e30sWyJzdGFja0RlcHRoIl09MCxbInN0YXR1cyJdPSJhY3RpdmUiLFsidXNlck5hbWUiXT0iaW50ZWwtcGFyYWxsZWwtc3R1ZGlvIix9LFsibmV0Y2RmLWMiXT17WyJmbiJdPSIvb3B0L3N3L21vZHVsZXMvMjAuMTIvY2FzY2FkZWxha2UvaW50ZWwtbXBpLzIwMTkuOS4zMDQvaW50ZWwvMjAyMC40L25ldGNkZi1jLzQuNy40Lmx1YSIsWyJmdWxsTmFtZSJdPSJu
-ADVISOR_DIR=/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/advisor
-__LMOD_REF_COUNT_CLASSPATH=/opt/sw/rev/20.12/cascadelake/intel-2020.4/intel-mpi-2019.9.304-oypfv2/compilers_and_libraries_2020.4.304/linux/mpi/intel64/lib/mpi.jar:1;/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/daal/lib/daal.jar:1
-INTEL_LICENSE_FILE=/cm/shared/licenses/intel
-IPPROOT=/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/ipp
-SUBVERSION_ROOT=/opt/sw/rev/20.12/haswell/gcc-9.3.0/subversion-1.14.0-nq53qj
+_ModuleTable003_=Y2FzY2FkZWxha2UvZ2NjLzkuMy4wIiwiL29wdC9zdy9tb2R1bGVzLzIxLjEyL2Nhc2NhZGVsYWtlL29wZW5tcGkvNC4xLjEvZ2NjLzkuMy4wIiwiL29wdC9zdy9tb2R1bGVzLzIxLjEyL2Nhc2NhZGVsYWtlL3BnaS8xOC4xMCIsIi9vcHQvc3cvbW9kdWxlcy8yMS4xMi9zY2MvY29tbW9uIiwiL29wdC9zdy9tb2R1bGVzLzIxLjEyL3NjYy9jYXNjYWRlbGFrZSIsIi9vcHQvc3cvbW9kdWxlcy8yMS4xMi9zY2MvdG9waWNzL2Jpb2luZm9ybWF0aWNzIiwiL29wdC9zdy9tb2R1bGVzLzIxLjEyL3NjYy90b3BpY3MvbWF0aGVtYXRpY3MiLCIvb3B0L3N3L21vZHVsZXMvMjEuMTIvc2NjL3RvcGljcy9jaGVtaXN0cnkiLCIvb3B0L3N3L21vZHVsZXMvMjEuMTIvc2NjL3RvcGljcy9zdGF0
 SHELL=/bin/bash
 TERM=xterm
-__LMOD_REF_COUNT_MODULEPATH=/opt/sw/modules/20.12/cascadelake/intel-mpi/2019.9.304/intel/2020.4:1;/opt/sw/modules/20.12/cascadelake/intel/2020.4:1;/opt/sw/modules/20.12/cascadelake/Core:1;/opt/sw/modules/20.12/cascadelake/gcc/9.3.0:1;/opt/sw/modules/20.12/cascadelake/openmpi/4.0.5/gcc/9.3.0:1;/opt/sw/modules/20.12/scc/common:1;/opt/sw/modules/20.12/scc/cascadelake:1;/opt/sw/modules/20.12/scc/topics/bioinformatics:1;/opt/sw/modules/20.12/scc/topics/mathematics:1;/opt/sw/modules/20.12/scc/topics/chemistry:1;/opt/sw/modules/20.12/scc/topics/statistics:1
-MPICC=/opt/sw/rev/20.12/cascadelake/intel-2020.4/intel-mpi-2019.9.304-oypfv2/compilers_and_libraries_2020.4.304/linux/mpi/intel64/bin/mpiicc
+MODULES_CMD=/cm/local/apps/environment-modules/4.2.1/libexec/modulecmd.tcl
+__LMOD_REF_COUNT_MODULEPATH=/opt/sw/modules/20.12/scc/topics/statistics:1;/opt/sw/modules/20.12/scc/topics/chemistry:1;/opt/sw/modules/20.12/scc/topics/mathematics:1;/opt/sw/modules/20.12/scc/topics/bioinformatics:1;/opt/sw/modules/20.12/scc/cascadelake:1;/opt/sw/modules/20.12/scc/common:1;/opt/sw/modules/20.12/cascadelake/openmpi/4.0.5/gcc/9.3.0:1;/opt/sw/modules/20.12/cascadelake/gcc/9.3.0:1;/opt/sw/modules/20.12/cascadelake/Core:1;/opt/sw/modules/21.12/cascadelake/Core:1;/opt/sw/modules/21.12/cascadelake/gcc/9.3.0:1;/opt/sw/modules/21.12/cascadelake/openmpi/4.1.1/gcc/9.3.0:1;/opt/sw/modules/21.12/cascadelake/pgi/18.10:1;/opt/sw/modules/21.12/scc/common:1;/opt/sw/modules/21.12/scc/cascadelake:1;/opt/sw/modules/21.12/scc/topics/bioinformatics:1;/opt/sw/modules/21.12/scc/topics/mathematics:1;/opt/sw/modules/21.12/scc/topics/chemistry:1;/opt/sw/modules/21.12/scc/topics/statistics:1
 HISTSIZE=1000
 LMOD_ROOT=/opt/sw/rev/scc/lmod/lmod
-NETCDF_C_ROOT=/opt/sw/rev/20.12/haswell/intel-2020.4/netcdf-c-4.7.4-nzzdts
-SSH_CLIENT=134.76.2.43 63028 22
+SSH_CLIENT=134.76.2.13 57400 22
 MODULEPATH_ROOT=/opt/sw/modules/cascadelake
 LMOD_PACKAGE_PATH=/opt/sw/etc/lmod/site
-LIBRARY_PATH=/opt/sw/rev/20.12/haswell/intel-2020.4/hdf5-1.10.7-sw4p4g/lib:/opt/sw/rev/20.12/haswell/intel-2020.4/netcdf-fortran-4.5.3-5vmy2h/lib:/opt/sw/rev/20.12/haswell/intel-2020.4/netcdf-c-4.7.4-nzzdts/lib:/opt/sw/rev/20.12/haswell/intel-2020.4/openjdk-11.0.2-6t4lkz/lib:/opt/sw/rev/20.12/cascadelake/intel-2020.4/intel-mpi-2019.9.304-oypfv2/compilers_and_libraries_2020.4.304/linux/mpi/intel64/libfabric/lib:/opt/sw/rev/20.12/haswell/intel-2020.4/intel-2020.4-q3jkmd/lib/intel64_lin:/opt/sw/rev/20.12/haswell/intel-2020.4/intel-2020.4-q3jkmd/lib:/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/mkl/lib/intel64_lin:/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/tbb/lib/intel64_lin/gcc4.8:/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/ipp/lib/intel64_lin:/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/daal/lib/intel64_lin:/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/lib/intel64_lin:/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/lib:/opt/sw/rev/20.12/haswell/gcc-9.3.0/subversion-1.14.0-nq53qj/lib
 OMP_STACKSIZE=64M
 PYTHONUNBUFFERED=1
 FPATH=/opt/sw/rev/scc/lmod/lmod/lmod/init/ksh_funcs
 LMOD_PKG=/opt/sw/rev/scc/lmod/lmod/lmod
-__LMOD_REF_COUNT_C_INCLUDE_PATH=/opt/sw/rev/20.12/haswell/intel-2020.4/hdf5-1.10.7-sw4p4g/include:1;/opt/sw/rev/20.12/haswell/intel-2020.4/netcdf-fortran-4.5.3-5vmy2h/include:1;/opt/sw/rev/20.12/haswell/intel-2020.4/netcdf-c-4.7.4-nzzdts/include:1;/opt/sw/rev/20.12/haswell/intel-2020.4/openjdk-11.0.2-6t4lkz/include:1;/opt/sw/rev/20.12/cascadelake/intel-2020.4/intel-mpi-2019.9.304-oypfv2/impi/2019.9.304/intel64/include:1;/opt/sw/rev/20.12/haswell/intel-2020.4/intel-2020.4-q3jkmd/include:1;/opt/sw/rev/20.12/haswell/gcc-9.3.0/subversion-1.14.0-nq53qj/include:1
+PSM2_PKEY=0x8002
 QTDIR=/usr/lib64/qt-3.3
 QTINC=/usr/lib64/qt-3.3/include
 LMOD_VERSION=8.4
-SSH_TTY=/dev/pts/11
-INTEL_PARALLEL_STUDIO_ROOT=/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3
-__LMOD_REF_COUNT_CMAKE_PREFIX_PATH=/opt/sw/rev/20.12/haswell/intel-2020.4/hdf5-1.10.7-sw4p4g:1;/opt/sw/rev/20.12/haswell/intel-2020.4/netcdf-fortran-4.5.3-5vmy2h:1;/opt/sw/rev/20.12/haswell/intel-2020.4/netcdf-c-4.7.4-nzzdts:1;/opt/sw/rev/20.12/haswell/intel-2020.4/openjdk-11.0.2-6t4lkz:1;/opt/sw/rev/20.12/cascadelake/intel-2020.4/intel-mpi-2019.9.304-oypfv2:1;/opt/sw/rev/20.12/haswell/intel-2020.4/intel-2020.4-q3jkmd:1;/opt/sw/rev/20.12/haswell/gcc-9.3.0/subversion-1.14.0-nq53qj:1
-__LMOD_REF_COUNT_LOADEDMODULES=subversion/1.14.0:1;intel-parallel-studio/cluster.2020.4:1;intel/2020.4:1;intel-mpi/2019.9.304:1;openjdk/11.0.2:1;netcdf-c/4.7.4:1;netcdf-fortran/4.5.3:1;hdf5/1.10.7:1
-_ModuleTable007_=aWNzL2Jpb2luZm9ybWF0aWNzIiwiL29wdC9zdy9tb2R1bGVzLzIwLjEyL3NjYy90b3BpY3MvbWF0aGVtYXRpY3MiLCIvb3B0L3N3L21vZHVsZXMvMjAuMTIvc2NjL3RvcGljcy9jaGVtaXN0cnkiLCIvb3B0L3N3L21vZHVsZXMvMjAuMTIvc2NjL3RvcGljcy9zdGF0aXN0aWNzIix9LFsic3lzdGVtQmFzZU1QQVRIIl09Ijovb3B0L3N3L21vZHVsZXMvMjAuMTIvY2FzY2FkZWxha2UvQ29yZTovb3B0L3N3L21vZHVsZXMvMjAuMTIvY2FzY2FkZWxha2UvZ2NjLzkuMy4wOi9vcHQvc3cvbW9kdWxlcy8yMC4xMi9jYXNjYWRlbGFrZS9vcGVubXBpLzQuMC41L2djYy85LjMuMDovb3B0L3N3L21vZHVsZXMvMjAuMTIvc2NjL2NvbW1vbjovb3B0L3N3L21vZHVsZXMvMjAuMTIvc2NjL2Nh
+SSH_TTY=/dev/pts/1
+__LMOD_REF_COUNT_LOADEDMODULES=rev/20.12:1
 QT_GRAPHICSSYSTEM_CHECKED=1
-OPENJDK_ROOT=/opt/sw/rev/20.12/haswell/intel-2020.4/openjdk-11.0.2-6t4lkz
 USER=yfan1
 LS_COLORS=rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=01;05;37;41:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.Z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.jpg=01;35:*.jpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.axv=01;35:*.anx=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=01;36:*.au=01;36:*.flac=01;36:*.mid=01;36:*.midi=01;36:*.mka=01;36:*.mp3=01;36:*.mpc=01;36:*.ogg=01;36:*.ra=01;36:*.wav=01;36:*.axa=01;36:*.oga=01;36:*.spx=01;36:*.xspf=01;36:
 LMOD_sys=Linux
-__LMOD_REF_COUNT_FI_PROVIDER_PATH=/opt/sw/rev/20.12/cascadelake/intel-2020.4/intel-mpi-2019.9.304-oypfv2/compilers_and_libraries_2020.4.304/linux/mpi/intel64/libfabric/lib/prov:1;/usr/lib64/libfabric:1
-LD_LIBRARY_PATH=/opt/sw/rev/20.12/haswell/intel-2020.4/hdf5-1.10.7-sw4p4g/lib:/opt/sw/rev/20.12/haswell/intel-2020.4/netcdf-fortran-4.5.3-5vmy2h/lib:/opt/sw/rev/20.12/haswell/intel-2020.4/netcdf-c-4.7.4-nzzdts/lib:/opt/sw/rev/20.12/haswell/intel-2020.4/openjdk-11.0.2-6t4lkz/lib:/opt/sw/rev/20.12/cascadelake/intel-2020.4/intel-mpi-2019.9.304-oypfv2/compilers_and_libraries_2020.4.304/linux/mpi/intel64/libfabric/lib:/opt/sw/rev/20.12/cascadelake/intel-2020.4/intel-mpi-2019.9.304-oypfv2/compilers_and_libraries_2020.4.304/linux/mpi/intel64/lib/release:/opt/sw/rev/20.12/cascadelake/intel-2020.4/intel-mpi-2019.9.304-oypfv2/compilers_and_libraries_2020.4.304/linux/mpi/intel64/lib:/opt/sw/rev/20.12/haswell/intel-2020.4/intel-2020.4-q3jkmd/lib/intel64_lin:/opt/sw/rev/20.12/haswell/intel-2020.4/intel-2020.4-q3jkmd/lib:/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/itac_latest/intel64/slib:/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/mkl/lib/intel64_lin:/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/tbb/lib/intel64_lin/gcc4.8:/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/ipp/lib/intel64_lin:/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/daal/lib/intel64_lin:/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/lib/intel64_lin:/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/lib:/opt/sw/rev/20.12/haswell/gcc-9.3.0/subversion-1.14.0-nq53qj/lib
-INSPECTOR_DIR=/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/inspector
-FI_PROVIDER_PATH=/opt/sw/rev/20.12/cascadelake/intel-2020.4/intel-mpi-2019.9.304-oypfv2/compilers_and_libraries_2020.4.304/linux/mpi/intel64/libfabric/lib/prov:/usr/lib64/libfabric
-LMOD_MPI_NAME=intel-mpi
-CPATH=/opt/sw/rev/20.12/haswell/intel-2020.4/intel-2020.4-q3jkmd/include/intel64:/opt/sw/rev/20.12/haswell/intel-2020.4/intel-2020.4-q3jkmd/include:/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/mkl/include:/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/tbb/include:/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/ipp/include:/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/daal/include
-_ModuleTable004_=ZXRjZGYtYy80LjcuNCIsWyJsb2FkT3JkZXIiXT02LHByb3BUPXt9LFsic3RhY2tEZXB0aCJdPTAsWyJzdGF0dXMiXT0iYWN0aXZlIixbInVzZXJOYW1lIl09Im5ldGNkZi1jIix9LFsibmV0Y2RmLWZvcnRyYW4iXT17WyJmbiJdPSIvb3B0L3N3L21vZHVsZXMvMjAuMTIvY2FzY2FkZWxha2UvaW50ZWwtbXBpLzIwMTkuOS4zMDQvaW50ZWwvMjAyMC40L25ldGNkZi1mb3J0cmFuLzQuNS4zLmx1YSIsWyJmdWxsTmFtZSJdPSJuZXRjZGYtZm9ydHJhbi80LjUuMyIsWyJsb2FkT3JkZXIiXT03LHByb3BUPXt9LFsic3RhY2tEZXB0aCJdPTAsWyJzdGF0dXMiXT0iYWN0aXZlIixbInVzZXJOYW1lIl09Im5ldGNkZi1mb3J0cmFuIix9LG9wZW5qZGs9e1siZm4iXT0iL29wdC9zdy9tb2R1
-__LMOD_REF_COUNT__LMFILES_=/opt/sw/modules/20.12/cascadelake/Core/subversion/1.14.0.lua:1;/opt/sw/modules/20.12/cascadelake/Core/intel-parallel-studio/cluster.2020.4.lua:1;/opt/sw/modules/20.12/cascadelake/Core/intel/2020.4.lua:1;/opt/sw/modules/20.12/cascadelake/intel/2020.4/intel-mpi/2019.9.304.lua:1;/opt/sw/modules/20.12/cascadelake/intel/2020.4/openjdk/11.0.2.lua:1;/opt/sw/modules/20.12/cascadelake/intel-mpi/2019.9.304/intel/2020.4/netcdf-c/4.7.4.lua:1;/opt/sw/modules/20.12/cascadelake/intel-mpi/2019.9.304/intel/2020.4/netcdf-fortran/4.5.3.lua:1;/opt/sw/modules/20.12/cascadelake/intel-mpi/2019.9.304/intel/2020.4/hdf5/1.10.7.lua:1
-LMOD_FAMILY_MPI_VERSION=2019.9.304
-NETCDF_FORTRAN_ROOT=/opt/sw/rev/20.12/haswell/intel-2020.4/netcdf-fortran-4.5.3-5vmy2h
-PATH=/opt/sw/rev/20.12/haswell/intel-2020.4/hdf5-1.10.7-sw4p4g/bin:/opt/sw/rev/20.12/haswell/intel-2020.4/netcdf-fortran-4.5.3-5vmy2h/bin:/opt/sw/rev/20.12/haswell/intel-2020.4/netcdf-c-4.7.4-nzzdts/bin:/opt/sw/rev/20.12/haswell/intel-2020.4/openjdk-11.0.2-6t4lkz/bin:/opt/sw/rev/20.12/cascadelake/intel-2020.4/intel-mpi-2019.9.304-oypfv2/compilers_and_libraries_2020.4.304/linux/mpi/intel64/libfabric/bin:/opt/sw/rev/20.12/cascadelake/intel-2020.4/intel-mpi-2019.9.304-oypfv2/compilers_and_libraries_2020.4.304/linux/mpi/intel64/bin:/opt/sw/rev/20.12/cascadelake/intel-2020.4/intel-mpi-2019.9.304-oypfv2/bin:/opt/sw/rev/20.12/haswell/intel-2020.4/intel-2020.4-q3jkmd/bin:/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/vtune_profiler/bin:/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/itac_latest/intel64/bin:/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/inspector/bin64:/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/advisor/bin64:/opt/sw/rev/20.12/haswell/gcc-9.3.0/subversion-1.14.0-nq53qj/bin:/usr/users/yfan1/NCL/6.3.0/bin:/opt/slurm/bin:/usr/lib64/qt-3.3/bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin
+ENV=/cm/local/apps/environment-modules/4.2.1//init/profile.sh
+_ModuleTable004_=aXN0aWNzIix9LFsic3lzdGVtQmFzZU1QQVRIIl09Ijovb3B0L3N3L21vZHVsZXMvMjEuMTIvY2FzY2FkZWxha2UvQ29yZTovb3B0L3N3L21vZHVsZXMvMjEuMTIvY2FzY2FkZWxha2UvZ2NjLzkuMy4wOi9vcHQvc3cvbW9kdWxlcy8yMS4xMi9jYXNjYWRlbGFrZS9vcGVubXBpLzQuMS4xL2djYy85LjMuMDovb3B0L3N3L21vZHVsZXMvMjEuMTIvY2FzY2FkZWxha2UvcGdpLzE4LjEwOi9vcHQvc3cvbW9kdWxlcy8yMS4xMi9zY2MvY29tbW9uOi9vcHQvc3cvbW9kdWxlcy8yMS4xMi9zY2MvY2FzY2FkZWxha2U6L29wdC9zdy9tb2R1bGVzLzIxLjEyL3NjYy90b3BpY3MvYmlvaW5mb3JtYXRpY3M6L29wdC9zdy9tb2R1bGVzLzIxLjEyL3NjYy90b3BpY3MvbWF0aGVtYXRpY3M6L29w
+__LMOD_REF_COUNT__LMFILES_=/opt/sw/modules/21.12/scc/cascadelake/rev/20.12.lua:1
+PATH=/usr/users/yfan1/NCL/6.3.0/bin:/opt/slurm/bin:/usr/lib64/qt-3.3/bin:/cm/local/apps/environment-modules/4.2.1//bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin:/usr/sbin:/cm/local/apps/environment-modules/4.2.1/bin
 MAIL=/var/spool/mail/yfan1
-VT_ADD_LIBS=-ldwarf -lelf -lvtunwind -lm -lpthread
-_ModuleTable001_=X01vZHVsZVRhYmxlXz17WyJNVHZlcnNpb24iXT0zLFsiY19yZWJ1aWxkVGltZSJdPWZhbHNlLFsiY19zaG9ydFRpbWUiXT1mYWxzZSxkZXB0aFQ9e30sZmFtaWx5PXtbImNvbXBpbGVyIl09ImludGVsIixbIm1waSJdPSJpbnRlbC1tcGkiLH0sbVQ9e2hkZjU9e1siZm4iXT0iL29wdC9zdy9tb2R1bGVzLzIwLjEyL2Nhc2NhZGVsYWtlL2ludGVsLW1waS8yMDE5LjkuMzA0L2ludGVsLzIwMjAuNC9oZGY1LzEuMTAuNy5sdWEiLFsiZnVsbE5hbWUiXT0iaGRmNS8xLjEwLjciLFsibG9hZE9yZGVyIl09OCxwcm9wVD17fSxbInN0YWNrRGVwdGgiXT0wLFsic3RhdHVzIl09ImFjdGl2ZSIsWyJ1c2VyTmFtZSJdPSJoZGY1Iix9LGludGVsPXtbImZuIl09Ii9vcHQvc3cvbW9kdWxlcy8y
-__LMOD_REF_COUNT_CPLUS_INCLUDE_PATH=/opt/sw/rev/20.12/haswell/intel-2020.4/hdf5-1.10.7-sw4p4g/include:1;/opt/sw/rev/20.12/haswell/intel-2020.4/netcdf-fortran-4.5.3-5vmy2h/include:1;/opt/sw/rev/20.12/haswell/intel-2020.4/netcdf-c-4.7.4-nzzdts/include:1;/opt/sw/rev/20.12/haswell/intel-2020.4/openjdk-11.0.2-6t4lkz/include:1;/opt/sw/rev/20.12/cascadelake/intel-2020.4/intel-mpi-2019.9.304-oypfv2/impi/2019.9.304/intel64/include:1;/opt/sw/rev/20.12/haswell/intel-2020.4/intel-2020.4-q3jkmd/include:1;/opt/sw/rev/20.12/haswell/gcc-9.3.0/subversion-1.14.0-nq53qj/include:1
-C_INCLUDE_PATH=/opt/sw/rev/20.12/haswell/intel-2020.4/hdf5-1.10.7-sw4p4g/include:/opt/sw/rev/20.12/haswell/intel-2020.4/netcdf-fortran-4.5.3-5vmy2h/include:/opt/sw/rev/20.12/haswell/intel-2020.4/netcdf-c-4.7.4-nzzdts/include:/opt/sw/rev/20.12/haswell/intel-2020.4/openjdk-11.0.2-6t4lkz/include:/opt/sw/rev/20.12/cascadelake/intel-2020.4/intel-mpi-2019.9.304-oypfv2/impi/2019.9.304/intel64/include:/opt/sw/rev/20.12/haswell/intel-2020.4/intel-2020.4-q3jkmd/include:/opt/sw/rev/20.12/haswell/gcc-9.3.0/subversion-1.14.0-nq53qj/include
-TBBROOT=/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/ipp
-PWD=/home/uni05/yfan1/clm_efforts_palm/cases/1x1pt_testcase3_clm-palm-ctsm1.0.dev040
-TTY=11
-NETCDF_FORTRAN_PATH=/opt/sw/rev/20.12/haswell/intel-2020.4/netcdf-fortran-4.5.3-5vmy2h
+_ModuleTable001_=X01vZHVsZVRhYmxlXz17WyJNVHZlcnNpb24iXT0zLFsiY19yZWJ1aWxkVGltZSJdPWZhbHNlLFsiY19zaG9ydFRpbWUiXT1mYWxzZSxkZXB0aFQ9e30sZmFtaWx5PXt9LG1UPXtyZXY9e1siZm4iXT0iL29wdC9zdy9tb2R1bGVzLzIxLjEyL3NjYy9jYXNjYWRlbGFrZS9yZXYvMjAuMTIubHVhIixbImZ1bGxOYW1lIl09InJldi8yMC4xMiIsWyJsb2FkT3JkZXIiXT0xLHByb3BUPXt9LFsic3RhY2tEZXB0aCJdPTAsWyJzdGF0dXMiXT0iYWN0aXZlIixbInVzZXJOYW1lIl09InJldi8yMC4xMiIsfSx9LG1wYXRoQT17Ii9vcHQvc3cvbW9kdWxlcy8yMC4xMi9zY2MvdG9waWNzL3N0YXRpc3RpY3MiLCIvb3B0L3N3L21vZHVsZXMvMjAuMTIvc2NjL3RvcGljcy9jaGVtaXN0cnkiLCIv
+PWD=/usr/users/yfan1/clm_efforts_palm/cases/1x1pt_testcase3_clm-palm-ctsm1.0.dev040
+TTY=1
 NCARG_ROOT=/usr/users/yfan1/NCL/6.3.0
-HDF5_ROOT=/opt/sw/rev/20.12/haswell/intel-2020.4/hdf5-1.10.7-sw4p4g
-JAVA_HOME=/opt/sw/rev/20.12/haswell/intel-2020.4/openjdk-11.0.2-6t4lkz
-_LMFILES_=/opt/sw/modules/20.12/cascadelake/Core/subversion/1.14.0.lua:/opt/sw/modules/20.12/cascadelake/Core/intel-parallel-studio/cluster.2020.4.lua:/opt/sw/modules/20.12/cascadelake/Core/intel/2020.4.lua:/opt/sw/modules/20.12/cascadelake/intel/2020.4/intel-mpi/2019.9.304.lua:/opt/sw/modules/20.12/cascadelake/intel/2020.4/openjdk/11.0.2.lua:/opt/sw/modules/20.12/cascadelake/intel-mpi/2019.9.304/intel/2020.4/netcdf-c/4.7.4.lua:/opt/sw/modules/20.12/cascadelake/intel-mpi/2019.9.304/intel/2020.4/netcdf-fortran/4.5.3.lua:/opt/sw/modules/20.12/cascadelake/intel-mpi/2019.9.304/intel/2020.4/hdf5/1.10.7.lua
+_LMFILES_=/opt/sw/modules/21.12/scc/cascadelake/rev/20.12.lua
 LANG=en_US.UTF-8
-INTEL_MPI_ROOT=/opt/sw/rev/20.12/cascadelake/intel-2020.4/intel-mpi-2019.9.304-oypfv2
-__LMOD_REF_COUNT_PYTHONPATH=/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/advisor/pythonapi:1
-MODULEPATH=/opt/sw/modules/20.12/cascadelake/intel-mpi/2019.9.304/intel/2020.4:/opt/sw/modules/20.12/cascadelake/intel/2020.4::/opt/sw/modules/20.12/cascadelake/Core:/opt/sw/modules/20.12/cascadelake/gcc/9.3.0:/opt/sw/modules/20.12/cascadelake/openmpi/4.0.5/gcc/9.3.0:/opt/sw/modules/20.12/scc/common:/opt/sw/modules/20.12/scc/cascadelake:/opt/sw/modules/20.12/scc/topics/bioinformatics:/opt/sw/modules/20.12/scc/topics/mathematics:/opt/sw/modules/20.12/scc/topics/chemistry:/opt/sw/modules/20.12/scc/topics/statistics
-MPIFC=/opt/sw/rev/20.12/cascadelake/intel-2020.4/intel-mpi-2019.9.304-oypfv2/compilers_and_libraries_2020.4.304/linux/mpi/intel64/bin/mpiifort
+MODULEPATH=/opt/sw/modules/20.12/scc/topics/statistics:/opt/sw/modules/20.12/scc/topics/chemistry:/opt/sw/modules/20.12/scc/topics/mathematics:/opt/sw/modules/20.12/scc/topics/bioinformatics:/opt/sw/modules/20.12/scc/cascadelake:/opt/sw/modules/20.12/scc/common:/opt/sw/modules/20.12/cascadelake/openmpi/4.0.5/gcc/9.3.0:/opt/sw/modules/20.12/cascadelake/gcc/9.3.0:/opt/sw/modules/20.12/cascadelake/Core::/opt/sw/modules/21.12/cascadelake/Core:/opt/sw/modules/21.12/cascadelake/gcc/9.3.0:/opt/sw/modules/21.12/cascadelake/openmpi/4.1.1/gcc/9.3.0:/opt/sw/modules/21.12/cascadelake/pgi/18.10:/opt/sw/modules/21.12/scc/common:/opt/sw/modules/21.12/scc/cascadelake:/opt/sw/modules/21.12/scc/topics/bioinformatics:/opt/sw/modules/21.12/scc/topics/mathematics:/opt/sw/modules/21.12/scc/topics/chemistry:/opt/sw/modules/21.12/scc/topics/statistics
 CIMEROOT=/home/uni05/yfan1/clm_efforts_palm/cime/scripts/Tools/../..
-LOADEDMODULES=subversion/1.14.0:intel-parallel-studio/cluster.2020.4:intel/2020.4:intel-mpi/2019.9.304:openjdk/11.0.2:netcdf-c/4.7.4:netcdf-fortran/4.5.3:hdf5/1.10.7
-VT_LIB_DIR=/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/itac_latest/intel64/lib
-_ModuleTable_Sz_=8
+LOADEDMODULES=rev/20.12
+_ModuleTable_Sz_=5
+ENABLE_LMOD=0
 LMOD_CMD=/opt/sw/rev/scc/lmod/lmod/lmod/libexec/lmod
-VT_ROOT=/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/itac_latest
-_ModuleTable005_=bGVzLzIwLjEyL2Nhc2NhZGVsYWtlL2ludGVsLzIwMjAuNC9vcGVuamRrLzExLjAuMi5sdWEiLFsiZnVsbE5hbWUiXT0ib3Blbmpkay8xMS4wLjIiLFsibG9hZE9yZGVyIl09NSxwcm9wVD17fSxbInN0YWNrRGVwdGgiXT0yLFsic3RhdHVzIl09ImFjdGl2ZSIsWyJ1c2VyTmFtZSJdPSJvcGVuamRrLzExLjAuMiIsfSxzdWJ2ZXJzaW9uPXtbImZuIl09Ii9vcHQvc3cvbW9kdWxlcy8yMC4xMi9jYXNjYWRlbGFrZS9Db3JlL3N1YnZlcnNpb24vMS4xNC4wLmx1YSIsWyJmdWxsTmFtZSJdPSJzdWJ2ZXJzaW9uLzEuMTQuMCIsWyJsb2FkT3JkZXIiXT0xLHByb3BUPXt9LFsic3RhY2tEZXB0aCJdPTAsWyJzdGF0dXMiXT0iYWN0aXZlIixbInVzZXJOYW1lIl09InN1YnZlcnNpb24iLH0s
+_ModuleTable005_=dC9zdy9tb2R1bGVzLzIxLjEyL3NjYy90b3BpY3MvY2hlbWlzdHJ5Oi9vcHQvc3cvbW9kdWxlcy8yMS4xMi9zY2MvdG9waWNzL3N0YXRpc3RpY3MiLH0=
 LMOD_AVAIL_STYLE=system:<scc>
-DAALROOT=/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/daal
 HISTCONTROL=ignoredups
 HOME=/usr/users/yfan1
 SHLVL=2
 __LMOD_SET_FPATH=1
-__LMOD_REF_COUNT_PATH=/opt/sw/rev/20.12/haswell/intel-2020.4/hdf5-1.10.7-sw4p4g/bin:1;/opt/sw/rev/20.12/haswell/intel-2020.4/netcdf-fortran-4.5.3-5vmy2h/bin:1;/opt/sw/rev/20.12/haswell/intel-2020.4/netcdf-c-4.7.4-nzzdts/bin:1;/opt/sw/rev/20.12/haswell/intel-2020.4/openjdk-11.0.2-6t4lkz/bin:1;/opt/sw/rev/20.12/cascadelake/intel-2020.4/intel-mpi-2019.9.304-oypfv2/compilers_and_libraries_2020.4.304/linux/mpi/intel64/libfabric/bin:1;/opt/sw/rev/20.12/cascadelake/intel-2020.4/intel-mpi-2019.9.304-oypfv2/compilers_and_libraries_2020.4.304/linux/mpi/intel64/bin:1;/opt/sw/rev/20.12/cascadelake/intel-2020.4/intel-mpi-2019.9.304-oypfv2/bin:1;/opt/sw/rev/20.12/haswell/intel-2020.4/intel-2020.4-q3jkmd/bin:1;/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/vtune_profiler/bin:1;/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/itac_latest/intel64/bin:1;/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/inspector/bin64:1;/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/advisor/bin64:1;/opt/sw/rev/20.12/haswell/gcc-9.3.0/subversion-1.14.0-nq53qj/bin:1;/usr/users/yfan1/NCL/6.3.0/bin:1;/opt/slurm/bin:1;/usr/lib64/qt-3.3/bin:1;/usr/local/bin:1;/usr/bin:1;/usr/local/sbin:1;/usr/sbin:1
-__LMOD_REF_COUNT_CPATH=/opt/sw/rev/20.12/haswell/intel-2020.4/intel-2020.4-q3jkmd/include/intel64:1;/opt/sw/rev/20.12/haswell/intel-2020.4/intel-2020.4-q3jkmd/include:1;/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/mkl/include:1;/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/tbb/include:1;/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/ipp/include:1;/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/daal/include:1
-INTEL_ROOT=/opt/sw/rev/20.12/haswell/intel-2020.4/intel-2020.4-q3jkmd
-_ModuleTable002_=MC4xMi9jYXNjYWRlbGFrZS9Db3JlL2ludGVsLzIwMjAuNC5sdWEiLFsiZnVsbE5hbWUiXT0iaW50ZWwvMjAyMC40IixbImxvYWRPcmRlciJdPTMscHJvcFQ9e30sWyJzdGFja0RlcHRoIl09MCxbInN0YXR1cyJdPSJhY3RpdmUiLFsidXNlck5hbWUiXT0iaW50ZWwiLH0sWyJpbnRlbC1tcGkiXT17WyJmbiJdPSIvb3B0L3N3L21vZHVsZXMvMjAuMTIvY2FzY2FkZWxha2UvaW50ZWwvMjAyMC40L2ludGVsLW1waS8yMDE5LjkuMzA0Lmx1YSIsWyJmdWxsTmFtZSJdPSJpbnRlbC1tcGkvMjAxOS45LjMwNCIsWyJsb2FkT3JkZXIiXT00LHByb3BUPXt9LFsic3RhY2tEZXB0aCJdPTAsWyJzdGF0dXMiXT0iYWN0aXZlIixbInVzZXJOYW1lIl09ImludGVsLW1waSIsfSxbImludGVsLXBh
+_ModuleTable002_=b3B0L3N3L21vZHVsZXMvMjAuMTIvc2NjL3RvcGljcy9tYXRoZW1hdGljcyIsIi9vcHQvc3cvbW9kdWxlcy8yMC4xMi9zY2MvdG9waWNzL2Jpb2luZm9ybWF0aWNzIiwiL29wdC9zdy9tb2R1bGVzLzIwLjEyL3NjYy9jYXNjYWRlbGFrZSIsIi9vcHQvc3cvbW9kdWxlcy8yMC4xMi9zY2MvY29tbW9uIiwiL29wdC9zdy9tb2R1bGVzLzIwLjEyL2Nhc2NhZGVsYWtlL29wZW5tcGkvNC4wLjUvZ2NjLzkuMy4wIiwiL29wdC9zdy9tb2R1bGVzLzIwLjEyL2Nhc2NhZGVsYWtlL2djYy85LjMuMCIsIi9vcHQvc3cvbW9kdWxlcy8yMC4xMi9jYXNjYWRlbGFrZS9Db3JlIiwiIiwiL29wdC9zdy9tb2R1bGVzLzIxLjEyL2Nhc2NhZGVsYWtlL0NvcmUiLCIvb3B0L3N3L21vZHVsZXMvMjEuMTIv
 PSPRINTER=standard
-__LMOD_REF_COUNT_INCLUDE=/opt/sw/rev/20.12/haswell/intel-2020.4/hdf5-1.10.7-sw4p4g/include:1;/opt/sw/rev/20.12/haswell/intel-2020.4/netcdf-fortran-4.5.3-5vmy2h/include:1;/opt/sw/rev/20.12/haswell/intel-2020.4/netcdf-c-4.7.4-nzzdts/include:1;/opt/sw/rev/20.12/haswell/intel-2020.4/openjdk-11.0.2-6t4lkz/include:1;/opt/sw/rev/20.12/cascadelake/intel-2020.4/intel-mpi-2019.9.304-oypfv2/impi/2019.9.304/intel64/include:1;/opt/sw/rev/20.12/haswell/intel-2020.4/intel-2020.4-q3jkmd/include/icc:1;/opt/sw/rev/20.12/haswell/intel-2020.4/intel-2020.4-q3jkmd/include/intel64:1;/opt/sw/rev/20.12/haswell/intel-2020.4/intel-2020.4-q3jkmd/include:1;/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/include:1;/opt/sw/rev/20.12/haswell/gcc-9.3.0/subversion-1.14.0-nq53qj/include:1
-VT_ARCH=intel64
-VT_SLIB_DIR=/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/itac_latest/intel64/slib
 BASH_ENV=/opt/sw/rev/scc/lmod/lmod/lmod/init/bash
-NETCDF_C_PATH=/opt/sw/rev/20.12/haswell/intel-2020.4/netcdf-c-4.7.4-nzzdts
-_ModuleTable008_=c2NhZGVsYWtlOi9vcHQvc3cvbW9kdWxlcy8yMC4xMi9zY2MvdG9waWNzL2Jpb2luZm9ybWF0aWNzOi9vcHQvc3cvbW9kdWxlcy8yMC4xMi9zY2MvdG9waWNzL21hdGhlbWF0aWNzOi9vcHQvc3cvbW9kdWxlcy8yMC4xMi9zY2MvdG9waWNzL2NoZW1pc3RyeTovb3B0L3N3L21vZHVsZXMvMjAuMTIvc2NjL3RvcGljcy9zdGF0aXN0aWNzIix9
 LOGNAME=yfan1
-PYTHONPATH=/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/advisor/pythonapi
 CVS_RSH=ssh
 PRINTER=standard
 QTLIB=/usr/lib64/qt-3.3/lib
-APM=/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/advisor/perfmodels
-MPIF77=/opt/sw/rev/20.12/cascadelake/intel-2020.4/intel-mpi-2019.9.304-oypfv2/compilers_and_libraries_2020.4.304/linux/mpi/intel64/bin/mpiifort
-SSH_CONNECTION=134.76.2.43 63028 134.76.8.102 22
+SSH_CONNECTION=134.76.2.13 57400 134.76.8.102 22
 XDG_DATA_DIRS=/usr/users/yfan1/.local/share/flatpak/exports/share:/var/lib/flatpak/exports/share:/usr/local/share:/usr/share
-CLASSPATH=/opt/sw/rev/20.12/cascadelake/intel-2020.4/intel-mpi-2019.9.304-oypfv2/compilers_and_libraries_2020.4.304/linux/mpi/intel64/lib/mpi.jar:/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/daal/lib/daal.jar
 MODULESHOME=/opt/sw/rev/scc/lmod/lmod/lmod
-__LMOD_REF_COUNT_LIBRARY_PATH=/opt/sw/rev/20.12/haswell/intel-2020.4/hdf5-1.10.7-sw4p4g/lib:1;/opt/sw/rev/20.12/haswell/intel-2020.4/netcdf-fortran-4.5.3-5vmy2h/lib:1;/opt/sw/rev/20.12/haswell/intel-2020.4/netcdf-c-4.7.4-nzzdts/lib:1;/opt/sw/rev/20.12/haswell/intel-2020.4/openjdk-11.0.2-6t4lkz/lib:1;/opt/sw/rev/20.12/cascadelake/intel-2020.4/intel-mpi-2019.9.304-oypfv2/compilers_and_libraries_2020.4.304/linux/mpi/intel64/libfabric/lib:1;/opt/sw/rev/20.12/haswell/intel-2020.4/intel-2020.4-q3jkmd/lib/intel64_lin:1;/opt/sw/rev/20.12/haswell/intel-2020.4/intel-2020.4-q3jkmd/lib:1;/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/mkl/lib/intel64_lin:1;/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/tbb/lib/intel64_lin/gcc4.8:1;/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/ipp/lib/intel64_lin:1;/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/daal/lib/intel64_lin:1;/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/lib/intel64_lin:1;/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/lib:1;/opt/sw/rev/20.12/haswell/gcc-9.3.0/subversion-1.14.0-nq53qj/lib:1
 OMP_NUM_THREADS=1
 LESSOPEN=||/usr/bin/lesspipe.sh %s
 LMOD_SETTARG_FULL_SUPPORT=no
-__LMOD_REF_COUNT_LD_LIBRARY_PATH=/opt/sw/rev/20.12/haswell/intel-2020.4/hdf5-1.10.7-sw4p4g/lib:1;/opt/sw/rev/20.12/haswell/intel-2020.4/netcdf-fortran-4.5.3-5vmy2h/lib:1;/opt/sw/rev/20.12/haswell/intel-2020.4/netcdf-c-4.7.4-nzzdts/lib:1;/opt/sw/rev/20.12/haswell/intel-2020.4/openjdk-11.0.2-6t4lkz/lib:1;/opt/sw/rev/20.12/cascadelake/intel-2020.4/intel-mpi-2019.9.304-oypfv2/compilers_and_libraries_2020.4.304/linux/mpi/intel64/libfabric/lib:1;/opt/sw/rev/20.12/cascadelake/intel-2020.4/intel-mpi-2019.9.304-oypfv2/compilers_and_libraries_2020.4.304/linux/mpi/intel64/lib/release:1;/opt/sw/rev/20.12/cascadelake/intel-2020.4/intel-mpi-2019.9.304-oypfv2/compilers_and_libraries_2020.4.304/linux/mpi/intel64/lib:1;/opt/sw/rev/20.12/haswell/intel-2020.4/intel-2020.4-q3jkmd/lib/intel64_lin:1;/opt/sw/rev/20.12/haswell/intel-2020.4/intel-2020.4-q3jkmd/lib:1;/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/itac_latest/intel64/slib:1;/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/mkl/lib/intel64_lin:1;/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/tbb/lib/intel64_lin/gcc4.8:1;/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/ipp/lib/intel64_lin:1;/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/daal/lib/intel64_lin:1;/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/lib/intel64_lin:1;/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/lib:1;/opt/sw/rev/20.12/haswell/gcc-9.3.0/subversion-1.14.0-nq53qj/lib:1
-PKG_CONFIG_PATH=/opt/sw/rev/20.12/haswell/intel-2020.4/netcdf-fortran-4.5.3-5vmy2h/lib/pkgconfig:/opt/sw/rev/20.12/haswell/intel-2020.4/netcdf-c-4.7.4-nzzdts/lib/pkgconfig:/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/vtune_profiler/include/pkgconfig/lib64:/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/inspector/include/pkgconfig/lib64:/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/advisor/include/pkgconfig/lib64:/opt/sw/rev/20.12/haswell/gcc-9.3.0/subversion-1.14.0-nq53qj/share/pkgconfig
-LMOD_MPI_VERSION=2019.9.304-oypfv24
 MPI_TYPE_DEPTH=16
-LMOD_FAMILY_COMPILER=intel
-DISPLAY=localhost:13.0
+DISPLAY=localhost:10.0
 XDG_RUNTIME_DIR=/run/user/55955
-CMAKE_PREFIX_PATH=/opt/sw/rev/20.12/haswell/intel-2020.4/hdf5-1.10.7-sw4p4g:/opt/sw/rev/20.12/haswell/intel-2020.4/netcdf-fortran-4.5.3-5vmy2h:/opt/sw/rev/20.12/haswell/intel-2020.4/netcdf-c-4.7.4-nzzdts:/opt/sw/rev/20.12/haswell/intel-2020.4/openjdk-11.0.2-6t4lkz:/opt/sw/rev/20.12/cascadelake/intel-2020.4/intel-mpi-2019.9.304-oypfv2:/opt/sw/rev/20.12/haswell/intel-2020.4/intel-2020.4-q3jkmd:/opt/sw/rev/20.12/haswell/gcc-9.3.0/subversion-1.14.0-nq53qj
-__LMOD_REF_COUNT_PKG_CONFIG_PATH=/opt/sw/rev/20.12/haswell/intel-2020.4/netcdf-fortran-4.5.3-5vmy2h/lib/pkgconfig:1;/opt/sw/rev/20.12/haswell/intel-2020.4/netcdf-c-4.7.4-nzzdts/lib/pkgconfig:1;/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/vtune_profiler/include/pkgconfig/lib64:1;/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/inspector/include/pkgconfig/lib64:1;/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/advisor/include/pkgconfig/lib64:1;/opt/sw/rev/20.12/haswell/gcc-9.3.0/subversion-1.14.0-nq53qj/share/pkgconfig:1
 LMOD_DIR=/opt/sw/rev/scc/lmod/lmod/lmod/libexec
-INCLUDE=/opt/sw/rev/20.12/haswell/intel-2020.4/hdf5-1.10.7-sw4p4g/include:/opt/sw/rev/20.12/haswell/intel-2020.4/netcdf-fortran-4.5.3-5vmy2h/include:/opt/sw/rev/20.12/haswell/intel-2020.4/netcdf-c-4.7.4-nzzdts/include:/opt/sw/rev/20.12/haswell/intel-2020.4/openjdk-11.0.2-6t4lkz/include:/opt/sw/rev/20.12/cascadelake/intel-2020.4/intel-mpi-2019.9.304-oypfv2/impi/2019.9.304/intel64/include:/opt/sw/rev/20.12/haswell/intel-2020.4/intel-2020.4-q3jkmd/include/icc:/opt/sw/rev/20.12/haswell/intel-2020.4/intel-2020.4-q3jkmd/include/intel64:/opt/sw/rev/20.12/haswell/intel-2020.4/intel-2020.4-q3jkmd/include:/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/include:/opt/sw/rev/20.12/haswell/gcc-9.3.0/subversion-1.14.0-nq53qj/include
-__LMOD_REF_COUNT_MANPATH=/opt/sw/rev/20.12/haswell/intel-2020.4/netcdf-fortran-4.5.3-5vmy2h/share/man:1;/opt/sw/rev/20.12/haswell/intel-2020.4/netcdf-c-4.7.4-nzzdts/share/man:1;/opt/sw/rev/20.12/cascadelake/intel-2020.4/intel-mpi-2019.9.304-oypfv2/compilers_and_libraries_2020.4.304/linux/mpi/man:1;/opt/sw/rev/20.12/haswell/intel-2020.4/intel-2020.4-q3jkmd/man:1;/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/itac_latest/man:1;/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/man:1;/opt/sw/rev/20.12/haswell/gcc-9.3.0/subversion-1.14.0-nq53qj/share/man:1;/opt/sw/rev/scc/lmod/lmod/lmod/share/man:1;/opt/slurm/share/man:1;/usr/local/share/man:1;/usr/share/man/overrides:1;/usr/share/man:1;/cm/local/apps/environment-modules/current/share/man:1
-VTUNE_PROFILER_DIR=/opt/sw/rev/20.12/haswell/intel-2020.4/intel-parallel-studio-cluster.2020.4-km2xg3/vtune_profiler
-_ModuleTable006_=fSxtcGF0aEE9eyIvb3B0L3N3L21vZHVsZXMvMjAuMTIvY2FzY2FkZWxha2UvaW50ZWwtbXBpLzIwMTkuOS4zMDQvaW50ZWwvMjAyMC40IiwiL29wdC9zdy9tb2R1bGVzLzIwLjEyL2Nhc2NhZGVsYWtlL2ludGVsLzIwMjAuNCIsIiIsIi9vcHQvc3cvbW9kdWxlcy8yMC4xMi9jYXNjYWRlbGFrZS9Db3JlIiwiL29wdC9zdy9tb2R1bGVzLzIwLjEyL2Nhc2NhZGVsYWtlL2djYy85LjMuMCIsIi9vcHQvc3cvbW9kdWxlcy8yMC4xMi9jYXNjYWRlbGFrZS9vcGVubXBpLzQuMC41L2djYy85LjMuMCIsIi9vcHQvc3cvbW9kdWxlcy8yMC4xMi9zY2MvY29tbW9uIiwiL29wdC9zdy9tb2R1bGVzLzIwLjEyL3NjYy9jYXNjYWRlbGFrZSIsIi9vcHQvc3cvbW9kdWxlcy8yMC4xMi9zY2MvdG9w
-MPIF90=/opt/sw/rev/20.12/cascadelake/intel-2020.4/intel-mpi-2019.9.304-oypfv2/compilers_and_libraries_2020.4.304/linux/mpi/intel64/bin/mpiifort
 HISTTIMEFORMAT=%Y-%m-%d %H:%M:%S
 RLPR_PRINTHOST=print.gwdg.de
-LMOD_FAMILY_MPI=intel-mpi
-I_MPI_ROOT=/opt/sw/rev/20.12/cascadelake/intel-2020.4/intel-mpi-2019.9.304-oypfv2/compilers_and_libraries_2020.4.304/linux/mpi
-MPICXX=/opt/sw/rev/20.12/cascadelake/intel-2020.4/intel-mpi-2019.9.304-oypfv2/compilers_and_libraries_2020.4.304/linux/mpi/intel64/bin/mpiicpc
 BASH_FUNC_module()=() {  eval $($LMOD_CMD bash "$@") && eval $(${LMOD_SETTARG_CMD:-:} -s sh)
+}
+BASH_FUNC_switchml()=() {  typeset swfound=1;
+ if [ "${MODULES_USE_COMPAT_VERSION:-0}" = '1' ]; then
+ typeset swname='main';
+ if [ -e /cm/local/apps/environment-modules/4.2.1//libexec/modulecmd.tcl ]; then
+ typeset swfound=0;
+ unset MODULES_USE_COMPAT_VERSION;
+ fi;
+ else
+ typeset swname='compatibility';
+ if [ -e /cm/local/apps/environment-modules/4.2.1//libexec/modulecmd-compat ]; then
+ typeset swfound=0;
+ MODULES_USE_COMPAT_VERSION=1;
+ export MODULES_USE_COMPAT_VERSION;
+ fi;
+ fi;
+ if [ $swfound -eq 0 ]; then
+ echo "Switching to Modules $swname version";
+ source /cm/local/apps/environment-modules/4.2.1//init/bash;
+ else
+ echo "Cannot switch to Modules $swname version, command not found";
+ return 1;
+ fi
+}
+BASH_FUNC__module_raw()=() {  unset _mlshdbg;
+ if [ "${MODULES_SILENT_SHELL_DEBUG:-0}" = '1' ]; then
+ case "$-" in 
+ *v*x*)
+ set +vx;
+ _mlshdbg='vx'
+ ;;
+ *v*)
+ set +v;
+ _mlshdbg='v'
+ ;;
+ *x*)
+ set +x;
+ _mlshdbg='x'
+ ;;
+ *)
+ _mlshdbg=''
+ ;;
+ esac;
+ fi;
+ unset _mlre _mlIFS;
+ if [ -n "${IFS+x}" ]; then
+ _mlIFS=$IFS;
+ fi;
+ IFS=' ';
+ for _mlv in ${MODULES_RUN_QUARANTINE:-};
+ do
+ if [ "${_mlv}" = "${_mlv##*[!A-Za-z0-9_]}" -a "${_mlv}" = "${_mlv#[0-9]}" ]; then
+ if [ -n "`eval 'echo ${'$_mlv'+x}'`" ]; then
+ _mlre="${_mlre:-}${_mlv}_modquar='`eval 'echo ${'$_mlv'}'`' ";
+ fi;
+ _mlrv="MODULES_RUNENV_${_mlv}";
+ _mlre="${_mlre:-}${_mlv}='`eval 'echo ${'$_mlrv':-}'`' ";
+ fi;
+ done;
+ if [ -n "${_mlre:-}" ]; then
+ eval `eval ${_mlre}/usr/bin/tclsh /cm/local/apps/environment-modules/4.2.1/libexec/modulecmd.tcl bash '"$@"'`;
+ else
+ eval `/usr/bin/tclsh /cm/local/apps/environment-modules/4.2.1/libexec/modulecmd.tcl bash "$@"`;
+ fi;
+ _mlstatus=$?;
+ if [ -n "${_mlIFS+x}" ]; then
+ IFS=$_mlIFS;
+ else
+ unset IFS;
+ fi;
+ unset _mlre _mlv _mlrv _mlIFS;
+ if [ -n "${_mlshdbg:-}" ]; then
+ set -$_mlshdbg;
+ fi;
+ unset _mlshdbg;
+ return $_mlstatus
 }
 BASH_FUNC_ml()=() {  eval $($LMOD_DIR/ml_cmd "$@")
 }

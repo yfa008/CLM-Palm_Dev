@@ -604,6 +604,9 @@ contains
             units='0-not planted, 1-planted, 2-leaf emerge, 3-grain fill, 4-harvest', &
             interpinic_flag='interp', readvar=readvar, data=this%cphase_patch)
 
+       !only create restart variables for oil palm when it is active
+       if ( mxnp .gt. 0 ) then
+
        call restartvar(ncid=ncid, varname='np', xtype=ncd_int,  &
             dim1name='pft',long_name='Total number of phytomers having appeared so far', &
             units='', flag=flag, interpinic_flag='interp', readvar=readvar, data=this%np_patch)
@@ -686,6 +689,7 @@ contains
             dim1name='pft',dim2name='phytomer',long_name='',units='', &
             flag=flag, interpinic_flag='interp', readvar=readvar, data=this%bgtr_p_patch)
        
+       end if 
 
        if (flag=='read' )then
           call this%checkDates( )  ! Check that restart date is same calendar date (even if year is different)

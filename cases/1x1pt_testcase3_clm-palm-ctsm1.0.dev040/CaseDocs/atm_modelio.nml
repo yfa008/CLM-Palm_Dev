@@ -1,7 +1,7 @@
 &modelio
   diri = "/usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/bld/atm"
   diro = "/usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/run"
-  logfile = "atm.log.210822-185115"
+  logfile = "atm.log.11905913.220420-102428"
 /
 &pio_inparm
   pio_netcdf_format = "64bit_offset"

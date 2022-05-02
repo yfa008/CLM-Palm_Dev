@@ -774,6 +774,8 @@ contains
     case (interp_method_general)
        if (masterproc) then
           write(iulog,*) 'calling set_mindist for ',trim(dimname)
+          write(iulog,*) 'debug YFan: fill_missing_with_natveg option is ',init_interp_fill_missing_with_natveg
+          write(iulog,*) 'debug YFan: output subgrid type=',subgrido%name
        end if
        call set_mindist(begi=begi, endi=endi, bego=bego, endo=endo, &
             activei=activei, activeo=activeo, subgridi=subgridi, subgrido=subgrido, &

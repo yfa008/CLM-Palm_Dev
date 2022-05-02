@@ -213,7 +213,8 @@ contains
          avgflag='A', long_name='shaded projected leaf area index', &
          ptr_patch=this%laisha_patch, set_urb=0._r8)
 
-    if ( mxnp .gt. 0 ) then
+     !already added in CropType.F90 (4/30/2022)
+!    if ( mxnp .gt. 0 ) then
 !       call hist_addfld1d (fname='HARVEST_COUNTER', units='none', &
 !            avgflag='A', long_name='harvest counter', &
 !            ptr_pft=pepv%harvest_counter, default='inactive')
@@ -228,16 +229,17 @@ contains
 !       call hist_addfld2d (fname='PGRAINC', units='gC/m^2', type2d='phytomer', &
 !            avgflag='A', long_name='phytomer grain C', &
 !            ptr_pft=pcs%pgrainc, default='inactive')
-       this%plai_patch(begp:endp,1:mxnp) = spval
-       call hist_addfld2d (fname='PLAI', units='none', type2d='phytomer', &
-            avgflag='A', long_name='phytomer LAI', &
-            ptr_patch=this%plai_patch, default='inactive')
-       this%livep_patch(begp:endp,1:mxnp) = spval
-       call hist_addfld2d (fname='LIVEP', units='none', type2d='phytomer', &
-            avgflag='A', long_name='phytomer alive or not', &
-            ptr_patch=this%livep_patch, default='inactive')
+!       this%plai_patch(begp:endp,1:mxnp) = spval
 
-    end if
+!       call hist_addfld2d (fname='PLAI', units='none', type2d='phytomer', &
+!            avgflag='A', long_name='phytomer LAI', &
+!            ptr_patch=this%plai_patch, default='inactive')
+!       this%livep_patch(begp:endp,1:mxnp) = spval
+!       call hist_addfld2d (fname='LIVEP', units='none', type2d='phytomer', &
+!            avgflag='A', long_name='phytomer alive or not', &
+!            ptr_patch=this%livep_patch, default='inactive')
+
+!    end if
 
 
     if (use_cn .or. use_fates) then

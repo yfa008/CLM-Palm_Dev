@@ -487,6 +487,7 @@ contains
     use clm_varpar           , only : numrad, nlevlak, nlevsno, nlevgrnd, nlevurb, nlevcan
     use clm_varpar           , only : maxpatch_glcmec, nvegwcs
     use decompMod            , only : get_proc_global
+    use pftconMod            , only : mxnp
     !
     ! !ARGUMENTS:
     type(file_desc_t), intent(inout) :: ncid
@@ -526,6 +527,9 @@ contains
     call ncd_defdim(ncid , 'levcan'  , nlevcan        ,  dimid)
     if ( use_hydrstress ) then
       call ncd_defdim(ncid , 'vegwcs'  , nvegwcs        ,  dimid)
+    end if
+    if (mxnp .gt. 0) then !add a new dimension for oil palm (Y.Fan 2022)
+      call ncd_defdim(ncid, 'phytomer' , mxnp          , dimid)
     end if
     call ncd_defdim(ncid , 'string_length', 64        ,  dimid)
     call ncd_defdim(ncid , 'glc_nec', maxpatch_glcmec, dimid)

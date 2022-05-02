@@ -1955,8 +1955,13 @@ contains
     integer                          :: ndims_iod  ! ndims iodesc for var
     integer                          :: varid      ! varid
     integer                          :: n          ! index
-    integer                          :: dims(4)    ! dim sizes
-    integer                          :: dids(4)    ! dim ids
+!    integer                          :: dims(4)    ! dim sizes
+!    integer                          :: dids(4)    ! dim ids
+!changed by Y.Fan 2022 for reading 3D data
+!the declaration of vectors dims and dids should have a length of 5 instead of 4.
+!otherwsie, there was alwasy nf_mod error when read/write 5 dimension data.
+    integer            :: dims(5)    !!increase the max dim size to 5 (e.g. lsmlon, lsmlat, lsmpft, levcan, time)
+    integer            :: dids(5)    ! dim ids
     integer                          :: iodnum     ! iodesc num in list
     integer                          :: start(5)   ! netcdf start index
     integer                          :: count(5)   ! netcdf count index

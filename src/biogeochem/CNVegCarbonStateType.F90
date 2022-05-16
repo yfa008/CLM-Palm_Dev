@@ -513,6 +513,7 @@ contains
                avgflag='A', long_name='total pft-level grain harvest carbon', &
                ptr_patch=this%grain_harvestc_patch)
 
+       if ( mxnp>0 ) then
        this%pleafc_patch(begp:endp,1:mxnp) = spval
        call hist_addfld2d (fname='PLEAFC', units='gC/m^2', type2d='phytomer', &
                avgflag='A', long_name='phytomer leaf C', &
@@ -527,6 +528,7 @@ contains
        call hist_addfld2d (fname='PLEAFC_STORAGE', units='gC/m^2', type2d='phytomer', &
                avgflag='A', long_name='phytomer leaf C storage', &
                ptr_patch=this%pleafc_storage_patch, default='inactive')
+       end if
 
        this%totfoodc_col(begc:endc) = spval
        call hist_addfld1d (fname='TOTFOODC', units='gC/m^2', &
@@ -960,7 +962,7 @@ contains
              this%frootc_patch(p)         = 0._r8            
              this%frootc_storage_patch(p) = 0._r8    
           else
-             if (pftcon%evergreen(patch%itype(p)) == 1._r8) then
+             if (pftcon%evergreen(patch%itype(p)) == 1._r8) then 
                 this%leafc_patch(p)          = cnvegcstate_const%initial_vegC * ratio     
                 this%leafc_storage_patch(p)  = 0._r8
                 this%frootc_patch(p)         = cnvegcstate_const%initial_vegC * ratio           
@@ -1018,17 +1020,19 @@ contains
           this%woodc_patch(p)              = 0._r8
           this%totc_patch(p)               = 0._r8 
 
-          this%pleafc_patch(p,:)             = 0._r8 
-          this%pgrainc_patch(p,:)            = 0._r8 
-          this%pleafc_xfer_patch(p,:)        = 0._r8 
-          this%pleafc_storage_patch(p,:)     = 0._r8 
-          this%leafc_senescent_patch(p)      = 0._r8 
-
           if ( use_crop )then
              this%grainc_patch(p)         = 0._r8 
              this%grainc_storage_patch(p) = 0._r8 
              this%grainc_xfer_patch(p)    = 0._r8 
              this%cropseedc_deficit_patch(p)  = 0._r8
+          end if
+
+          if ( mxnp > 0 ) then
+            this%pleafc_patch(p,:)             = 0._r8
+            this%pgrainc_patch(p,:)            = 0._r8
+            this%pleafc_xfer_patch(p,:)        = 0._r8
+            this%pleafc_storage_patch(p,:)     = 0._r8
+            this%leafc_senescent_patch(p)      = 0._r8
           end if
 
        endif
@@ -1270,7 +1274,7 @@ contains
             interpinic_flag='interp', readvar=readvar, data=this%leafcmax_patch)
 
        ! Modified as per Y.Fan discussion 28/3/22
-       if ( mxnp .gt. 0 ) then 
+       if ( mxnp > 0 ) then 
 
        call restartvar(ncid=ncid, flag=flag, varname='pleafc', xtype=ncd_double,  &
                 dim1name='pft',dim2name='phytomer',long_name='',units='', &
@@ -2410,6 +2414,13 @@ contains
           this%grainc_storage_patch(i)  = value_patch
           this%grainc_xfer_patch(i)     = value_patch
           this%cropseedc_deficit_patch(i)  = value_patch
+       end if
+       if ( mxnp>0 ) then
+          this%pgrainc_patch(i,:)             = value_patch
+          this%pleafc_patch(i,:)              = value_patch
+          this%pleafc_xfer_patch(i,:)         = value_patch
+          this%pleafc_storage_patch(i,:)      = value_patch
+          this%leafc_senescent_patch(i)       = value_patch
        end if
     end do
 

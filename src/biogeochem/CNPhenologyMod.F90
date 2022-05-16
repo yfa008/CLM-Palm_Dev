@@ -22,6 +22,7 @@ module CNPhenologyMod
   use CNDVType                        , only : dgvs_type
   use CNVegstateType                  , only : cnveg_state_type
   use CNVegCarbonStateType            , only : cnveg_carbonstate_type
+  use SoilBiogeochemStateType         , only : soilbiogeochem_state_type
   use CNVegCarbonFluxType             , only : cnveg_carbonflux_type
   use CNVegnitrogenstateType          , only : cnveg_nitrogenstate_type
   use CNVegnitrogenfluxType           , only : cnveg_nitrogenflux_type
@@ -254,7 +255,7 @@ contains
        doalb, waterdiagnosticbulk_inst, wateratm2lndbulk_inst, temperature_inst, atm2lnd_inst, crop_inst, &
        canopystate_inst, soilstate_inst, dgvs_inst, &
        cnveg_state_inst, cnveg_carbonstate_inst, cnveg_carbonflux_inst,    &
-       cnveg_nitrogenstate_inst, cnveg_nitrogenflux_inst, &
+       cnveg_nitrogenstate_inst, cnveg_nitrogenflux_inst, soilbiogeochem_state_inst, &
        c13_cnveg_carbonstate_inst, c14_cnveg_carbonstate_inst, &
        leaf_prof_patch, froot_prof_patch, phase)
     ! !USES:
@@ -283,6 +284,7 @@ contains
     type(dgvs_type)                , intent(inout) :: dgvs_inst
     type(cnveg_state_type)         , intent(inout) :: cnveg_state_inst
     type(cnveg_carbonstate_type)   , intent(inout) :: cnveg_carbonstate_inst
+    type(soilbiogeochem_state_type), intent(in)    :: soilbiogeochem_state_inst
     type(cnveg_carbonflux_type)    , intent(inout) :: cnveg_carbonflux_inst
     type(cnveg_nitrogenstate_type) , intent(inout) :: cnveg_nitrogenstate_inst
     type(cnveg_nitrogenflux_type)  , intent(inout) :: cnveg_nitrogenflux_inst
@@ -350,7 +352,7 @@ contains
        ! gather all patch-level litterfall fluxes to the column for litter C and N inputs
 
        call CNLitterToColumn(bounds, num_soilc, filter_soilc, &
-            cnveg_state_inst, cnveg_carbonflux_inst, cnveg_nitrogenflux_inst, &
+            cnveg_state_inst, cnveg_carbonflux_inst, cnveg_nitrogenflux_inst, soilbiogeochem_state_inst, &
             crop_inst,cnveg_carbonstate_inst,cnveg_nitrogenstate_inst, &
             leaf_prof_patch(bounds%begp:bounds%endp,1:nlevdecomp_full), & 
             froot_prof_patch(bounds%begp:bounds%endp,1:nlevdecomp_full))
@@ -1615,7 +1617,7 @@ contains
          harvest_flag            =>    crop_inst%harvest_flag_patch                           , & ! Output: [real(r8) (:)]  harvest flag (added by Y.Fan)
          harvest_counter         =>    crop_inst%harvest_counter_patch                        , & ! Output: [real(r8) (:)]  harvest counter to tag phytomer
          prune                   =>    crop_inst%prune_patch                                  , & ! Output: [real(r8) (:)]  leaf pruning flag
-         pleafc                  =>    cnveg_carbonstate_inst%pleafc_patch                           , & ! InOut:  [real(r8) (:,:)]  (gC/m2) phytomer leaf C
+        ! pleafc                  =>    cnveg_carbonstate_inst%pleafc_patch                           , & ! InOut:  [real(r8) (:,:)]  (gC/m2) phytomer leaf C
          pgrainc                 =>    cnveg_carbonstate_inst%pgrainc_patch                          , & ! Input:  [real(r8) (:,:)] (gC/m2) grain C on each phytomer
          livestemc_xfer          =>    cnveg_carbonstate_inst%livestemc_xfer_patch                   , & ! Output:  [real(r8) (:)] (gC/m2) live stem C transfer
          pleafc_storage          =>    cnveg_carbonstate_inst%pleafc_storage_patch                   , & ! Input:  [real(r8) (:,:)]  (gC/m2) phytomer leaf C transfer
@@ -1698,14 +1700,17 @@ contains
                     leafc_xfer(p)  = initial_seed_at_planting  ! now the initial seed is a variable 
                 end if
                 leafn_xfer(p) = leafc_xfer(p) / leafcn(ivt(p)) ! An equivalent amount of seed leaf N is assigned with onset
-                crop_seedc_to_leaf(c) = crop_seedc_to_leaf(c) + leafc_xfer(p)/dt !(gC/m2/s) transfer from seed source to PFT-level
-                crop_seedn_to_leaf(c) = crop_seedn_to_leaf(c) + leafn_xfer(p)/dt
+                crop_seedc_to_leaf(p) = leafc_xfer(p)/dt
+                crop_seedn_to_leaf(p) = leafn_xfer(p)/dt
+                !dwt_seedc_to_leaf(c) = dwt_seedc_to_leaf(c) + leafc_xfer(p)/dt !(gC/m2/s) transfer from seed source to PFT-level (old in CLM4.5, updated to above lines in CLM5)
+                !dwt_seedn_to_leaf(c) = dwt_seedn_to_leaf(c) + leafn_xfer(p)/dt
+
                 !for woody crops like palm, assign 10% seeding C for livestem at transplanting
                 if (pftcon%woody(ivt(p)) == 1._r8) then 
                    livestemc_xfer(p) = 0.1_r8 * leafc_xfer(p)
                    livestemn_xfer(p) = livestemc_xfer(p) / livewdcn(ivt(p))
-                   crop_seedc_to_livestem(c) = crop_seedc_to_livestem(c) + livestemc_xfer(p)/dt
-                   crop_seedn_to_livestem(c) = crop_seedn_to_livestem(c) + livestemn_xfer(p)/dt
+                   crop_seedc_to_livestem(c) = livestemc_xfer(p)/dt
+                   crop_seedn_to_livestem(c) = livestemn_xfer(p)/dt
                 end if
   
              end if
@@ -3834,7 +3839,7 @@ contains
 
   !-----------------------------------------------------------------------
   subroutine CNLitterToColumn (bounds, num_soilc, filter_soilc,         &
-       cnveg_state_inst,cnveg_carbonflux_inst, cnveg_nitrogenflux_inst, &
+       cnveg_state_inst,cnveg_carbonflux_inst,cnveg_nitrogenflux_inst,soilbiogeochem_state_inst, &
        crop_inst,cnveg_carbonstate_inst,cnveg_nitrogenstate_inst, & 
        leaf_prof_patch, froot_prof_patch)
     !
@@ -3846,17 +3851,17 @@ contains
     use clm_varpar , only : max_patch_per_col, nlevdecomp
     use pftconMod  , only : npcropmin
     use clm_varctl , only : use_grainproduct
-    !use dynHarvestMod , only: CNHarvestPftToColumn !need to make this subroutine public
+    use dynHarvestMod , only: CNHarvestPftToColumn !need to make this subroutine public
     !
     ! !ARGUMENTS:
     type(bounds_type)               , intent(in)    :: bounds
     integer                         , intent(in)    :: num_soilc       ! number of soil columns in filter
     integer                         , intent(in)    :: filter_soilc(:) ! filter for soil columns
     type(cnveg_state_type)          , intent(in)    :: cnveg_state_inst
-    type(crop_type)                , intent(inout) :: crop_inst
-    type(cnveg_carbonstate_type)   , intent(in)    :: cnveg_carbonstate_inst
-    !type(soilbiogeochem_state_type), intent(in)    :: soilbiogeochem_state_inst
-    type(cnveg_nitrogenstate_type) , intent(in)    :: cnveg_nitrogenstate_inst
+    type(crop_type)                 , intent(inout) :: crop_inst
+    type(cnveg_carbonstate_type)    , intent(in)    :: cnveg_carbonstate_inst
+    type(soilbiogeochem_state_type) , intent(in)    :: soilbiogeochem_state_inst
+    type(cnveg_nitrogenstate_type)  , intent(in)    :: cnveg_nitrogenstate_inst
     type(cnveg_carbonflux_type)     , intent(inout) :: cnveg_carbonflux_inst
     type(cnveg_nitrogenflux_type)   , intent(inout) :: cnveg_nitrogenflux_inst
     real(r8)                        , intent(in)    :: leaf_prof_patch(bounds%begp:,1:)
@@ -3952,10 +3957,11 @@ contains
 
                           !at final rotation (don't worry about harvest fluxes
                           !of some inmmature palm fruits at the final rotation, 14.03.2022
-                      !    if (offset_flag(p) == 1._r8) then
-                      !       call CNHarvestPftToColumn(num_soilc, filter_soilc)
-                      !       !must need to summarize hrv fluxes to column level, use the function from pftdynMod
-                      !    end if
+                          if (offset_flag(p) == 1._r8) then
+                             call CNHarvestPftToColumn(num_soilc, filter_soilc, &
+                                  soilbiogeochem_state_inst,cnveg_carbonflux_inst, cnveg_nitrogenflux_inst)
+                             !must need to summarize hrv fluxes to column level, use the function from pftdynMod
+                          end if
                           !the CNHarvestPftToColumn function will summarize both leaf/froot/livestem pools to litter materials met_c/cel_c/lig_c &
                           !and also summarize wood product pools (hrv_deadstemc_to_prod10c/hrv_deadstemc_to_prod100c) to column level
 

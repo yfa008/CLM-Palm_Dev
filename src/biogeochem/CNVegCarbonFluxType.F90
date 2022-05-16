@@ -1615,40 +1615,43 @@ contains
              avgflag='A', long_name='total patch-level fire C loss for non-peat fires outside land-type converted region', &
              ptr_patch=this%fire_closs_patch)
 
-        this%pgrainc_to_food_patch(begp:endp,1:mxnp) = spval
-        call hist_addfld2d (fname='PGRAINC_TO_FOOD', units='gC/m^2/s', type2d='phytomer', &
-            avgflag='A', long_name='fruit C to food for each phytomer', &
-            ptr_patch=this%pgrainc_to_food_patch, default='inactive')
+       if ( mxnp > 0 ) then
+          this%pgrainc_to_food_patch(begp:endp,1:mxnp) = spval
+          call hist_addfld2d (fname='PGRAINC_TO_FOOD', units='gC/m^2/s', type2d='phytomer', &
+              avgflag='A', long_name='fruit C to food for each phytomer', &
+              ptr_patch=this%pgrainc_to_food_patch, default='inactive')
+  
+          this%pgrainc_to_food_patch(begp:endp,1:mxnp) = spval
+          call hist_addfld2d (fname='PLEAFC_TO_LITTER', units='gC/m^2/s', type2d='phytomer', &
+               avgflag='A', long_name='leaf C senescence for each phytomer', &
+               ptr_patch=this%pleafc_to_litter_patch, default='inactive')
+   
+          this%pleafc_xfer_to_pleafc_patch(begp:endp,1:mxnp) = spval
+          call hist_addfld2d (fname='PLEAFC_XFER_TO_PLEAFC', units='gC/m^2/s', type2d='phytomer', &
+               avgflag='A', long_name='leaf C growth from storage for each phytomer', &
+               ptr_patch=this%pleafc_xfer_to_pleafc_patch, default='inactive')
+   
+          this%cpool_to_pleafc_patch(begp:endp,1:mxnp) = spval
+          call hist_addfld2d (fname='CPOOL_TO_PLEAFC', units='gC/m^2/s', type2d='phytomer', &
+               avgflag='A', long_name='allocation to leaf C for each phytomer', &
+               ptr_patch=this%cpool_to_pleafc_patch, default='inactive')
+        
+          this%cpool_to_pgrainc_patch(begp:endp,1:mxnp) = spval
+          call hist_addfld2d (fname='CPOOL_TO_PGRAINC', units='gC/m^2/s', type2d='phytomer', &
+               avgflag='A', long_name='allocation to grain C for each phytomer', &
+               ptr_patch=this%cpool_to_pgrainc_patch, default='inactive')
+   
+          this%cpool_to_pleafc_storage_patch(begp:endp,1:mxnp) = spval
+          call hist_addfld2d (fname='CPOOL_TO_PLEAFC_STORAGE', units='gC/m^2/s', type2d='phytomer', &
+               avgflag='A', long_name='allocation to leaf C storage for each phytomer', &
+               ptr_patch=this%cpool_to_pleafc_storage_patch, default='inactive')
+   
+          this%pleafc_storage_to_xfer_patch(begp:endp,1:mxnp) = spval
+          call hist_addfld2d (fname='PLEAFC_STORAGE_TO_XFER', units='gC/m^2/s', type2d='phytomer', &
+               avgflag='A', long_name='leaf C shift storage to transfer for each phytomer', &
+               ptr_patch=this%pleafc_storage_to_xfer_patch, default='inactive')     
 
-       this%pgrainc_to_food_patch(begp:endp,1:mxnp) = spval
-       call hist_addfld2d (fname='PLEAFC_TO_LITTER', units='gC/m^2/s', type2d='phytomer', &
-            avgflag='A', long_name='leaf C senescence for each phytomer', &
-            ptr_patch=this%pleafc_to_litter_patch, default='inactive')
-
-       this%pleafc_xfer_to_pleafc_patch(begp:endp,1:mxnp) = spval
-       call hist_addfld2d (fname='PLEAFC_XFER_TO_PLEAFC', units='gC/m^2/s', type2d='phytomer', &
-            avgflag='A', long_name='leaf C growth from storage for each phytomer', &
-            ptr_patch=this%pleafc_xfer_to_pleafc_patch, default='inactive')
-
-       this%cpool_to_pleafc_patch(begp:endp,1:mxnp) = spval
-       call hist_addfld2d (fname='CPOOL_TO_PLEAFC', units='gC/m^2/s', type2d='phytomer', &
-            avgflag='A', long_name='allocation to leaf C for each phytomer', &
-            ptr_patch=this%cpool_to_pleafc_patch, default='inactive')
-     
-       this%cpool_to_pgrainc_patch(begp:endp,1:mxnp) = spval
-       call hist_addfld2d (fname='CPOOL_TO_PGRAINC', units='gC/m^2/s', type2d='phytomer', &
-            avgflag='A', long_name='allocation to grain C for each phytomer', &
-            ptr_patch=this%cpool_to_pgrainc_patch, default='inactive')
-
-       this%cpool_to_pleafc_storage_patch(begp:endp,1:mxnp) = spval
-       call hist_addfld2d (fname='CPOOL_TO_PLEAFC_STORAGE', units='gC/m^2/s', type2d='phytomer', &
-            avgflag='A', long_name='allocation to leaf C storage for each phytomer', &
-            ptr_patch=this%cpool_to_pleafc_storage_patch, default='inactive')
-
-       this%pleafc_storage_to_xfer_patch(begp:endp,1:mxnp) = spval
-       call hist_addfld2d (fname='PLEAFC_STORAGE_TO_XFER', units='gC/m^2/s', type2d='phytomer', &
-            avgflag='A', long_name='leaf C shift storage to transfer for each phytomer', &
-            ptr_patch=this%pleafc_storage_to_xfer_patch, default='inactive')     
+        end if 
 
         if ( use_fun ) then
           this%npp_Nactive_patch(begp:endp)  = spval
@@ -3919,6 +3922,22 @@ contains
           this%grainc_storage_to_xfer_patch(i)  = value_patch
        end do
     end if
+
+    if ( mxnp > 0 )then
+       do fi = 1,num_patch
+          i = filter_patch(fi)
+          this%pgrainc_to_food_patch(i,:)            = value_patch
+          this%cpool_to_pgrainc_patch(i,:)           = value_patch
+          this%pleafc_to_litter_patch(i,:)           = value_patch
+          this%pleafc_xfer_to_pleafc_patch(i,:)      = value_patch
+          this%cpool_to_pleafc_patch(i,:)            = value_patch
+          this%cpool_to_pleafc_storage_patch(i,:)    = value_patch
+          this%pleafc_storage_to_xfer_patch(i,:)     = value_patch
+          this%pleafc_storage_to_litter_patch(i,:)   = value_patch
+          this%pleafc_xfer_to_litter_patch(i,:)      = value_patch
+       end do
+    end if 
+
 
     do j = 1, nlevdecomp_full
        do fi = 1,num_column

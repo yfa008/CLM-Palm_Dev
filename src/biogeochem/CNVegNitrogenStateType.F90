@@ -492,6 +492,14 @@ contains
              this%grainn_xfer_patch(p)    = 0._r8
              this%cropseedn_deficit_patch(p)  = 0._r8
           end if
+          if ( mxnp > 0 ) then
+            this%pleafn_patch(p,:)             = 0._r8
+            this%pgrainn_patch(p,:)            = 0._r8
+            this%pleafn_xfer_patch(p,:)        = 0._r8
+            this%pleafn_storage_patch(p,:)     = 0._r8
+            this%leafn_senescent_patch(p)      = 0._r8
+          end if
+
           if (MM_Nuptake_opt .eqv. .false.) then  ! if not running in floating CN ratio option 
              this%frootn_patch(p)            = 0._r8
              this%frootn_storage_patch(p)    = 0._r8
@@ -964,6 +972,14 @@ contains
           this%grainn_storage_patch(i)  = value_patch
           this%grainn_xfer_patch(i)     = value_patch   
           this%cropseedn_deficit_patch(i)  = value_patch
+         if ( mxnp>0 ) then
+            this%pgrainn_patch(i,:)             = value_patch
+            this%pleafn_patch(i,:)              = value_patch
+            this%pleafn_xfer_patch(i,:)         = value_patch
+            this%pleafn_storage_patch(i,:)      = value_patch
+            this%leafn_senescent_patch(i)       = value_patch
+         end if
+
        end do
     end if
 

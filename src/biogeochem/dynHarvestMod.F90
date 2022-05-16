@@ -33,7 +33,8 @@ module dynHarvestMod
   public :: CNHarvest          ! harvest mortality routine for CN code
   !
   ! !PRIVATE MEMBER FUNCTIONS:
-  private :: CNHarvestPftToColumn   ! gather patch-level harvest fluxes to the column level
+  !private :: CNHarvestPftToColumn   ! gather patch-level harvest fluxes to the column level
+  public :: CNHarvestPftToColumn  !make this function public for rotation of perennial crop in CNPhenologyMod (Y.Fan)
   !
   ! !PRIVATE TYPES:
 

@@ -978,46 +978,50 @@ contains
     call hist_addfld1d (fname='PFT_FIRE_NLOSS', units='gN/m^2/s', &
          avgflag='A', long_name='total patch-level fire N loss', &
          ptr_patch=this%fire_nloss_patch)
-    
-    this%pleafn_to_litter_patch(begp:endp,1:mxnp) = spval
-    call hist_addfld2d (fname='PLEAFN_TO_LITTER', units='gN/m^2/s', type2d='phytomer', &
-            avgflag='A', long_name='leaf N senescence for each phytomer', &
-            ptr_patch=this%pleafn_to_litter_patch, default='inactive')
-    
-    this%pleafn_to_retransn_patch(begp:endp,1:mxnp) = spval
-    call hist_addfld2d (fname='PLEAFN_TO_RETRANSN', units='gN/m^2/s', type2d='phytomer', &
-            avgflag='A', long_name='leaf N to retranslocated N pool for each phytomer', &
-            ptr_patch=this%pleafn_to_retransn_patch, default='inactive')
-    
-    this%pleafn_xfer_to_pleafn_patch(begp:endp,1:mxnp) = spval
-    call hist_addfld2d (fname='PLEAFN_XFER_TO_PLEAFN', units='gN/m^2/s', type2d='phytomer', &
-            avgflag='A', long_name='leaf N growth from storage for each phytomer', &
-            ptr_patch=this%pleafn_xfer_to_pleafn_patch, default='inactive')
 
-    this%pleafn_xfer_to_litter_patch(begp:endp,1:mxnp) = spval
-    call hist_addfld2d (fname='PLEAFN_XFER_TO_LITTER', units='gN/m^2/s', type2d='phytomer', &
-            avgflag='A', long_name='leaf N transfer to litter pool for each phytomer', &
-            ptr_patch=this%pleafn_xfer_to_litter_patch, default='inactive')
-    
-    this%pleafn_storage_to_xfer_patch(begp:endp,1:mxnp) = spval
-    call hist_addfld2d (fname='PLEAFN_STORAGE_TO_XFER', units='gN/m^2/s', type2d='phytomer', &
-            avgflag='A', long_name='leaf N shift storage to transfer for each phytomer', &
-            ptr_patch=this%pleafn_storage_to_xfer_patch, default='inactive')
-    
-    this%npool_to_pleafn_patch(begp:endp,1:mxnp) = spval
-    call hist_addfld2d (fname='NPOOL_TO_PLEAFN', units='gN/m^2/s', type2d='phytomer', &
-            avgflag='A', long_name='allocation to leaf N for each phytomer', &
-            ptr_patch=this%npool_to_pleafn_patch, default='inactive')
+    if ( mxnp >0 ) then   
 
-    this%npool_to_pgrainn_patch(begp:endp,1:mxnp) = spval
-    call hist_addfld2d (fname='NPOOL_TO_PGRAINN', units='gN/m^2/s', type2d='phytomer', &
-            avgflag='A', long_name='allocation to grain N for each phytomer', &
-            ptr_patch=this%npool_to_pgrainn_patch, default='inactive')
+       this%pleafn_to_litter_patch(begp:endp,1:mxnp) = spval
+       call hist_addfld2d (fname='PLEAFN_TO_LITTER', units='gN/m^2/s', type2d='phytomer', &
+               avgflag='A', long_name='leaf N senescence for each phytomer', &
+               ptr_patch=this%pleafn_to_litter_patch, default='inactive')
+       
+       this%pleafn_to_retransn_patch(begp:endp,1:mxnp) = spval
+       call hist_addfld2d (fname='PLEAFN_TO_RETRANSN', units='gN/m^2/s', type2d='phytomer', &
+               avgflag='A', long_name='leaf N to retranslocated N pool for each phytomer', &
+               ptr_patch=this%pleafn_to_retransn_patch, default='inactive')
+       
+       this%pleafn_xfer_to_pleafn_patch(begp:endp,1:mxnp) = spval
+       call hist_addfld2d (fname='PLEAFN_XFER_TO_PLEAFN', units='gN/m^2/s', type2d='phytomer', &
+               avgflag='A', long_name='leaf N growth from storage for each phytomer', &
+               ptr_patch=this%pleafn_xfer_to_pleafn_patch, default='inactive')
+   
+       this%pleafn_xfer_to_litter_patch(begp:endp,1:mxnp) = spval
+       call hist_addfld2d (fname='PLEAFN_XFER_TO_LITTER', units='gN/m^2/s', type2d='phytomer', &
+               avgflag='A', long_name='leaf N transfer to litter pool for each phytomer', &
+               ptr_patch=this%pleafn_xfer_to_litter_patch, default='inactive')
+       
+       this%pleafn_storage_to_xfer_patch(begp:endp,1:mxnp) = spval
+       call hist_addfld2d (fname='PLEAFN_STORAGE_TO_XFER', units='gN/m^2/s', type2d='phytomer', &
+               avgflag='A', long_name='leaf N shift storage to transfer for each phytomer', &
+               ptr_patch=this%pleafn_storage_to_xfer_patch, default='inactive')
+       
+       this%npool_to_pleafn_patch(begp:endp,1:mxnp) = spval
+       call hist_addfld2d (fname='NPOOL_TO_PLEAFN', units='gN/m^2/s', type2d='phytomer', &
+               avgflag='A', long_name='allocation to leaf N for each phytomer', &
+               ptr_patch=this%npool_to_pleafn_patch, default='inactive')
+   
+       this%npool_to_pgrainn_patch(begp:endp,1:mxnp) = spval
+       call hist_addfld2d (fname='NPOOL_TO_PGRAINN', units='gN/m^2/s', type2d='phytomer', &
+               avgflag='A', long_name='allocation to grain N for each phytomer', &
+               ptr_patch=this%npool_to_pgrainn_patch, default='inactive')
+   
+       this%npool_to_pleafn_storage_patch(begp:endp,1:mxnp) = spval
+       call hist_addfld2d (fname='NPOOL_TO_PLEAFN_STORAGE', units='gN/m^2/s', type2d='phytomer', &
+               avgflag='A', long_name='allocation to leaf N storage for each phytomer', &
+               ptr_patch=this%npool_to_pleafn_storage_patch, default='inactive')
 
-    this%npool_to_pleafn_storage_patch(begp:endp,1:mxnp) = spval
-    call hist_addfld2d (fname='NPOOL_TO_PLEAFN_STORAGE', units='gN/m^2/s', type2d='phytomer', &
-            avgflag='A', long_name='allocation to leaf N storage for each phytomer', &
-            ptr_patch=this%npool_to_pleafn_storage_patch, default='inactive')
+    end if
 
     if (use_crop) then
        this%fert_patch(begp:endp) = spval
@@ -1768,6 +1772,22 @@ contains
           this%grainn_storage_to_xfer_patch(i)           = value_patch
           this%soyfixn_patch(i)                          = value_patch
           this%frootn_to_retransn_patch(i)               = value_patch
+       end do
+    end if
+
+    if ( mxnp > 0 )then
+       do fi = 1,num_patch
+          i = filter_patch(fi)
+          this%pgrainn_to_food_patch(i,:)                = value_patch
+          this%npool_to_pgrainn_patch(i,:)               = value_patch 
+          this%pleafn_to_litter_patch(i,:)               = value_patch
+          this%pleafn_xfer_to_pleafn_patch(i,:)          = value_patch
+          this%npool_to_pleafn_patch(i,:)                = value_patch
+          this%npool_to_pleafn_storage_patch(i,:)        = value_patch
+          this%pleafn_storage_to_xfer_patch(i,:)         = value_patch
+          this%pleafn_storage_to_litter_patch(i,:)       = value_patch
+          this%pleafn_xfer_to_litter_patch(i,:)          = value_patch
+          this%pleafn_to_retransn_patch(i,:)             = value_patch
        end do
     end if
 

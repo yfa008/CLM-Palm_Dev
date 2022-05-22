@@ -1535,25 +1535,25 @@ contains
          mxmat                 =>    pftcon%mxmat                                   , & ! Input:
          a_par                 =>    pftcon%a_par                                   , & ! Input:
          b_par                 =>    pftcon%b_par                                   , & ! Input:
-         gddmaturity2          => crop_inst%gddmaturity2_patch               , & ! Input:  [real(r8) (:)   ]  gdd needed to harvest since previous harvest (Y.Fan)
-         huigrain2             => crop_inst%huigrain2_patch                  , & ! Input:  [real(r8) (:)]  gdd needed from last harvest to start of next grainfill (Y.Fan)
-         idpp                  => crop_inst%idpp_patch                       , & ! Input:  [integer (:)]  days past planting (Y.Fan)
-         idpp2                 => crop_inst%idpp2_patch                      , & ! InOut:  [integer (:)]  Saved idpp from phase2 before grainfill starts
+         aleaf0                => cnveg_state_inst%aleaf0_patch                     , & ! Input:  [real(r8) (:)]  initial leaf allocation coefficient
+         gddmaturity2          => cnveg_state_inst%gddmaturity2_patch               , & ! Input:  [real(r8) (:)   ]  gdd needed to harvest since previous harvest (Y.Fan)
+         huigrain2             => cnveg_state_inst%huigrain2_patch                  , & ! Input:  [real(r8) (:)]  gdd needed from last harvest to start of next grainfill (Y.Fan)
+         idpp                  => cnveg_state_inst%idpp_patch                       , & ! Input:  [integer (:)]  days past planting (Y.Fan)
+         idpp2                 => cnveg_state_inst%idpp2_patch                      , & ! InOut:  [integer (:)]  Saved idpp from phase2 before grainfill starts
 
-        ! gdd15                 => temperature_inst%gdd15_patch               , & ! Input:  [real(r8) (:)]  growing deg. days base 15 deg C (ddays) (Y.Fan)
+        !gdd15                 => temperature_inst%gdd15_patch               , & ! Input:  [real(r8) (:)]  growing deg. days base 15 deg C (ddays) (Y.Fan)
         !gdd1520               => temperature_inst%gdd1520_patch             , & ! Input:  [real(r8) (:)]  20 yr mean of gdd15
-         aleaf0                => crop_inst%aleaf0_patch                     , & ! Input:  [real(r8) (:)]  initial leaf allocation coefficient
-         livep                 => crop_inst%livep_patch                      , & ! Input:  [logical(r8) (:,:)]  Flag, true if this phytomer is alive
-         plaipeak                  => crop_inst%plaipeak_patch                 , & ! Input:  [integer (:,:)]   Flag, 1: max allowed lai per phytomer; 0: not at max
-         huileafnp                 => crop_inst%huileafnp_patch                , & ! Input:  [real(r8) (:,:)]  hui needed for initiation of successive phytomers
-         huilfexpnp                => crop_inst%huilfexpnp_patch               , & ! Input:  [real(r8) (:,:)]  hui needed for leaf expansion of successive phytomers
-         huilfmatnp                => crop_inst%huilfmatnp_patch               , & ! Input:  [real(r8) (:,:)]  hui needed for leaf maturity of successive phytomers
-         huigrnnp                  => crop_inst%huigrnnp_patch                 , & ! Input:  [real(r8) (:,:)]  hui needed for start of grainfill of successive phytomers
-         grnmatnp                  => crop_inst%grnmatnp_patch                 , & ! Input:  [real(r8) (:,:)]  hui needed for grain maturity of successive phytomers
-         pgrainc                   => cnveg_carbonstate_inst%pgrainc_patch     , & ! InOut:  [real(r8) (:,:)]  (gC/m2) phytomer grain C
-         pgrainn                   => cnveg_nitrogenstate_inst%pgrainn_patch   , & ! InOut:  [real(r8) (:,:)]  (gN/m2) phytomer grain N
-         tlai                      => canopystate_inst%tlai_patch              , & ! Input:  [real(r8) (:)] one-sided leaf area index, no burying by snow
-         plai                      => crop_inst%plai_patch              , & ! Input:  [real(r8) (:,:)]  one-sided leaf area index of each phytomer
+         livep                 => crop_inst%livep_patch                      , & ! Input:  [real(r8) (:,:)]  Flag, true if this phytomer is alive
+         plaipeak              => crop_inst%plaipeak_patch                 , & ! Input:  [integer (:,:)]   Flag, 1: max allowed lai per phytomer; 0: not at max
+         huileafnp             => crop_inst%huileafnp_patch                , & ! Input:  [real(r8) (:,:)]  hui needed for initiation of successive phytomers
+         huilfexpnp            => crop_inst%huilfexpnp_patch               , & ! Input:  [real(r8) (:,:)]  hui needed for leaf expansion of successive phytomers
+         huilfmatnp            => crop_inst%huilfmatnp_patch               , & ! Input:  [real(r8) (:,:)]  hui needed for leaf maturity of successive phytomers
+         huigrnnp              => crop_inst%huigrnnp_patch                 , & ! Input:  [real(r8) (:,:)]  hui needed for start of grainfill of successive phytomers
+         grnmatnp              => crop_inst%grnmatnp_patch                 , & ! Input:  [real(r8) (:,:)]  hui needed for grain maturity of successive phytomers
+         pgrainc               => cnveg_carbonstate_inst%pgrainc_patch     , & ! InOut:  [real(r8) (:,:)]  (gC/m2) phytomer grain C
+         pgrainn               => cnveg_nitrogenstate_inst%pgrainn_patch   , & ! InOut:  [real(r8) (:,:)]  (gN/m2) phytomer grain N
+         tlai                  => canopystate_inst%tlai_patch              , & ! Input:  [real(r8) (:)] one-sided leaf area index, no burying by snow
+         plai                  => crop_inst%plai_patch              , & ! Input:  [real(r8) (:,:)]  one-sided leaf area index of each phytomer
 
          xsmrpool              => cnveg_carbonstate_inst%xsmrpool_patch             , & ! Input:  [real(r8) (:)   ]  (gC/m2) temporary photosynthate C pool
          leafc                 => cnveg_carbonstate_inst%leafc_patch                , & ! Input:  [real(r8) (:)   ]
@@ -1734,21 +1734,20 @@ contains
          if (ivt(p) >= npcropmin) then ! skip 2 generic crops
 
             if (croplive(p)) then
-			
 	     !!for multilayer phytmoer structure, calculate f1, f3, f5 according to subroutine PalmPhenology
              if (phytomer(ivt(p)) > 0) then
 	        !Sub-PFT (phytomer) leaf allocation
 	        ! ==================
 
 		!calculate leaf sink size and update leaf alloc ratio for each phytomer
-		where (livep(p,:) == .false. .or. plaipeak(p,:) == 1) !adjust lai for each phytomer
+		where (livep(p,:) == 0._r8 .or. plaipeak(p,:) == 1) !adjust lai for each phytomer
 			rleafn(p,:) = 0._r8
 		elsewhere (hui(p) >= huileafnp(p,:) .and. hui(p) < huilfexpnp(p,:)) !pre-expansion growth
-			rleafn(p,:) = 1._r8	!use flat rate
+			rleafn(p,:) = 1._r8 !use flat rate
 		elsewhere (hui(p) >= huilfexpnp(p,:) .and. hui(p) < huilfmatnp(p,:)) !post-expansion
 			!   rleafn(p,:) = (1._r8 - (hui(p)-huilfexpnp(p,:))/ &   !simple linear decline
 			!                 (huilfmatnp(p,:)-huilfexpnp(p,:)))
-			rleafn(p,:) = 1._r8	!use flat rate
+			rleafn(p,:) = 1._r8 !use flat rate
 		elsewhere
 			rleafn(p,:) = 0._r8
 		endwhere

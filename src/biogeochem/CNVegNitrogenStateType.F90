@@ -74,14 +74,14 @@ module CNVegNitrogenStateType
      real(r8), pointer :: totecosysn_col           (:) ! (gN/m2) total ecosystem nitrogen, incl veg 
      
      ! Nitrogen variables for oil palm
-     real(r8), pointer :: foodn_patch              (:) ! (gN/m2) pft-level food N
-     real(r8), pointer :: grain_harvestn_patch     (:) ! (gN/m2) pft-level harvested grain N, for each harvest
+     !real(r8), pointer :: foodn_patch              (:) ! (gN/m2) pft-level food N
+     !real(r8), pointer :: grain_harvestn_patch     (:) ! (gN/m2) pft-level harvested grain N, for each harvest
      real(r8), pointer :: pleafn_patch             (:,:) ! (gN/m2) phytomer leaf N
      real(r8), pointer :: pgrainn_patch            (:,:) ! (gN/m2) phytomer grain N
      real(r8), pointer :: pleafn_xfer_patch        (:,:) ! (gN/m2) phytomer leaf N transfer
      real(r8), pointer :: pleafn_storage_patch     (:,:) ! (gN/m2) phytomer leaf N transfer
      real(r8), pointer :: leafn_senescent_patch    (:)   ! (gN/m2) leaf N saved for pruning and transferring to litter pool
-     real(r8), pointer :: totfoodn_col             (:)   ! (gN/m2) total column food N 
+     !real(r8), pointer :: totfoodn_col             (:)   ! (gN/m2) total column food N 
 
    contains
 
@@ -178,14 +178,14 @@ contains
     allocate(this%totn_col                 (begc:endc)) ; this%totn_col                 (:) = nan
     allocate(this%totecosysn_col           (begc:endc)) ; this%totecosysn_col           (:) = nan
 
-    allocate(this%foodn_patch              (begp:endp)) ; this%foodn_patch              (:) = nan
-    allocate(this%grain_harvestn_patch     (begp:endp)) ; this%grain_harvestn_patch     (:) = nan
+    !allocate(this%foodn_patch              (begp:endp)) ; this%foodn_patch              (:) = nan
+    !allocate(this%grain_harvestn_patch     (begp:endp)) ; this%grain_harvestn_patch     (:) = nan
     allocate(this%pleafn_patch             (begp:endp,1:mxnp))  ; this%pleafn_patch          (:,:) = nan
     allocate(this%pgrainn_patch            (begp:endp,1:mxnp))  ; this%pgrainn_patch         (:,:) = nan
     allocate(this%pleafn_xfer_patch        (begp:endp,1:mxnp))  ; this%pleafn_xfer_patch     (:,:) = nan
     allocate(this%pleafn_storage_patch     (begp:endp,1:mxnp))  ; this%pleafn_storage_patch  (:,:) = nan
     allocate(this%leafn_senescent_patch    (begp:endp))         ; this%leafn_senescent_patch  (:)  = nan
-    allocate(this%totfoodn_col             (begc:endc))         ; this%totfoodn_col           (:)  = nan
+    !allocate(this%totfoodn_col             (begc:endc))         ; this%totfoodn_col           (:)  = nan
 
   end subroutine InitAllocate
 
@@ -367,20 +367,20 @@ contains
          avgflag='A', long_name='total patch-level nitrogen', &
          ptr_patch=this%totn_patch)
 
-    this%foodn_patch(begp:endp) = spval
-    call hist_addfld1d (fname='FOODN', units='gN/m^2', &
-               avgflag='A', long_name='total pft-level food N', &
-               ptr_patch=this%foodn_patch)
-    
-    this%grain_harvestn_patch(begp:endp) = spval
-    call hist_addfld1d (fname='GRAIN_HARVESTN', units='gN/m^2', &
-               avgflag='A', long_name='total pft-level grain harvest N', &
-               ptr_patch=this%grain_harvestn_patch)
+    !this%foodn_patch(begp:endp) = spval
+    !call hist_addfld1d (fname='FOODN', units='gN/m^2', &
+    !           avgflag='A', long_name='total pft-level food N', &
+    !           ptr_patch=this%foodn_patch)
+    !
+    !this%grain_harvestn_patch(begp:endp) = spval
+    !call hist_addfld1d (fname='GRAIN_HARVESTN', units='gN/m^2', &
+    !           avgflag='A', long_name='total pft-level grain harvest N', &
+    !           ptr_patch=this%grain_harvestn_patch)
 
-    this%totfoodn_col(begc:endc) = spval
-    call hist_addfld1d (fname='TOTFOODN', units='gN/m^2', &
-            avgflag='A', long_name='total column-level food nitrogen', &
-            ptr_col=this%totfoodn_col)
+    !this%totfoodn_col(begc:endc) = spval
+    !call hist_addfld1d (fname='TOTFOODN', units='gN/m^2', &
+    !        avgflag='A', long_name='total column-level food nitrogen', &
+    !        ptr_col=this%totfoodn_col)
 
     !-------------------------------
     ! column state variables 
@@ -907,6 +907,12 @@ contains
                               this%grainn_storage_patch(p) + &
                               this%grainn_xfer_patch(p)
              end if
+
+             if ( mxnp > 0 ) then
+                 this%totvegn_patch(p) =         &
+                      this%totvegn_patch(p)    + &
+                      this%leafn_senescent_patch(p)
+             end if
        end do
      end if
 
@@ -1087,6 +1093,12 @@ contains
                this%grainn_storage_patch(p)     + &
                this%grainn_xfer_patch(p) + &
                this%cropseedn_deficit_patch(p)
+       end if
+
+       if ( mxnp > 0 ) then
+          this%dispvegn_patch(p) =         &
+               this%dispvegn_patch(p)    + &
+               this%leafn_senescent_patch(p)
        end if
 
        ! total vegetation nitrogen (TOTVEGN)

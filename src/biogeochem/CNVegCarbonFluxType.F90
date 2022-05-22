@@ -17,7 +17,7 @@ module CNVegCarbonFluxType
   use clm_varctl                         , only : use_grainproduct
   use clm_varctl                         , only : iulog
   use landunit_varcon                    , only : istsoil, istcrop, istdlak 
-  use pftconMod                          , only : npcropmin, mxnp
+  use pftconMod                          , only : npcropmin, mxnp, pftcon
   use LandunitType                       , only : lun                
   use ColumnType                         , only : col                
   use PatchType                          , only : patch                
@@ -3920,6 +3920,11 @@ contains
           this%cpool_grain_storage_gr_patch(i)  = value_patch
           this%transfer_grain_gr_patch(i)       = value_patch
           this%grainc_storage_to_xfer_patch(i)  = value_patch
+          this%deadstemc_to_litter_patch(i)     = value_patch
+          this%livecrootc_to_litter_patch(i)    = value_patch
+          this%deadcrootc_to_litter_patch(i)    = value_patch
+          !add dead stem, live/dead coarse root for all crops for consistency
+          !(Y.Fan)
        end do
     end if
 
@@ -4377,6 +4382,16 @@ contains
                   this%litfall_patch(p) + &
                   this%grainc_to_food_patch(p)
           end if
+
+          if (pftcon%woody(patch%itype(p)) == 1._r8) then       
+            this%litfall_patch(p) =      &
+                 this%litfall_patch(p) + &
+                 this%deadstemc_to_litter_patch(p)  + &
+                 this%livecrootc_to_litter_patch(p) + &
+                 this%deadcrootc_to_litter_patch(p)
+          end if
+           !add dead stem, live/dead coarse root for woody crops for consistency
+           !(Y.Fan)
        end if
 
        ! update the annual litfall accumulator, for use in mortality code

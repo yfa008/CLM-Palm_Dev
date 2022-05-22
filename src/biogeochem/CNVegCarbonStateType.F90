@@ -84,14 +84,14 @@ module CNVegCarbonStateType
      real(r8), pointer :: totecosysc_col           (:) ! (gC/m2) total ecosystem carbon, incl veg but excl cpool 
 
      !oil palm related new state variables  (Y.Fan)
-     real(r8), pointer :: foodc_patch              (:) ! (gC/m2) pft-level food C
-     real(r8), pointer :: grain_harvestc_patch     (:) ! (gC/m2) pft-level harvested grain C, for each harvest
+     !real(r8), pointer :: foodc_patch              (:) ! (gC/m2) pft-level food C
+     !real(r8), pointer :: grain_harvestc_patch     (:) ! (gC/m2) pft-level harvested grain C, for each harvest
      real(r8), pointer :: pleafc_patch             (:,:) ! (gC/m2) phytomer leaf C
      real(r8), pointer :: pgrainc_patch            (:,:) ! (gC/m2) phytomer grain C
      real(r8), pointer :: pleafc_xfer_patch        (:,:) ! (gC/m2) phytomer leaf C transfer
      real(r8), pointer :: pleafc_storage_patch     (:,:) ! (gC/m2) phytomer leaf C storage
      real(r8), pointer :: leafc_senescent_patch    (:)   ! (gC/m2) leaf C saved for pruning and transferring to litter pool
-     real(r8), pointer :: totfoodc_col             (:)   ! (gC/m2) total column food carbon
+     !real(r8), pointer :: totfoodc_col             (:)   ! (gC/m2) total column food carbon
 
    contains
 
@@ -274,14 +274,14 @@ contains
     allocate(this%totc_col                 (begc:endc)) ; this%totc_col                 (:) = nan
     allocate(this%totecosysc_col           (begc:endc)) ; this%totecosysc_col           (:) = nan
 
-    allocate(this%foodc_patch              (begp:endp))             ; this%foodc_patch          (:) = nan
-    allocate(this%grain_harvestc_patch     (begp:endp))             ; this%grain_harvestc_patch (:) = nan
+    !allocate(this%foodc_patch              (begp:endp))             ; this%foodc_patch          (:) = nan
+    !allocate(this%grain_harvestc_patch     (begp:endp))             ; this%grain_harvestc_patch (:) = nan
     allocate(this%pleafc_patch             (begp:endp,1:mxnp))      ; this%pleafc_patch         (:,:) = nan
     allocate(this%pgrainc_patch            (begp:endp,1:mxnp))      ; this%pgrainc_patch        (:,:) = nan
     allocate(this%pleafc_xfer_patch        (begp:endp,1:mxnp))      ; this%pleafc_xfer_patch    (:,:) = nan
     allocate(this%pleafc_storage_patch     (begp:endp,1:mxnp))      ; this%pleafc_storage_patch (:,:) = nan
     allocate(this%leafc_senescent_patch    (begp:endp))             ; this%leafc_senescent_patch (:) = nan
-    allocate(this%totfoodc_col             (begc:endc))             ; this%totfoodc_col        (:)  = nan
+    !allocate(this%totfoodc_col             (begc:endc))             ; this%totfoodc_col        (:)  = nan
 
   end subroutine InitAllocate
 
@@ -503,15 +503,15 @@ contains
             avgflag='A', long_name='total ecosystem carbon, incl veg but excl cpool and product pools', &
             ptr_col=this%totecosysc_col)
        
-       this%foodc_patch(begp:endp) = spval
-       call hist_addfld1d (fname='FOODC', units='gC/m^2', &
-               avgflag='A', long_name='total pft-level food carbon', &
-               ptr_patch=this%foodc_patch)
-       
-       this%grain_harvestc_patch(begp:endp) = spval
-       call hist_addfld1d (fname='GRAIN_HARVESTC', units='gC/m^2', &
-               avgflag='A', long_name='total pft-level grain harvest carbon', &
-               ptr_patch=this%grain_harvestc_patch)
+       !this%foodc_patch(begp:endp) = spval
+       !call hist_addfld1d (fname='FOODC', units='gC/m^2', &
+       !        avgflag='A', long_name='total pft-level food carbon', &
+       !        ptr_patch=this%foodc_patch)
+       !
+       !this%grain_harvestc_patch(begp:endp) = spval
+       !call hist_addfld1d (fname='GRAIN_HARVESTC', units='gC/m^2', &
+       !        avgflag='A', long_name='total pft-level grain harvest carbon', &
+       !        ptr_patch=this%grain_harvestc_patch)
 
        if ( mxnp>0 ) then
        this%pleafc_patch(begp:endp,1:mxnp) = spval
@@ -530,10 +530,10 @@ contains
                ptr_patch=this%pleafc_storage_patch, default='inactive')
        end if
 
-       this%totfoodc_col(begc:endc) = spval
-       call hist_addfld1d (fname='TOTFOODC', units='gC/m^2', &
-            avgflag='A', long_name='total column-level food C', &
-            ptr_col=this%totfoodc_col)
+       !this%totfoodc_col(begc:endc) = spval
+       !call hist_addfld1d (fname='TOTFOODC', units='gC/m^2', &
+       !     avgflag='A', long_name='total column-level food C', &
+       !     ptr_col=this%totfoodc_col)
 
     end if
 
@@ -1507,6 +1507,14 @@ contains
                          this%cropseedc_deficit_patch(i)  = 0._r8
                       end if
 
+                      if ( mxnp > 0 ) then
+                        this%pleafc_patch(p,:)             = 0._r8
+                        this%pgrainc_patch(p,:)            = 0._r8
+                        this%pleafc_xfer_patch(p,:)        = 0._r8
+                        this%pleafc_storage_patch(p,:)     = 0._r8
+                        this%leafc_senescent_patch(p)      = 0._r8
+                      end if
+
                       ! calculate totvegc explicitly so that it is available for the isotope 
                       ! code on the first time step.
 
@@ -1539,6 +1547,12 @@ contains
                               this%grainc_patch(i)         + &
                               this%grainc_storage_patch(i) + &
                               this%grainc_xfer_patch(i)
+                      end if
+
+                      if ( mxnp > 0 ) then
+                         this%totvegc_patch(i) =         &
+                              this%totvegc_patch(i)    + &
+                              this%leafc_senescent_patch(i)
                       end if
 
                    endif
@@ -2540,6 +2554,12 @@ contains
           this%dispvegc_patch(p) =            &
                this%dispvegc_patch(p)       + &
                this%grainc_patch(p)
+       end if
+
+       if ( mxnp > 0 ) then
+          this%dispvegc_patch(p) =         &
+               this%dispvegc_patch(p)    + &
+               this%leafc_senescent_patch(p)
        end if
 
        ! total vegetation carbon, excluding cpool (TOTVEGC)

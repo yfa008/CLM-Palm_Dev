@@ -44,7 +44,13 @@ module CNVegStateType
      integer  , pointer :: peaklai_patch               (:)     ! patch 1: max allowed lai; 0: not at max
      !integer  , pointer :: plaipeak_patch              (:)     ! peaklai indicator for each phytomer (defined in CropType)
      integer  , pointer :: idop_patch                  (:)     ! patch date of planting
-	 
+     integer  , pointer :: yrop_patch(:)                       ! year of planting (Y.Fan)
+     integer  , pointer :: idpp_patch(:)                       ! days past planting (Y.Fan)
+     integer  , pointer :: idpp2_patch(:)                      ! idpp saved from phase 2 (Y.Fan)
+     real(r8) , pointer :: aleaf0_patch                (:)     ! initial leaf allocation coefficient saved for perennial crops (Y.Fan)
+     real(r8) , pointer :: huigrain2_patch             (:)     ! huigrain for perennial crops after the initial harvest (Y.Fan)
+     real(r8) , pointer :: gddmaturity2_patch          (:)     ! GDD needed for subsequent harvests of perennial crops (ddays) (Y.Fan)
+ 
      real(r8) , pointer :: gdp_lf_col                  (:)     ! col global real gdp data (k US$/capita)
      real(r8) , pointer :: peatf_lf_col                (:)     ! col global peatland fraction data (0-1)
      integer  , pointer :: abm_lf_col                  (:)     ! col global peak month of crop fire emissions 
@@ -209,6 +215,12 @@ contains
     allocate(this%peaklai_patch       (begp:endp))                   ; this%peaklai_patch       (:)   = 0
 
     allocate(this%idop_patch          (begp:endp))                   ; this%idop_patch          (:)   = huge(1)
+    allocate(this%yrop_patch          (begp:endp))                   ; this%yrop_patch          (:)   = 0 
+    allocate(this%idpp_patch          (begp:endp))                   ; this%idpp_patch          (:)   = 0
+    allocate(this%idpp2_patch         (begp:endp))                   ; this%idpp2_patch         (:)   = 0
+    allocate(this%aleaf0_patch        (begp:endp))                   ; this%aleaf0_patch        (:)   = spval
+    allocate(this%gddmaturity2_patch  (begp:endp))                   ; this%gddmaturity2_patch  (:)   = spval
+    allocate(this%huigrain2_patch     (begp:endp))                   ; this%huigrain2_patch     (:)   = spval
 
     allocate(this%gdp_lf_col          (begc:endc))                   ;
     allocate(this%peatf_lf_col        (begc:endc))                   ; 
@@ -906,6 +918,32 @@ contains
        call restartvar(ncid=ncid, flag=flag, varname='grain_flag', xtype=ncd_double,  &
             dim1name='pft', long_name='', units='', &
             interpinic_flag='interp', readvar=readvar, data=this%grain_flag_patch)
+
+     ! added for perennial evergreen crops (Y.Fan)
+       call restartvar(ncid=ncid, flag=flag,  varname='yrop', xtype=ncd_int,  &
+            dim1name='pft', long_name='Year of planting', units='', &
+            interpinic_flag='interp', readvar=readvar, data=this%yrop_patch)
+
+       call restartvar(ncid=ncid, flag=flag,  varname='idpp', xtype=ncd_int,  &
+            dim1name='pft', long_name='Days past planting', units='days', &
+            interpinic_flag='interp', readvar=readvar, data=this%idpp_patch)
+
+       call restartvar(ncid=ncid, flag=flag,  varname='idpp2', xtype=ncd_int,  &
+            dim1name='pft', long_name='Saved idpp from phase2 for perennial crops', units='days', &
+            interpinic_flag='interp', readvar=readvar, data=this%idpp2_patch)
+
+       call restartvar(ncid=ncid, flag=flag,  varname='aleaf0', xtype=ncd_double,  &
+            dim1name='pft', long_name='Saved initial leaf allocation coefficient for perennial crops ', units='', &
+            interpinic_flag='interp', readvar=readvar, data=this%aleaf0_patch)
+
+       call restartvar(ncid=ncid, flag=flag,  varname='huigrain2', xtype=ncd_double,  &
+            dim1name='pft', long_name='heat unit index needed to begin grainfill for perennial crops', units='', &
+            interpinic_flag='interp', readvar=readvar, data=this%huigrain2_patch)
+
+       call restartvar(ncid=ncid, flag=flag,  varname='gddmaturity2', xtype=ncd_double,  &
+            dim1name='pft', long_name='Growing degree days needed to next harvest for perennial crops', units='ddays', &
+            interpinic_flag='interp', readvar=readvar, data=this%gddmaturity2_patch)
+
     end if
     if ( flag == 'read' .and. num_reseed_patch > 0 )then
        if ( masterproc ) write(iulog, *) 'Reseed dead plants for CNVegState'

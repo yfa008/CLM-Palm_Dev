@@ -275,7 +275,9 @@ contains
             cs_veg%grainc_patch(p)          = cs_veg%grainc_patch(p)         + cf_veg%grainc_xfer_to_grainc_patch(p)*dt
             cs_veg%grainc_xfer_patch(p)     = cs_veg%grainc_xfer_patch(p)    - cf_veg%grainc_xfer_to_grainc_patch(p)*dt
 
-
+            !grainc_xfer and grainc_storage pools and fluxes are not really used
+            !in CNPhenolgy or allocation processes for annual crops;
+            !no need to add them for pgrain either (Y.Fan)  
             if (phytomer(ivt(p)) > 0) then ! phytomer-based (Y.Fan)
                cs_veg%pleafc_patch(p,:)        = cs_veg%pleafc_patch(p,:)   + cf_veg%pleafc_xfer_to_pleafc_patch(p,:)*dt
                cs_veg%pleafc_xfer_patch(p,:)   = cs_veg%pleafc_xfer_patch(p,:)  - cf_veg%pleafc_xfer_to_pleafc_patch(p,:)*dt

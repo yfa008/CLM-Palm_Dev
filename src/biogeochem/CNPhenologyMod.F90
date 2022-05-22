@@ -260,6 +260,7 @@ contains
        leaf_prof_patch, froot_prof_patch, phase)
     ! !USES:
     use CNSharedParamsMod, only: use_fun
+    use pftconMod        , only: mxnp  ! max number of phytomers for oil palm
     !
     ! !DESCRIPTION:
     ! Dynamic phenology routine for coupled carbon-nitrogen code (CN)
@@ -318,16 +319,21 @@ contains
             cnveg_carbonstate_inst, cnveg_nitrogenstate_inst, cnveg_carbonflux_inst, cnveg_nitrogenflux_inst)
 
        if (doalb .and. num_pcropp > 0 ) then
-          call CropPhenology(num_pcropp, filter_pcropp, &
-               waterdiagnosticbulk_inst, temperature_inst, crop_inst, canopystate_inst, cnveg_state_inst, &
-               cnveg_carbonstate_inst, cnveg_nitrogenstate_inst, cnveg_carbonflux_inst, cnveg_nitrogenflux_inst, &
-               c13_cnveg_carbonstate_inst, c14_cnveg_carbonstate_inst)
-          !PalmPhenology routine has a special filter for palm pfts, no need the phytomer trigger here (Y.Fan)
+
+         !palm and other perennial crops use the same perennial flag
+         !only set evergreen flag for oil palm, otherwise the it will call the CNEvergreenPhenology
+         !PalmPhenology first in the condition because palms are crop and perennial, only call one of them
+         if ( mxnp > 0) then
           call PalmPhenology(num_pcropp, filter_pcropp, &
                waterdiagnosticbulk_inst, temperature_inst, crop_inst, canopystate_inst, cnveg_state_inst, &
                cnveg_carbonstate_inst, cnveg_nitrogenstate_inst, cnveg_carbonflux_inst, cnveg_nitrogenflux_inst, &
                c13_cnveg_carbonstate_inst, c14_cnveg_carbonstate_inst)
-          !palm and other perennial evergreen crops use a new perennial flag (Y.Fan)
+         else
+          call CropPhenology(num_pcropp, filter_pcropp, &
+               waterdiagnosticbulk_inst, temperature_inst, crop_inst, canopystate_inst, cnveg_state_inst, &
+               cnveg_carbonstate_inst, cnveg_nitrogenstate_inst, cnveg_carbonflux_inst, cnveg_nitrogenflux_inst, &
+               c13_cnveg_carbonstate_inst, c14_cnveg_carbonstate_inst)
+         end if
        end if
     else if ( phase == 2 ) then
        ! the same onset and offset routines are called regardless of
@@ -1511,7 +1517,6 @@ contains
     integer c         ! column indices
     integer g         ! gridcell indices
     integer h         ! hemisphere indices
-    integer idpp      ! number of days past planting
     real(r8) :: dtrad ! radiation time step delta t (seconds)
     real(r8) crmcorn  ! comparitive relative maturity for corn
     real(r8) ndays_on ! number of days to fertilize
@@ -1522,7 +1527,7 @@ contains
     integer buddays   ! days for leaf storage (bud) growth period
     real(r8) gddperday ! average GDD per day (base 15 degree)
     integer np0, np1, np2 !temporary phytomer number
-    integer update_rank(1:mxnp) !phytomer rank update
+    !integer update_rank(1:mxnp) !phytomer rank update
 
     !------------------------------------------------------------------------
 
@@ -1562,8 +1567,8 @@ contains
          gdd1520           =>    temperature_inst%gdd1520_patch                , & ! Input:  [real(r8) (:)]  20 yr mean of gdd15
          gdd15             =>    temperature_inst%gdd15_patch                  , & ! Input:  [real(r8) (:)]  growing deg. days base 15 deg C (ddays) (Y.Fan)
 
-         idpp              =>    crop_inst%idpp_patch                                    , & ! Output: [integer (:)]  days past planting
-         yrop              =>    crop_inst%yrop_patch                                    , & ! Output: [integer (:)]  year of planting (added Y.Fan)
+         idpp              =>    cnveg_state_inst%idpp_patch                             , & ! Output: [integer (:)]  days past planting
+         yrop              =>    cnveg_state_inst%yrop_patch                             , & ! Output: [integer (:)]  year of planting (added Y.Fan)
          lfoutday          =>    crop_inst%lfoutday_patch                                , & ! Output: [integer (:,:)]  date of leaf/phytomer emergence (Y.Fan)
          lfoutyr           =>    crop_inst%lfoutyr_patch                                 , & ! Output: [integer (:,:)]  year of leaf/phytomer emergence (Y.Fan)
          lfdays            =>    crop_inst%lfdays_patch                                  , & ! Output: [integer (:,:)]  days past leaf emergence for each phytomer (Y.Fan)
@@ -1578,7 +1583,7 @@ contains
          grnmatnp          =>    crop_inst%grnmatnp_patch                                , & ! Output: [real(r8) (:,:)]  hui needed for grain maturity of successive phytomers
          np                =>    crop_inst%np_patch                                      , & ! Output: [integer (:)]   total number of phytomers having appeared so far
          rankp             =>    crop_inst%rankp_patch                                   , & ! Output: [integer (:,:)]  rank of phytomers from 1=youngest to np=oldest and 0=dead
-         livep             =>    crop_inst%livep_patch                                   , & ! Output: [logical (:,:)]  Flag, true if this phytomer is alive
+         livep             =>    crop_inst%livep_patch                                   , & ! Output: [real(r8) (:,:)]  Flag, 1 if this phytomer is alive
  
          fertnitro         =>    crop_inst%fertnitro_patch                     , & ! Input:  [real(r8) (:) ]  fertilizer nitrogen
          hui               =>    crop_inst%gddplant_patch                      , & ! Input:  [real(r8) (:) ]  gdd since planting (gddplant)
@@ -1721,7 +1726,7 @@ contains
              lfoutday(p,:) = NOT_Emerged ! all phytomers initialized to NOT_Emerged when .not. croplive
              lfoutyr(p,:) = NOT_Emerged
              lfdays(p,:) = 0
-             livep(p,:) = .false.       ! all phytomers initialized to zero (not alive) when .not. croplive
+             livep(p,:) = 0._r8       ! all phytomers initialized to zero (not alive) when .not. croplive
              rankp(p,:) = 0
              np(p) = 0
          end if ! palm not live nor planted
@@ -1826,7 +1831,7 @@ contains
                          rankp(p,(np(p)+1):(np(p)+np0)) = (/-1:(-np0):-1/)       !unexpanded phytomers have negative ranks
                          np(p) = np(p) + np0
                      end if
-                     livep(p,1:np(p)) = .true.
+                     livep(p,1:np(p)) = 1._r8 
                      !estimate the expansion/maturity/harvest time for each existing phytomer
                      !assume the youngest phytomer is initiated at planting (not expanded yet)
                      huileafnp(p,1:np(p)) = (/ ((huileaf(p)-(i-1)*phyllochron(ivt(p))), i=np(p), 1, -1) /)
@@ -1838,7 +1843,7 @@ contains
                      huilfendnp(p,1:np(p)) = (/ ((huilfend(p)-(i-1)*phyllochron(ivt(p))), i=np(p), 1, -1) /) 
                   else !from seed
                      np(p) = 1  !first phytomer initiated after seed planting
-                     livep(p,1) = .true.
+                     livep(p,1) = 1._r8
                      rankp(p,1) = -1
                      pleafc_xfer(p,1) = leafc_xfer(p)
                      pleafn_xfer(p,1) = pleafc_xfer(p,1) / leafcn(ivt(p))
@@ -1881,7 +1886,7 @@ contains
              !turn on successive phytomers after each leaf initiation, later turn off by ageing or pruning
              if (np(p) > 0 .and. hui(p) >= huileafnp(p, np(p)+1)) then
                 np(p) = np(p) + 1
-                livep(p,np(p)) = .true.
+                livep(p,np(p)) = 1._r8
                 rankp(p,np(p)) = minval(rankp(p,:)) - 1
                 huilfexpnp(p,np(p)) = huileafnp(p,np(p)) + lfexp(ivt(p))  !pre-expansion
                 huilfmatnp(p,np(p)) = huilfexpnp(p,np(p)) + lfmat(ivt(p)) !post-expansion
@@ -1895,7 +1900,7 @@ contains
              ! enter phase 2 from leaf initiation to leaf expansion:
              ! switch from storage growth (bud & "spear" leaf stage) to photosynthetic active LAI growth
              np2 = sum(maxloc(rankp(p,:), mask=rankp(p,:) < 0)) !record the index of current largest unexpanded phytomer (rankp=-1)
-             if (livep(p,np2) == .true. .and. rankp(p,np2) < 0 .and. &
+             if (livep(p,np2) == 1._r8 .and. rankp(p,np2) < 0 .and. &
                 hui(p) >= huilfexpnp(p,np2)) then
                 !the largest "spear" leaf expands and its rank changes from -1 to +1
                 rankp(p,np2) = 1
@@ -1947,7 +1952,7 @@ contains
                      !if dynamic CN scheme, only retranslocate leaf N gradually during senescence (LAI no change)
                      !but use pruning to move leaf C to litter
                  elsewhere (hui(p) >= huilfsennp(p,:) ) !start of senescence
-                     livep(p,:) = .false.
+                     livep(p,:) = 0._r8
 
                      !a constant bglfr_p value gives ~90% turnover within the senescence period (non-linear decreasing rate)
                      bglfr_p(p,:) = 2._r8/((mxgdd(ivt(p)) - lfsen(ivt(p))) / gddperday * secspday)
@@ -2142,7 +2147,7 @@ contains
     integer c         ! column indices
     integer g         ! gridcell indices
     integer h         ! hemisphere indices
-    integer idpp      ! number of days past planting
+    !integer idpp      ! number of days past planting
     real(r8) :: dtrad ! radiation time step delta t (seconds)
     real(r8) dayspyr  ! days per year
     real(r8) crmcorn  ! comparitive relative maturity for corn
@@ -2195,8 +2200,9 @@ contains
          offset_counter    =>    cnveg_state_inst%offset_counter_patch         , & ! Output: [real(r8) (:) ]  offset counter                                    
 
          perennial         =>    pftcon%perennial                              , & ! Input:  [integer (:)]  binary flag for perennial crop phenology (1=perennial, 0=not perennial) (added by Y.Fan)
-         gddmaturity2      =>    crop_inst%gddmaturity2_patch           , & ! Input:  [real(r8) (:)   ]  gdd needed to harvest since previous harvest (Y.Fan)
-         huigrain2         =>    crop_inst%huigrain2_patch              , & ! Input:  [real(r8) (:)]  gdd needed from last harvest to start of next grainfill (Y.Fan)
+         idpp              =>    cnveg_state_inst%idpp_patch                   , & ! Output: [integer (:)]  days past planting (Y.Fan)
+         gddmaturity2      =>    cnveg_state_inst%gddmaturity2_patch           , & ! Input:  [real(r8) (:)   ]  gdd needed to harvest since previous harvest (Y.Fan)
+         huigrain2         =>    cnveg_state_inst%huigrain2_patch              , & ! Input:  [real(r8) (:)]  gdd needed from last harvest to start of next grainfill (Y.Fan)
          harvest_flag      =>    crop_inst%harvest_flag_patch                 , & ! Output: [real(r8) (:)]  harvest flag (added by Y.Fan)
          grainc            =>    cnveg_carbonstate_inst%grainc_patch          , & ! Input:  [real(r8) (:) ]  (gC/m2) grain C
          leafc_xfer        =>    cnveg_carbonstate_inst%leafc_xfer_patch       , & ! Output: [real(r8) (:) ]  (gC/m2)   leaf C transfer                           
@@ -2607,16 +2613,16 @@ contains
             ! add new counter for perennial crops (Y.Fan)
             if (perennial(ivt(p)) == 1) then
                if (int(dayspyr)*(nyrs_crop_active(p)-1) <= mxmat(ivt(p))) then !nyrs=1 for the start of first year
-                  idpp = int(dayspyr)*(nyrs_crop_active(p)-1) + jday - idop(p)
+                  idpp(p) = int(dayspyr)*(nyrs_crop_active(p)-1) + jday - idop(p)
                else !mod is to get the reminder for each rotation; minus 1 to account for the offset
 		    !because crops are allowed to be planted only once a year, controlled by flag cropplant(p)
-		  idpp = int(dayspyr)*(mod((nyrs_crop_active(p)-1), nint(mxmat(ivt(p))/dayspyr)) - 1) + jday - idop(p)
+		  idpp(p) = int(dayspyr)*(mod((nyrs_crop_active(p)-1), nint(mxmat(ivt(p))/dayspyr)) - 1) + jday - idop(p)
                end if
             else  !only for annual or biannual crops
                if (jday >= idop(p)) then
-                  idpp = jday - idop(p)
+                  idpp(p) = jday - idop(p)
                else
-                  idpp = int(dayspyr) + jday - idop(p)
+                  idpp(p) = int(dayspyr) + jday - idop(p)
                end if
             end if
             ! onset_counter initialized to zero when .not. croplive
@@ -2631,7 +2637,7 @@ contains
                hui(p) = max(hui(p),huigrain(p))
             endif
 
-            if (leafout(p) >= huileaf(p) .and. hui(p) < huigrain(p) .and. idpp < mxmat(ivt(p))) then
+            if (leafout(p) >= huileaf(p) .and. hui(p) < huigrain(p) .and. idpp(p) < mxmat(ivt(p))) then
                cphase(p) = 2._r8
                if (abs(onset_counter(p)) > 1.e-6_r8) then
                   onset_flag(p)    = 1._r8
@@ -2659,7 +2665,7 @@ contains
 
 	    !New harvest for perennial plants to keep them alive after several harvests.
 	    !A new harvest flag is added. (Y.Fan 06.06.2014)
-            else if (hui(p) >= gddmaturity(p) .and. idpp < mxmat(ivt(p)) .and. &
+            else if (hui(p) >= gddmaturity(p) .and. idpp(p) < mxmat(ivt(p)) .and. &
                      perennial(ivt(p)) == 1) then
                gddmaturity2(p) = huigrain2(p) + (1._r8 - grnfill(ivt(p))) * gddmaturity(p) !gdd till next harvests
               !part of leaves are pruned off at each harvest (at one-time step)
@@ -2690,7 +2696,7 @@ contains
                end if
 			   
             ! trigger full litterfall (offset) when maximum age is reached and start rotation (added by Y.Fan)
-            else if (hui(p) >= gddmaturity(p) .and. idpp >= mxmat(ivt(p)) .and. &
+            else if (hui(p) >= gddmaturity(p) .and. idpp(p) >= mxmat(ivt(p)) .and. &
                      perennial(ivt(p)) == 1) then
                if (harvdate(p) >= NOT_Harvested) harvdate(p) = jday
                croplive(p) = .false.     !
@@ -2704,7 +2710,7 @@ contains
                   leafn_xfer(p) = leafc_xfer(p) / leafcn(ivt(p))
                end if
 
-            else if (hui(p) >= gddmaturity(p) .or. idpp >= mxmat(ivt(p))) then
+            else if (hui(p) >= gddmaturity(p) .or. idpp(p) >= mxmat(ivt(p))) then
                if (harvdate(p) >= NOT_Harvested) harvdate(p) = jday
                croplive(p) = .false.     ! no re-entry in greater if-block
                cphase(p) = 4._r8
@@ -3293,7 +3299,7 @@ contains
              !adjust mxlivenp and leaf_long/mxgdd so as to prune nearly every 6 month
              !  if (nlevcan > 1 .and. prune(p) .and. livep(p,n) == 0._r8) then
              if (prune(p)) then
-               where (livep(p,:) == .false.)
+               where (livep(p,:) == 0._r8)
                   pleafc_to_litter(p,:) = pleafc(p,:) /dt  !all remaining leafc moves to litter
                   pleafn_to_litter(p,:) = pleafn(p,:) /dt  !no N retranslocation when pruning
                   rankp(p,:) = 0  !update rankp only after finishing pruning and C/N update
@@ -3350,19 +3356,22 @@ contains
                wood_harvestc(p)                     = deadstemc(p)     * t1 
                wood_harvestn(p)                     = deadstemn(p)     * t1 
    
-               !grain C/N all saved in food export pool (totfoodc)
-               grainc_to_food(p) = t1 *grainc(p)  + cpool_to_grainc(p)
-               grainn_to_food(p) = t1 *grainn(p)  + npool_to_grainn(p)
-   
                ! clear-up phytomer pools too
-               pgrainc_to_food(p,:)           = t1 * pgrainc(p,:)  !+ cpool_to_pgrainc(p,:)
-               pgrainn_to_food(p,:)           = t1 * pgrainn(p,:)  !+ npool_to_pgrainn(p,:)
-               pleafc_to_litter(p,:)          = t1 * pleafc(p,:) !+ cpool_to_pleafc(p,:)
-               pleafn_to_litter(p,:)          = t1 * pleafn(p,:) !+ npool_to_pleafn(p,:)
-               pleafc_storage_to_litter(p,:)  = t1 * pleafc_storage(p,:) !+ cpool_to_pleafc_storage(p,:)
-               pleafn_storage_to_litter(p,:)  = t1 * pleafn_storage(p,:) !+ npool_to_pleafn_storage(p,:)
+               pgrainc_to_food(p,:)           = t1 * pgrainc(p,:)  + cpool_to_pgrainc(p,:)
+               pgrainn_to_food(p,:)           = t1 * pgrainn(p,:)  + npool_to_pgrainn(p,:)
+               pleafc_to_litter(p,:)          = t1 * pleafc(p,:) + cpool_to_pleafc(p,:)
+               pleafn_to_litter(p,:)          = t1 * pleafn(p,:) + npool_to_pleafn(p,:)
+               pleafc_storage_to_litter(p,:)  = t1 * pleafc_storage(p,:) + cpool_to_pleafc_storage(p,:)
+               pleafn_storage_to_litter(p,:)  = t1 * pleafn_storage(p,:) + npool_to_pleafn_storage(p,:)
                pleafc_xfer_to_litter(p,:)     = t1 * pleafc_xfer(p,:)
                pleafn_xfer_to_litter(p,:)     = t1 * pleafn_xfer(p,:)
+
+               !grain C/N all saved in food export pool (cropprodc)
+               !grainc_to_food(p) = t1 *grainc(p)  + cpool_to_grainc(p)
+               !grainn_to_food(p) = t1 *grainn(p)  + npool_to_grainn(p)
+               !at final rotation remove all ripe or inmature fruits (YFan,2022)
+               grainc_to_food(p) = sum(pgrainc_to_food(p,:))
+               grainn_to_food(p) = sum(pgrainn_to_food(p,:))  
 
             !for annual crops and trees
             else if (offset_counter(p) == dt) then
@@ -3522,7 +3531,7 @@ contains
          prune                 =>    crop_inst%prune_patch                            , & ! Input:  [real(r8) (:)]  flag for pruning
          np                    =>    crop_inst%np_patch                                      , & ! Input:  [integer (:)]   total number of phytomers having appeared so far
          rankp                 =>    crop_inst%rankp_patch                                   , & ! Input:  [integer (:,:)]  rank of phytomers from 1=youngest to np=oldest and 0=dead
-         livep                 =>    crop_inst%livep_patch                                   , & ! Input:  [logical (:,:)]  Flag, true if this phytomer is alive
+         livep                 =>    crop_inst%livep_patch                                   , & ! Input:  [real(r8) (:,:)]  Flag, 1 if this phytomer is alive
          lfdays                =>    crop_inst%lfdays_patch                                  , & ! Input:  [integer (:,:)]  days past leaf emergence for each phytomer
          pleafc                =>    cnveg_carbonstate_inst%pleafc_patch                     , & ! Input:  [real(r8) (:,:)]  (gC/m2) phytomer leaf C
          pleafn                =>    cnveg_nitrogenstate_inst%pleafn_patch                   , & ! Input:  [real(r8) (:,:)]  (gN/m2) phytomer leaf N

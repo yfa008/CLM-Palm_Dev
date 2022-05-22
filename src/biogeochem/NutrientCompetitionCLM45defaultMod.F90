@@ -757,7 +757,6 @@ contains
          tempmax_retransn      => cnveg_state_inst%tempmax_retransn_patch           , & ! Output: [real(r8) (:)   ]  temporary annual max of retranslocated N pool (gN/m2)
          annsum_potential_gpp  => cnveg_state_inst%annsum_potential_gpp_patch       , & ! Output: [real(r8) (:)   ]  annual sum of potential GPP
          annmax_retransn       => cnveg_state_inst%annmax_retransn_patch            , & ! Output: [real(r8) (:)   ]  annual max of retranslocated N pool
-
          perennial             => pftcon%perennial                                  , & ! Input:  [integer (:)]   binary flag for perennial crop phenology (1=perennial, 0=not perennial) (added by Y.Fan)
          phytomer              => pftcon%phytomer                                   , & ! Input:  [integer (:)]   total number of phytomers in life time (if >0 use phytomer phenology)
          leaf_long             => pftcon%leaf_long                                  , & ! Input:  [real(r8) (:)]  leaf longevity (yrs)
@@ -766,14 +765,14 @@ contains
          a_par                 =>    pftcon%a_par                                   , & ! Input:
          b_par                 =>    pftcon%b_par                                   , & ! Input:
 
-         gddmaturity2          => crop_inst%gddmaturity2_patch               , & ! Input:  [real(r8) (:)   ]  gdd needed to harvest since previous harvest (Y.Fan)
-         huigrain2             => crop_inst%huigrain2_patch                  , & ! Input:  [real(r8) (:)]  gdd needed from last harvest to start of next grainfill (Y.Fan)
-         idpp                  => crop_inst%idpp_patch                       , & ! Input:  [integer (:)]  days past planting (Y.Fan)
-         idpp2                 => crop_inst%idpp2_patch                      , & ! InOut:  [integer (:)]  Saved idpp from phase2 before grainfill starts
-        ! gdd15                 => temperature_inst%gdd15_patch                 , & ! Input:  [real(r8) (:)]  growing deg. days base 15 deg C (ddays) (Y.Fan)
+         idpp                  => cnveg_state_inst%idpp_patch                  , & ! Input:  [integer (:)]  days past planting (Y.Fan)
+         idpp2                 => cnveg_state_inst%idpp2_patch                 , & ! InOut:  [integer (:)]  Saved idpp from phase2 for perennial crops (Y.Fan)
+         aleaf0                => cnveg_state_inst%aleaf0_patch                , & ! Input:  [real(r8) (:)]  initial leaf allocation coefficient for perennial crops (Y.Fan)
+         gddmaturity2          => cnveg_state_inst%gddmaturity2_patch          , & ! Input:  [real(r8) (:)   ]  gdd needed to harvest since previous harvest (Y.Fan)
+         huigrain2             => cnveg_state_inst%huigrain2_patch             , & ! Input:  [real(r8) (:)]  gdd needed from last harvest to start of next grainfill (Y.Fan)
+        !gdd15                 => temperature_inst%gdd15_patch                 , & ! Input:  [real(r8) (:)]  growing deg. days base 15 deg C (ddays) (Y.Fan)
         !gdd1520               => temperature_inst%gdd1520_patch               , & ! Input:  [real(r8) (:)]  20 yr mean of gdd15
-         aleaf0                    => crop_inst%aleaf0_patch                   , & ! Input:  [real(r8) (:)]  initial leaf allocation coefficient
-         livep                     => crop_inst%livep_patch                    , & ! Input:  [logical(r8) (:,:)]  Flag, true if this phytomer is alive
+         livep                     => crop_inst%livep_patch                    , & ! Input:  [real(r8) (:,:)]  Flag, true (1) if this phytomer is alive
          plaipeak                  => crop_inst%plaipeak_patch                 , & ! Input:  [integer (:,:)]   Flag, 1: max allowed lai per phytomer; 0: not at max
          huileafnp                 => crop_inst%huileafnp_patch                , & ! Input:  [real(r8) (:,:)]  hui needed for initiation of successive phytomers
          huilfexpnp                => crop_inst%huilfexpnp_patch               , & ! Input:  [real(r8) (:,:)]  hui needed for leaf expansion of successive phytomers
@@ -966,14 +965,14 @@ contains
 	        ! ==================
 
 		!calculate leaf sink size and update leaf alloc ratio for each phytomer
-		where (livep(p,:) == .false. .or. plaipeak(p,:) == 1) !adjust lai for each phytomer
+		where (livep(p,:) == 0._r8 .or. plaipeak(p,:) == 1) !adjust lai for each phytomer
 			rleafn(p,:) = 0._r8
 		elsewhere (hui(p) >= huileafnp(p,:) .and. hui(p) < huilfexpnp(p,:)) !pre-expansion growth
-			rleafn(p,:) = 1._r8	!use flat rate
+			rleafn(p,:) = 1._r8 !use flat rate
 		elsewhere (hui(p) >= huilfexpnp(p,:) .and. hui(p) < huilfmatnp(p,:)) !post-expansion
 			!   rleafn(p,:) = (1._r8 - (hui(p)-huilfexpnp(p,:))/ &   !simple linear decline
 			!                 (huilfmatnp(p,:)-huilfexpnp(p,:)))
-			rleafn(p,:) = 1._r8	!use flat rate
+			rleafn(p,:) = 1._r8 !use flat rate
 		elsewhere
 			rleafn(p,:) = 0._r8
 		endwhere

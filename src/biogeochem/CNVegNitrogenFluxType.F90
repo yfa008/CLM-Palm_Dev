@@ -1772,6 +1772,11 @@ contains
           this%grainn_storage_to_xfer_patch(i)           = value_patch
           this%soyfixn_patch(i)                          = value_patch
           this%frootn_to_retransn_patch(i)               = value_patch
+          this%deadstemn_to_litter_patch(i)     = value_patch
+          this%livecrootn_to_litter_patch(i)    = value_patch
+          this%deadcrootn_to_litter_patch(i)    = value_patch
+          !add dead stem, live/dead coarse root for all crops for consistency
+          !(Y.Fan)
        end do
     end if
 

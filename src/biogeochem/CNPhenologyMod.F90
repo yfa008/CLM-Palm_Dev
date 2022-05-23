@@ -1695,28 +1695,26 @@ contains
                 harvdate(p)  = NOT_Harvested
   
                 ! At planting, each crop is assigned 1g leaf C/m2 to be transferred to the leaves upon leaf emergence.
-                ! Similar as evergreen PFTs which are initialized with leafc = 1 gC/m2
+                ! Similar as evergreen PFTs which are initialized with leafc = 3 gC/m2
                 ! It could be set as a higher value for crops transplanted from nursery (Y.Fan)
                 ! oil palm transplanted when seedlings between 10 and 20 months (1m tall) after the germinated seed stage.
-                if (transplant(ivt(p)) > 0._r8) then
-                    leafc_xfer(p)     = transplant(ivt(p))/slatop(ivt(p))
+                if (transplant(ivt(p)) > 0._r8) then  ! transplant means initial LAI of seedling
+                    leafc_xfer(p)  = transplant(ivt(p))/slatop(ivt(p))
                 else
-                    !leafc_xfer(p) = 1._r8
                     leafc_xfer(p)  = initial_seed_at_planting  ! now the initial seed is a variable 
                 end if
                 leafn_xfer(p) = leafc_xfer(p) / leafcn(ivt(p)) ! An equivalent amount of seed leaf N is assigned with onset
                 crop_seedc_to_leaf(p) = leafc_xfer(p)/dt
                 crop_seedn_to_leaf(p) = leafn_xfer(p)/dt
-                !dwt_seedc_to_leaf(c) = dwt_seedc_to_leaf(c) + leafc_xfer(p)/dt !(gC/m2/s) transfer from seed source to PFT-level (old in CLM4.5, updated to above lines in CLM5)
-                !dwt_seedn_to_leaf(c) = dwt_seedn_to_leaf(c) + leafn_xfer(p)/dt
 
                 !for woody crops like palm, assign 10% seeding C for livestem at transplanting
-                if (pftcon%woody(ivt(p)) == 1._r8) then 
+                !(do not set woody=1 for oil palm, this flag is reserved for tree PFTs
+                !if (pftcon%woody(ivt(p)) == 1._r8) then 
                    livestemc_xfer(p) = 0.1_r8 * leafc_xfer(p)
                    livestemn_xfer(p) = livestemc_xfer(p) / livewdcn(ivt(p))
                    crop_seedc_to_livestem(c) = livestemc_xfer(p)/dt
                    crop_seedn_to_livestem(c) = livestemn_xfer(p)/dt
-                end if
+                !end if
   
              end if
   
@@ -3085,18 +3083,19 @@ contains
                livecrootn_xfer_to_livecrootn(p) = t1 * livecrootn_xfer(p)
                deadcrootn_xfer_to_deadcrootn(p) = t1 * deadcrootn_xfer(p)
             end if
-            !(Y.Fan) Evergreen woody PFTs have no onset period and thus no
-            !special transfer of stored C and N from transfer pools to displayed pools
-            !the above woody condition only apply to decidious tree PFTs
 
             !phytomer-based structure (Y.Fan):
             !For oil palm, use initial C transfer to represent transplanting
-            !from nursery to field
+            !from nursery to field (incl. leafc_xfer and livestemc_xfer)
             !depending on the amount of initial leafc_xfer, first phytomers get
             !allocation not exceeding the maximum per leaf
             if (phytomer(ivt(p)) > 0) then
                pleafc_xfer_to_pleafc(p,:) = t1 * pleafc_xfer(p,:)
                pleafn_xfer_to_pleafn(p,:) = t1 * pleafn_xfer(p,:)
+               !below two lines added for oil palm, so that it can avoid using the
+               !woody flag (Y.Fan 2022)
+               livestemc_xfer_to_livestemc(p)   = t1 * livestemc_xfer(p)
+               livestemn_xfer_to_livestemn(p)   = t1 * livestemn_xfer(p)
             end if
 
          end if ! end if onset period
@@ -3105,8 +3104,9 @@ contains
          ! deciduous algorithm). In this case, all of the mass in the transfer
          ! pools should be moved to displayed growth in each timestep.
 
-         !for palm post-expansion period: move transfer pools to displayed growth
-         !the xfer pool is refilled and depleted at every timestep (Y.Fan)
+         !for palm phytomer post-expansion period: 
+         !(bgtr only used for leaves) move transfer pools to displayed growth
+         !the leaf xfer pool is refilled and depleted at every timestep (Y.Fan)
          if (bgtr(p) > 0._r8 .and. phytomer(ivt(p)) > 0) then
             pleafc_xfer_to_pleafc(p,:) = pleafc_xfer(p,:) / dt
             pleafn_xfer_to_pleafn(p,:) = pleafn_xfer(p,:) / dt
@@ -3730,16 +3730,6 @@ contains
          ! only calculate these fluxes for woody types
          if (woody(ivt(p)) > 0._r8) then
 
-          !for oil palm, use the same turnover rate for leaf and froot except that 6% of stem is assumed alive according to van Kraalingen et al. 1989
-          !oil palm's trunk below the lowest leaf contains only 6% actively respiring tissue compared to a 100% active upper trunk section
-          !it is equivalent to consider that most stem C (94%) accumulated during the life of a leaf attached to the stem section becomes dead.
-          !only the stem C being accumulated together with alive leaves are considered 100% active (Y.Fan)
-          if (phytomer(ivt(p)) > 0) then
-            livestemc_to_deadstemc(p) = bglfr(p) * livestemc(p)*(1._r8 - 0.06_r8)
-            livestemn_to_deadstemn(p) = livestemc_to_deadstemc(p) / deadwdcn(ivt(p))
-            livestemn_to_retransn(p) = bglfr(p) * livestemn(p)*(1._r8 - 0.06_r8) - livestemn_to_deadstemn(p)
-          else
-           !for other woody plants (Y.Fan)
            ! live stem to dead stem turnover
 
             ctovr = livestemc(p) * lwtop
@@ -3784,7 +3774,22 @@ contains
             endif
 
           end if
-         end if
+
+          !for oil palm, use the same turnover rate for leaf and froot except
+          !that 6% of stem is assumed alive according to van Kraalingen et al.1989
+          !oil palm's trunk below the lowest leaf contains only 6% actively
+          !respiring tissue compared to a 100% active upper trunk section
+          !it is equivalent to consider that most stem C (94%) accumulated
+          !during the life of a leaf attached to the stem section becomes dead.
+          !only the stem C being accumulated together with alive leaves are
+          !considered 100% active (Y.Fan)
+          if (phytomer(ivt(p)) > 0) then
+            livestemc_to_deadstemc(p) = bglfr(p) * livestemc(p)*(1._r8 - 0.06_r8)
+            livestemn_to_deadstemn(p) = livestemc_to_deadstemc(p) / deadwdcn(ivt(p))
+            livestemn_to_retransn(p) = bglfr(p) * livestemn(p)*(1._r8 - 0.06_r8) - livestemn_to_deadstemn(p)
+            livecrootc_to_deadcrootc(p) = 0.0_r8
+            livecrootn_to_deadcrootn(p) = 0.0_r8
+          end if
 
       end do
 
@@ -4035,7 +4040,7 @@ contains
                         phenology_n_to_litr_lig_n(c,j) = phenology_n_to_litr_lig_n(c,j) &
                              + livestemn_to_litter(p) * lf_flig(ivt(p)) * wtcol(p) * leaf_prof(p,j)
 
-                        if(woody(ivt(p)) == 1.0_r8) then  !added for woody crop types (Y.Fan)
+                        !if(woody(ivt(p)) == 1.0_r8) then  !added for woody crop types (Y.Fan)
                             !dead stem
                             phenology_c_to_litr_met_c(c,j) = phenology_c_to_litr_met_c(c,j) &
                               + deadstemc_to_litter(p) * lf_flab(ivt(p)) * wtcol(p) * leaf_prof(p,j)
@@ -4080,7 +4085,7 @@ contains
                              + deadcrootn_to_litter(p) * lf_fcel(ivt(p)) * wtcol(p) * leaf_prof(p,j)
                            phenology_n_to_litr_lig_n(c,j) = phenology_n_to_litr_lig_n(c,j) &
                              + deadcrootn_to_litter(p) * lf_flig(ivt(p)) * wtcol(p) * leaf_prof(p,j)
-                        end if
+                        !end if
 
                         if (.not. use_grainproduct) then
                          ! grain litter carbon fluxes

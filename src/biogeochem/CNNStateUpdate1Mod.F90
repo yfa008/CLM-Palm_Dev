@@ -222,14 +222,18 @@ contains
                  - nf_veg%crop_seedn_to_leaf_patch(p) * dt &
                  + nf_veg%grainn_to_seed_patch(p) * dt
          end if
-      if (phytomer(ivt(p)) > 0) then ! phytomer-based (Y.Fan)
-          ns_veg%pleafn_patch(p,:) = ns_veg%pleafn_patch(p,:) - nf_veg%pleafn_to_litter_patch(p,:)*dt
-          ns_veg%pleafn_patch(p,:) = ns_veg%pleafn_patch(p,:) - nf_veg%pleafn_to_retransn_patch(p,:)*dt
-          ns_veg%pgrainn_patch(p,:) = ns_veg%pgrainn_patch(p,:) - nf_veg%pgrainn_to_food_patch(p,:)*dt
-          !zero out leaf storage pools at final rotation
-          ns_veg%pleafn_storage_patch(p,:) = ns_veg%pleafn_storage_patch(p,:) - nf_veg%pleafn_storage_to_litter_patch(p,:)*dt
-          !leafn_storage(p) = leafn_storage(p) - leafn_storage_to_litter(p)*dt
-      end if
+         if (phytomer(ivt(p)) > 0) then ! phytomer-based (Y.Fan)
+            !account for livestem from transplanting, in addition to
+            !crop_seedn_to_leaf
+            ns_veg%cropseedn_deficit_patch(p) = ns_veg%cropseedn_deficit_patch(p) &
+                 - nf_veg%crop_seedn_to_livestem_patch(p) * dt
+            ns_veg%pleafn_patch(p,:) = ns_veg%pleafn_patch(p,:) - nf_veg%pleafn_to_litter_patch(p,:)*dt
+            ns_veg%pleafn_patch(p,:) = ns_veg%pleafn_patch(p,:) - nf_veg%pleafn_to_retransn_patch(p,:)*dt
+            ns_veg%pgrainn_patch(p,:) = ns_veg%pgrainn_patch(p,:) - nf_veg%pgrainn_to_food_patch(p,:)*dt
+            !zero out leaf storage pools at final rotation
+            ns_veg%pleafn_storage_patch(p,:) = ns_veg%pleafn_storage_patch(p,:) - nf_veg%pleafn_storage_to_litter_patch(p,:)*dt
+            !leafn_storage(p) = leafn_storage(p) - leafn_storage_to_litter(p)*dt
+         end if
 
 
 

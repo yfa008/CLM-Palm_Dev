@@ -316,11 +316,14 @@ contains
          end if
 
          if (phytomer(ivt(p)) > 0) then ! phytomer-based (Y.Fan)
-           cs_veg%pleafc_patch(p,:) = cs_veg%pleafc_patch(p,:) - cf_veg%pleafc_to_litter_patch(p,:)*dt
-           cs_veg%pgrainc_patch(p,:) = cs_veg%pgrainc_patch(p,:) - cf_veg%pgrainc_to_food_patch(p,:)*dt
-           !zero out leaf storage pools at final rotation
-           cs_veg%pleafc_storage_patch(p,:) = cs_veg%pleafc_storage_patch(p,:) - cf_veg%pleafc_storage_to_litter_patch(p,:)*dt
-           !leafc_storage(p) = leafc_storage(p) - leafc_storage_to_litter(p)*dt !this is done by hrv_ flux in CNCStateUpdate2Mod
+            !account for livestem from transplanting, in addition to crop_seedc_to_leaf
+            cs_veg%cropseedc_deficit_patch(p) = cs_veg%cropseedc_deficit_patch(p) &
+                 - cf_veg%crop_seedc_to_livestem_patch(p) * dt
+            cs_veg%pleafc_patch(p,:) = cs_veg%pleafc_patch(p,:) - cf_veg%pleafc_to_litter_patch(p,:)*dt
+            cs_veg%pgrainc_patch(p,:) = cs_veg%pgrainc_patch(p,:) - cf_veg%pgrainc_to_food_patch(p,:)*dt
+            !zero out leaf storage pools at final rotation
+            cs_veg%pleafc_storage_patch(p,:) = cs_veg%pleafc_storage_patch(p,:) - cf_veg%pleafc_storage_to_litter_patch(p,:)*dt
+            !leafc_storage(p) = leafc_storage(p) - leafc_storage_to_litter(p)*dt !this is done by hrv_ flux in CNCStateUpdate2Mod
          end if
 
 

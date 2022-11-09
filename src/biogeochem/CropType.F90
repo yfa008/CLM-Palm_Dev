@@ -320,15 +320,17 @@ contains
             ptr_patch=this%latbaset_patch, default='inactive')
     end if
 
-    this%livep_patch(begp:endp,1:mxnp) = spval
-    call hist_addfld2d (fname='LIVEP', units='none', type2d='phytomer', &
-               avgflag='A', long_name='phytomer alive or not', &
-               ptr_patch=this%livep_patch, default='inactive')
-
-    this%plai_patch(begp:endp,1:mxnp) = spval
-    call hist_addfld2d (fname='PLAI', units='none', type2d='phytomer', &
-               avgflag='A', long_name='phytomer LAI', &
-               ptr_patch=this%plai_patch, default='inactive')
+    if ( mxnp .gt. 0 ) then
+       this%livep_patch(begp:endp,1:mxnp) = spval
+       call hist_addfld2d (fname='LIVEP', units='none', type2d='phytomer', &
+                  avgflag='A', long_name='phytomer alive or not', &
+                  ptr_patch=this%livep_patch, default='inactive')
+   
+       this%plai_patch(begp:endp,1:mxnp) = spval
+       call hist_addfld2d (fname='PLAI', units='none', type2d='phytomer', &
+                  avgflag='A', long_name='phytomer LAI', &
+                  ptr_patch=this%plai_patch, default='inactive')
+    end if
     
     this%harvest_flag_patch(begp:endp) = spval
     call hist_addfld1d (fname='HARVEST_FLAG', units='none', &

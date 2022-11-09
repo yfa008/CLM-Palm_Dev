@@ -276,8 +276,8 @@ contains
             cs_veg%grainc_xfer_patch(p)     = cs_veg%grainc_xfer_patch(p)    - cf_veg%grainc_xfer_to_grainc_patch(p)*dt
 
             !grainc_xfer and grainc_storage pools and fluxes are not really used
-            !in CNPhenolgy or allocation processes for annual crops;
-            !no need to add them for pgrain either (Y.Fan)  
+            !in allocation processes for annual crops (fcur=1) and for oil palm;
+            !no need to add them for pgrain here (Y.Fan)  
             if (phytomer(ivt(p)) > 0) then ! phytomer-based (Y.Fan)
                cs_veg%pleafc_patch(p,:)        = cs_veg%pleafc_patch(p,:)   + cf_veg%pleafc_xfer_to_pleafc_patch(p,:)*dt
                cs_veg%pleafc_xfer_patch(p,:)   = cs_veg%pleafc_xfer_patch(p,:)  - cf_veg%pleafc_xfer_to_pleafc_patch(p,:)*dt
@@ -318,7 +318,7 @@ contains
          if (phytomer(ivt(p)) > 0) then ! phytomer-based (Y.Fan)
             !account for livestem from transplanting, in addition to crop_seedc_to_leaf
             cs_veg%cropseedc_deficit_patch(p) = cs_veg%cropseedc_deficit_patch(p) &
-                 - cf_veg%crop_seedc_to_livestem_patch(p) * dt
+                 - cf_veg%crop_seedc_to_deadstem_patch(p) * dt
             cs_veg%pleafc_patch(p,:) = cs_veg%pleafc_patch(p,:) - cf_veg%pleafc_to_litter_patch(p,:)*dt
             cs_veg%pgrainc_patch(p,:) = cs_veg%pgrainc_patch(p,:) - cf_veg%pgrainc_to_food_patch(p,:)*dt
             !zero out leaf storage pools at final rotation
@@ -342,7 +342,6 @@ contains
          end if
          if (ivt(p) >= npcropmin) then ! skip 2 generic crops
           if (woody(ivt(p)) /= 1._r8) then !to avoid overlap with above for woody crops (Y.Fan)
-
             cs_veg%cpool_patch(p) = cs_veg%cpool_patch(p) - cf_veg%livestem_curmr_patch(p)*dt
           end if
             cs_veg%cpool_patch(p) = cs_veg%cpool_patch(p) - cf_veg%grain_curmr_patch(p)*dt
@@ -445,7 +444,6 @@ contains
          end if
          if (ivt(p) >= npcropmin) then ! skip 2 generic crops
           if (woody(ivt(p)) /= 1._r8) then !to avoid overlap with above for woody crops (Y.Fan)
-
             cs_veg%cpool_patch(p) = cs_veg%cpool_patch(p) - cf_veg%cpool_livestem_gr_patch(p)*dt
           end if
             cs_veg%cpool_patch(p) = cs_veg%cpool_patch(p) - cf_veg%cpool_grain_gr_patch(p)*dt
@@ -480,7 +478,6 @@ contains
          end if
          if (ivt(p) >= npcropmin) then ! skip 2 generic crops
           if (woody(ivt(p)) /= 1._r8) then !to avoid overlap with above for woody crops (Y.Fan)
-
             cs_veg%cpool_patch(p) = cs_veg%cpool_patch(p) - cf_veg%cpool_livestem_storage_gr_patch(p)*dt
           end if
             cs_veg%cpool_patch(p) = cs_veg%cpool_patch(p) - cf_veg%cpool_grain_storage_gr_patch(p)*dt
@@ -524,9 +521,19 @@ contains
          end if
 
 
-         if (ivt(p) >= npcropmin) then ! skip 2 generic crops
+         if (phytomer(ivt(p)) > 0) then
            if (woody(ivt(p)) /= 1._r8) then !to avoid overlap with above for woody crops (Y.Fan)
+            cs_veg%xsmrpool_patch(p) = cs_veg%xsmrpool_patch(p) - cf_veg%livestem_xsmr_patch(p)*dt
+           end if
+            cs_veg%xsmrpool_patch(p) = cs_veg%xsmrpool_patch(p) - cf_veg%grain_xsmr_patch(p)*dt
+           !reset the xsmrpool of perennial crops at final rotation via
+           !hrv_xsmrpool_to_atm in CNOffsetLitterfall in CNPhenology, which is
+           !subtracted from xsmrpool_patch (reset to 0) in CNCStateUpdate2Mod.F90
 
+           ! below intended for annual crops 
+            
+         else if (ivt(p) >= npcropmin) then ! skip 2 generic crops
+           if (woody(ivt(p)) /= 1._r8) then !to avoid overlap with above for woody crops (Y.Fan)
             cs_veg%xsmrpool_patch(p) = cs_veg%xsmrpool_patch(p) - cf_veg%livestem_xsmr_patch(p)*dt
            end if
             cs_veg%xsmrpool_patch(p) = cs_veg%xsmrpool_patch(p) - cf_veg%grain_xsmr_patch(p)*dt

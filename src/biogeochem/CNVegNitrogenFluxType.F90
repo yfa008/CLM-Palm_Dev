@@ -207,7 +207,7 @@ module CNVegNitrogenFluxType
 
      ! crop fluxes
      real(r8), pointer :: crop_seedn_to_leaf_patch                  (:)     ! patch (gN/m2/s) seed source to leaf, for crops
-     real(r8), pointer :: crop_seedn_to_livestem_patch              (:)     ! patch (gN/m2/s) seed source to livestem, for woody crops
+     real(r8), pointer :: crop_seedn_to_deadstem_patch              (:)     ! patch (gN/m2/s) seed source to livestem, for woody crops
      
      ! Misc
      real(r8), pointer :: plant_ndemand_patch                       (:)     ! N flux required to support initial GPP (gN/m2/s)
@@ -466,7 +466,7 @@ contains
     allocate(this%dwt_deadcrootn_to_cwdn_col   (begc:endc,1:nlevdecomp_full)) ; this%dwt_deadcrootn_to_cwdn_col   (:,:) = nan
 
     allocate(this%crop_seedn_to_leaf_patch     (begp:endp))                   ; this%crop_seedn_to_leaf_patch     (:)   = nan
-    allocate(this%crop_seedn_to_livestem_patch     (begp:endp))               ; this%crop_seedn_to_livestem_patch     (:)   = nan
+    allocate(this%crop_seedn_to_deadstem_patch     (begp:endp))               ; this%crop_seedn_to_deadstem_patch     (:)   = nan
 
     allocate(this%m_decomp_npools_to_fire_vr_col    (begc:endc,1:nlevdecomp_full,1:ndecomp_pools))
     allocate(this%m_decomp_npools_to_fire_col       (begc:endc,1:ndecomp_pools                  ))
@@ -1143,10 +1143,10 @@ contains
          avgflag='A', long_name='crop seed source to leaf', &
          ptr_patch=this%crop_seedn_to_leaf_patch, default='inactive')
 
-    this%crop_seedn_to_livestem_patch(begp:endp) = spval
-    call hist_addfld1d (fname='CROP_SEEDN_TO_LIVESTEM', units='gN/m^2/s', &
-         avgflag='A', long_name='crop seed source to livestem for woody crops(palm)', &
-         ptr_patch=this%crop_seedn_to_livestem_patch, default='inactive')
+    this%crop_seedn_to_deadstem_patch(begp:endp) = spval
+    call hist_addfld1d (fname='CROP_SEEDN_TO_DEADSTEM', units='gN/m^2/s', &
+         avgflag='A', long_name='crop seed source to deadstem for woody crops (YFan)', &
+         ptr_patch=this%crop_seedn_to_deadstem_patch, default='inactive')
 
     this%plant_ndemand_patch(begp:endp) = spval
     call hist_addfld1d (fname='PLANT_NDEMAND', units='gN/m^2/s', &
@@ -1757,7 +1757,7 @@ contains
 
        this%crop_seedn_to_leaf_patch(i)                  = value_patch
        this%grainn_to_cropprodn_patch(i)                 = value_patch
-       this%crop_seedn_to_livestem_patch(i)              = value_patch
+       this%crop_seedn_to_deadstem_patch(i)              = value_patch
     end do
 
     if ( use_crop )then
@@ -1780,20 +1780,22 @@ contains
        end do
     end if
 
-    if ( mxnp > 0 )then
+    if ( mxnp > 0 ) then
+      do j = 1, mxnp 
        do fi = 1,num_patch
           i = filter_patch(fi)
-          this%pgrainn_to_food_patch(i,:)                = value_patch
-          this%npool_to_pgrainn_patch(i,:)               = value_patch 
-          this%pleafn_to_litter_patch(i,:)               = value_patch
-          this%pleafn_xfer_to_pleafn_patch(i,:)          = value_patch
-          this%npool_to_pleafn_patch(i,:)                = value_patch
-          this%npool_to_pleafn_storage_patch(i,:)        = value_patch
-          this%pleafn_storage_to_xfer_patch(i,:)         = value_patch
-          this%pleafn_storage_to_litter_patch(i,:)       = value_patch
-          this%pleafn_xfer_to_litter_patch(i,:)          = value_patch
-          this%pleafn_to_retransn_patch(i,:)             = value_patch
+          this%pgrainn_to_food_patch(i,j)                = value_patch
+          this%npool_to_pgrainn_patch(i,j)               = value_patch 
+          this%pleafn_to_litter_patch(i,j)               = value_patch
+          this%pleafn_xfer_to_pleafn_patch(i,j)          = value_patch
+          this%npool_to_pleafn_patch(i,j)                = value_patch
+          this%npool_to_pleafn_storage_patch(i,j)        = value_patch
+          this%pleafn_storage_to_xfer_patch(i,j)         = value_patch
+          this%pleafn_storage_to_litter_patch(i,j)       = value_patch
+          this%pleafn_xfer_to_litter_patch(i,j)          = value_patch
+          this%pleafn_to_retransn_patch(i,j)             = value_patch
        end do
+      end do
     end if
 
     do j = 1, nlevdecomp_full

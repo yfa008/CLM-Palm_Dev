@@ -216,7 +216,7 @@ contains
     SHR_ASSERT_ALL((lbound(this%aleafn) <= (/bounds%begp,mxnp/)), errMsg(sourcefile, __LINE__))
     SHR_ASSERT_ALL((ubound(this%afruitn) >= (/bounds%endp,mxnp/)), errMsg(sourcefile, __LINE__))
     SHR_ASSERT_ALL((lbound(this%afruitn) <= (/bounds%begp,mxnp/)), errMsg(sourcefile, __LINE__))
-	
+
     associate(                                                                                       &
          fpg                          => fpg_col                                                   , & ! Input:  [real(r8) (:)   ]  fraction of potential gpp (no units)    
 
@@ -433,30 +433,30 @@ contains
             cpool_to_grainc(p)             = nlc * f5 * fcur
             cpool_to_grainc_storage(p)     = nlc * f5 * (1._r8 -fcur)
          end if
-	 !phytomer-based allocation (Y.Fan)
+	 !phytomer-based woody crop allocation, overwrite all relevant fluxes (Y.Fan)
 	 !fcur is used differently than other PFTs
-       if (phytomer(ivt(p)) > 0) then 
-         cpool_to_leafc(p)              = nlc * fcur
-         cpool_to_leafc_storage(p)      = nlc * (1._r8 - fcur) !only allow leaf storage growth
-         cpool_to_frootc(p)             = nlc * f1
-	 cpool_to_frootc_storage(p)     = 0.0_r8
-         cpool_to_livestemc(p)          = nlc * f3 * f4
-	 cpool_to_livestemc_storage(p)  = 0.0_r8
-         cpool_to_deadstemc(p)          = nlc * f3 * (1._r8 - f4)
-	 cpool_to_deadstemc_storage(p)  = 0.0_r8
-         cpool_to_livecrootc(p)         = nlc * f2 * f3 * f4
-	 cpool_to_livecrootc_storage(p) = 0.0_r8
-         cpool_to_deadcrootc(p)         = nlc * f2 * f3 * (1._r8 - f4)
-	 cpool_to_deadcrootc_storage(p) = 0.0_r8
-         cpool_to_grainc(p)             = nlc * f5
-	 cpool_to_grainc_storage(p)     = 0.0_r8
-         where (hui(p) >= huileafnp(p,:) .and. hui(p) < huilfexpnp(p,:))
-            cpool_to_pleafc_storage(p,:) = cpool_to_leafc_storage(p) * this%aleafn(p,:)
-         elsewhere (hui(p) >= huilfexpnp(p,:) .and. hui(p) < huilfmatnp(p,:))
-            cpool_to_pleafc(p,:) = cpool_to_leafc(p) * this%aleafn(p,:)
-         endwhere
-         cpool_to_pgrainc(p,:) = cpool_to_grainc(p) * this%afruitn(p,:)
-       end if
+         if (phytomer(ivt(p)) > 0) then 
+           cpool_to_leafc(p)              = nlc * fcur
+           cpool_to_leafc_storage(p)      = nlc * (1._r8 - fcur) !only allow leaf storage growth
+           cpool_to_frootc(p)             = nlc * f1
+           cpool_to_frootc_storage(p)     = 0.0_r8
+           cpool_to_livestemc(p)          = nlc * f3 * f4
+           cpool_to_livestemc_storage(p)  = 0.0_r8
+           cpool_to_deadstemc(p)          = nlc * f3 * (1._r8 - f4)
+           cpool_to_deadstemc_storage(p)  = 0.0_r8
+           cpool_to_livecrootc(p)         = nlc * f2 * f3 * f4
+           cpool_to_livecrootc_storage(p) = 0.0_r8
+           cpool_to_deadcrootc(p)         = nlc * f2 * f3 * (1._r8 - f4)
+           cpool_to_deadcrootc_storage(p) = 0.0_r8
+           cpool_to_grainc(p)             = nlc * f5
+           cpool_to_grainc_storage(p)     = 0.0_r8
+           where (hui(p) >= huileafnp(p,:) .and. hui(p) < huilfexpnp(p,:))
+              cpool_to_pleafc_storage(p,:) = cpool_to_leafc_storage(p) * this%aleafn(p,:)
+           elsewhere (hui(p) >= huilfexpnp(p,:) .and. hui(p) < huilfmatnp(p,:))
+              cpool_to_pleafc(p,:) = cpool_to_leafc(p) * this%aleafn(p,:)
+           endwhere
+           cpool_to_pgrainc(p,:) = cpool_to_grainc(p) * this%afruitn(p,:)
+         end if
 
          ! corresponding N fluxes
          npool_to_leafn(p)          = (nlc / cnl) * fcur
@@ -508,13 +508,13 @@ contains
      		 npool_to_grainn_storage(p)     = 0.0_r8
 		 
 		 where (hui(p) >= huileafnp(p,:) .and. hui(p) < huilfexpnp(p,:))
-			npool_to_pleafn_storage(p,:) = npool_to_leafn_storage(p) * this%aleafn(p,:)
+		    npool_to_pleafn_storage(p,:) = npool_to_leafn_storage(p) * this%aleafn(p,:)
 		 elsewhere (hui(p) >= huilfexpnp(p,:) .and. hui(p) < huilfmatnp(p,:))
-			npool_to_pleafn(p,:) = npool_to_leafn(p) * this%aleafn(p,:)
+		    npool_to_pleafn(p,:) = npool_to_leafn(p) * this%aleafn(p,:)
 		 endwhere
 		 npool_to_pgrainn(p,:) = npool_to_grainn(p) * this%afruitn(p,:)
-	    end if	
-			
+	    end if
+	
          ! Calculate the amount of carbon that needs to go into growth
          ! respiration storage to satisfy all of the storage growth demands.
          ! Allows for the fraction of growth respiration that is released at the
@@ -873,12 +873,14 @@ contains
          ! These fluxes should already be in gC/m2/s
 
          mr = leaf_mr(p) + froot_mr(p)
-         if (woody(ivt(p)) == 1.0_r8) then
-            mr = mr + livestem_mr(p) + livecroot_mr(p)
-	    !include all mr terms for woody crop types (Y.Fan)
-	    if (ivt(p) >= npcropmin .and. croplive(p)) mr = mr + grain_mr(p)
-         else if (ivt(p) >= npcropmin) then
-            if (croplive(p)) mr = mr + livestem_mr(p) + grain_mr(p)
+         !include all mr terms (although some may be zero) for woody crop types
+         !(Y.Fan)
+         ! if (woody(ivt(p)) == 1.0_r8) then
+         mr = mr + livestem_mr(p) + livecroot_mr(p)
+         !else if (ivt(p) >= npcropmin) then
+         !   if (croplive(p)) mr = mr + livestem_mr(p) + grain_mr(p)
+         if (ivt(p) >= npcropmin) then
+            if (croplive(p)) mr = mr + grain_mr(p)
          end if
          !ensure no negative mr. negative mr will cause availc > 0 even when gpp=0
          !this is added in case some plant c/n pools have small negative values after crop die or at crop rotation (Y.Fan 2016)
@@ -1009,8 +1011,8 @@ contains
 				aroot(p) = 1._r8 - aleaf(p) - astem(p)
 			 else
 				aroot(p) = max(0._r8, min(1._r8, arooti(ivt(p)) -  &
-							  (arooti(ivt(p)) - arootf(ivt(p))) *  &
-						   min(1._r8, real(idpp(p))/mxmat(ivt(p)))))
+				  (arooti(ivt(p)) - arootf(ivt(p))) *  &
+				   min(1._r8, real(idpp(p))/mxmat(ivt(p)))))
 				aleaf(p) = max(1.e-5_r8, (1._r8 - aroot(p))*fleafi(ivt(p)))
 				astem(p) = 1._r8 - aleaf(p) - aroot(p)
 			 end if
@@ -1020,17 +1022,17 @@ contains
 			 aleafi(p) = aleaf(p) ! to reproductive phenology stage
 			 idpp2(p)  = idpp(p)
 		  else if (hui(p) >= huigrain(p)) then
-			 grain_flag(p) = 1._r8
+		         grain_flag(p) = 1._r8
 
 			 !assume allocation rates apprach the final values and stablize after 1/2 of max age,
 			 aroot(p) = max(0._r8, min(1._r8, arooti(ivt(p)) - &
-						   (arooti(ivt(p)) - arootf(ivt(p))) * &
-							min(1._r8, real(idpp(p))/mxmat(ivt(p)))))
+			   (arooti(ivt(p)) - arootf(ivt(p))) * &
+			    min(1._r8, real(idpp(p))/mxmat(ivt(p)))))
 
 			 aleaf(p) = max(1.e-5_r8, min(1._r8, aleafi(p) - &
-						   (aleafi(p) - aleaff(ivt(p))) * &
-							max(0._r8, min(1._r8, real(idpp(p) - idpp2(p))/ &
-						   (declfact(ivt(p))*mxmat(ivt(p))- idpp2(p))))**allconsl(ivt(p)) ))
+			   (aleafi(p) - aleaff(ivt(p))) * &
+			    max(0._r8, min(1._r8, real(idpp(p) - idpp2(p))/ &
+			   (declfact(ivt(p))*mxmat(ivt(p))- idpp2(p))))**allconsl(ivt(p)) ))
 
 			 astem(p) = 1._r8 - aleaf(p) - aroot(p)
 
@@ -1169,18 +1171,18 @@ contains
 				 end if
 			  end if
 			  arepr(p) = 1._r8 - aroot(p) - astem(p) - aleaf(p)
-			  !retranslocation starts at the begining of grnfill for one step like corn and cereals
-			  if (grain_flag(p) == 0._r8) then
-				 t1 = 1 / dt
-				 leafn_to_retransn(p) = t1 * ((leafc(p) / leafcn(ivt(p))) - (leafc(p) / fleafcn(ivt(p))))
-				 livestemn_to_retransn(p) = t1 * ((livestemc(p) / livewdcn(ivt(p))) - (livestemc(p) / fstemcn(ivt(p))))
-				 if (ffrootcn(ivt(p)) > 0._r8) then
-					frootn_to_retransn(p) = t1 * ((frootc(p) / frootcn(ivt(p))) - (frootc(p) / ffrootcn(ivt(p))))
-				 else
-					frootn_to_retransn(p) = 0._r8
-				 end if
-				 grain_flag(p) = 1._r8
-			  end if
+			 ! No N retranslocation for generic perennial crops (Y.Fan 2022.09)
+			 ! if (grain_flag(p) == 0._r8) then
+			 !        t1 = 1 / dt
+			 !        leafn_to_retransn(p) = t1 * ((leafc(p) / leafcn(ivt(p))) - (leafc(p) / fleafcn(ivt(p))))
+			 !        livestemn_to_retransn(p) = t1 * ((livestemc(p) / livewdcn(ivt(p))) - (livestemc(p) / fstemcn(ivt(p))))
+			 !        if (ffrootcn(ivt(p)) > 0._r8) then
+			 !       	frootn_to_retransn(p) = t1 * ((frootc(p) / frootcn(ivt(p))) - (frootc(p) / ffrootcn(ivt(p))))
+			 !        else
+			 !       	frootn_to_retransn(p) = 0._r8
+			 !        end if
+			 !        grain_flag(p) = 1._r8
+			 ! end if
 
 		    else !outside of grainfill period, root and leaf alloc continue decline through ageing
 			  arepr(p) = 0._r8
@@ -1297,29 +1299,31 @@ contains
          !plantCN for N uptake AND c_allometry for allocation. If we add gresp to the 
          !allometry calculation then we allocate too much carbon since gresp is not allocated here. 
          if(.not.use_fun)then
-	    if (woody(ivt(p)) == 1.0_r8) then
-	       c_allometry(p) = (1._r8+g1)*(1._r8+f1+f3*(1._r8+f2))
-	       n_allometry(p) = 1._r8/cnl + f1/cnfr + (f3*f4*(1._r8+f2))/cnlw + &
-	             (f3*(1._r8-f4)*(1._r8+f2))/cndw
-	    else if (ivt(p) >= npcropmin) then ! skip generic crops
+            !evaluate crops first to consider woody crop subtypes (Y.Fan)
+            ! originally 'if (woody(ivt(p)) == 1.0_r8) then' clause was at first
+	    if (ivt(p) >= npcropmin) then ! skip generic crops
 	       cng = graincn(ivt(p))
 	       c_allometry(p) = (1._r8+g1)*(1._r8+f1+f5+f3*(1._r8+f2))
 	       n_allometry(p) = 1._r8/cnl + f1/cnfr + f5/cng + (f3*f4*(1._r8+f2))/cnlw + &
 	            (f3*(1._r8-f4)*(1._r8+f2))/cndw
+            else if (woody(ivt(p)) == 1.0_r8) then
+               c_allometry(p) = (1._r8+g1)*(1._r8+f1+f3*(1._r8+f2))
+               n_allometry(p) = 1._r8/cnl + f1/cnfr + (f3*f4*(1._r8+f2))/cnlw + &
+                     (f3*(1._r8-f4)*(1._r8+f2))/cndw
 	    else
 	       c_allometry(p) = 1._r8+g1+f1+f1*g1
 	       n_allometry(p) = 1._r8/cnl + f1/cnfr
 	    end if           
          else !no FUN. 
-	    if (woody(ivt(p)) == 1.0_r8) then
-	       c_allometry(p) = (1._r8)*(1._r8+f1+f3*(1._r8+f2))
-	       n_allometry(p) = 1._r8/cnl + f1/cnfr + (f3*f4*(1._r8+f2))/cnlw + &
-	            (f3*(1._r8-f4)*(1._r8+f2))/cndw
-	    else if (ivt(p) >= npcropmin) then ! skip generic crops
+	    if (ivt(p) >= npcropmin) then ! skip generic crops
 	       cng = graincn(ivt(p))
 	       c_allometry(p) = (1._r8)*(1._r8+f1+f5+f3*(1._r8+f2))
 	       n_allometry(p) = 1._r8/cnl + f1/cnfr + f5/cng + (f3*f4*(1._r8+f2))/cnlw + &
 	            (f3*(1._r8-f4)*(1._r8+f2))/cndw
+            else if (woody(ivt(p)) == 1.0_r8) then
+               c_allometry(p) = (1._r8)*(1._r8+f1+f3*(1._r8+f2))
+               n_allometry(p) = 1._r8/cnl + f1/cnfr + (f3*f4*(1._r8+f2))/cnlw + &
+                    (f3*(1._r8-f4)*(1._r8+f2))/cndw
 	    else
 	       c_allometry(p) = 1._r8+f1
 	       n_allometry(p) = 1._r8/cnl + f1/cnfr

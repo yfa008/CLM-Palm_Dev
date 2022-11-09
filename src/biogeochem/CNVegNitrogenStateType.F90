@@ -493,10 +493,12 @@ contains
              this%cropseedn_deficit_patch(p)  = 0._r8
           end if
           if ( mxnp > 0 ) then
-            this%pleafn_patch(p,:)             = 0._r8
-            this%pgrainn_patch(p,:)            = 0._r8
-            this%pleafn_xfer_patch(p,:)        = 0._r8
-            this%pleafn_storage_patch(p,:)     = 0._r8
+            do j = 1, mxnp
+              this%pleafn_patch(p,j)             = 0._r8
+              this%pgrainn_patch(p,j)            = 0._r8
+              this%pleafn_xfer_patch(p,j)        = 0._r8
+              this%pleafn_storage_patch(p,j)     = 0._r8
+            end do
             this%leafn_senescent_patch(p)      = 0._r8
           end if
 
@@ -596,7 +598,7 @@ contains
     integer           , intent(in) :: num_reseed_patch
     !
     ! !LOCAL VARIABLES:
-    integer            :: i, p, l
+    integer            :: i, j, p, l
     logical            :: readvar
     real(r8), pointer  :: ptr1d(:)   ! temp. pointers for slicing larger arrays
     character(len=128) :: varname    ! temporary
@@ -712,25 +714,25 @@ contains
     
     if ( mxnp .gt. 0 ) then
 
-    call restartvar(ncid=ncid, flag=flag, varname='pleafn', xtype=ncd_double,  &
-                dim1name='pft',dim2name='phytomer',long_name='',units='',  & 
-                interpinic_flag='interp', readvar=readvar, data=this%pleafn_patch)
-
-    call restartvar(ncid=ncid, flag=flag, varname='pgrainn', xtype=ncd_double,  &
-                dim1name='pft',dim2name='phytomer',long_name='',units='', &
-                interpinic_flag='interp', readvar=readvar, data=this%pgrainn_patch)
-
-    call restartvar(ncid=ncid, flag=flag, varname='pleafn_xfer', xtype=ncd_double,  &
-                dim1name='pft',dim2name='phytomer',long_name='',units='', &
-                interpinic_flag='interp', readvar=readvar, data=this%pleafn_xfer_patch)
-
-    call restartvar(ncid=ncid, flag=flag, varname='pleafn_storage', xtype=ncd_double,  &
-                dim1name='pft',dim2name='phytomer',long_name='',units='', &
-                interpinic_flag='interp', readvar=readvar, data=this%pleafn_storage_patch)
-
-    call restartvar(ncid=ncid, flag=flag, varname='leafn_senescent', xtype=ncd_double,  &
-               dim1name='pft',long_name='senescent leaf N saved for pruning',units='gN/m2', &
-               interpinic_flag='interp', readvar=readvar, data=this%leafn_senescent_patch)
+       call restartvar(ncid=ncid, flag=flag, varname='pleafn', xtype=ncd_double,  &
+                   dim1name='pft',dim2name='phytomer',long_name='',units='',  & 
+                   interpinic_flag='interp', readvar=readvar, data=this%pleafn_patch)
+   
+       call restartvar(ncid=ncid, flag=flag, varname='pgrainn', xtype=ncd_double,  &
+                   dim1name='pft',dim2name='phytomer',long_name='',units='', &
+                   interpinic_flag='interp', readvar=readvar, data=this%pgrainn_patch)
+   
+       call restartvar(ncid=ncid, flag=flag, varname='pleafn_xfer', xtype=ncd_double,  &
+                   dim1name='pft',dim2name='phytomer',long_name='',units='', &
+                   interpinic_flag='interp', readvar=readvar, data=this%pleafn_xfer_patch)
+   
+       call restartvar(ncid=ncid, flag=flag, varname='pleafn_storage', xtype=ncd_double,  &
+                   dim1name='pft',dim2name='phytomer',long_name='',units='', &
+                   interpinic_flag='interp', readvar=readvar, data=this%pleafn_storage_patch)
+   
+       call restartvar(ncid=ncid, flag=flag, varname='leafn_senescent', xtype=ncd_double,  &
+                  dim1name='pft',long_name='senescent leaf N saved for pruning',units='gN/m2', &
+                  interpinic_flag='interp', readvar=readvar, data=this%leafn_senescent_patch)
 
     end if 
 
@@ -844,12 +846,16 @@ contains
              this%livestemn_patch(p)         = 0._r8
              this%livestemn_storage_patch(p) = 0._r8
              this%livestemn_xfer_patch(p)    = 0._r8
- 
-             this%pleafn_patch(p,:)            = 0._r8
-             this%pgrainn_patch(p,:)           = 0._r8
-             this%pleafn_xfer_patch(p,:)       = 0._r8
-             this%pleafn_storage_patch(p,:)    = 0._r8
-             this%leafn_senescent_patch(p)    = 0._r8
+
+             if ( mxnp > 0 ) then
+               do j = 1, mxnp
+                 this%pleafn_patch(p,j)            = 0._r8
+                 this%pgrainn_patch(p,j)           = 0._r8
+                 this%pleafn_xfer_patch(p,j)       = 0._r8
+                 this%pleafn_storage_patch(p,j)    = 0._r8
+               end do
+               this%leafn_senescent_patch(p)    = 0._r8
+             end if        
    
              ! tree types need to be initialized with some stem mass so that
              ! roughness length is not zero in canopy flux calculation
@@ -978,11 +984,14 @@ contains
           this%grainn_storage_patch(i)  = value_patch
           this%grainn_xfer_patch(i)     = value_patch   
           this%cropseedn_deficit_patch(i)  = value_patch
+
          if ( mxnp>0 ) then
-            this%pgrainn_patch(i,:)             = value_patch
-            this%pleafn_patch(i,:)              = value_patch
-            this%pleafn_xfer_patch(i,:)         = value_patch
-            this%pleafn_storage_patch(i,:)      = value_patch
+            do j = 1, mxnp
+              this%pgrainn_patch(i,j)             = value_patch
+              this%pleafn_patch(i,j)              = value_patch
+              this%pleafn_xfer_patch(i,j)         = value_patch
+              this%pleafn_storage_patch(i,j)      = value_patch
+            end do
             this%leafn_senescent_patch(i)       = value_patch
          end if
 

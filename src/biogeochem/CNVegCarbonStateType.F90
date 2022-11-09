@@ -1028,10 +1028,12 @@ contains
           end if
 
           if ( mxnp > 0 ) then
-            this%pleafc_patch(p,:)             = 0._r8
-            this%pgrainc_patch(p,:)            = 0._r8
-            this%pleafc_xfer_patch(p,:)        = 0._r8
-            this%pleafc_storage_patch(p,:)     = 0._r8
+            do j = 1, mxnp
+              this%pleafc_patch(p,j)             = 0._r8
+              this%pgrainc_patch(p,j)            = 0._r8
+              this%pleafc_xfer_patch(p,j)        = 0._r8
+              this%pleafc_storage_patch(p,j)     = 0._r8
+            end do
             this%leafc_senescent_patch(p)      = 0._r8
           end if
 
@@ -1276,25 +1278,25 @@ contains
        ! Modified as per Y.Fan discussion 28/3/22
        if ( mxnp > 0 ) then 
 
-       call restartvar(ncid=ncid, flag=flag, varname='pleafc', xtype=ncd_double,  &
-                dim1name='pft',dim2name='phytomer',long_name='',units='', &
-                interpinic_flag='interp', readvar=readvar, data=this%pleafc_patch)
-
-       call restartvar(ncid=ncid, flag=flag, varname='pgrainc', xtype=ncd_double,  &
-                dim1name='pft',dim2name='phytomer',long_name='',units='', &
-                interpinic_flag='interp', readvar=readvar, data=this%pgrainc_patch)
-
-       call restartvar(ncid=ncid, flag=flag, varname='pleafc_xfer', xtype=ncd_double,  &
-                dim1name='pft',dim2name='phytomer',long_name='',units='', &
-                interpinic_flag='interp', readvar=readvar, data=this%pleafc_xfer_patch)
-
-       call restartvar(ncid=ncid, flag=flag, varname='pleafc_storage', xtype=ncd_double,  &
-                dim1name='pft',dim2name='phytomer',long_name='',units='', &
-                interpinic_flag='interp', readvar=readvar, data=this%pleafc_storage_patch)
-
-       call restartvar(ncid=ncid, flag=flag, varname='leafc_senescent', xtype=ncd_double,  &
-               dim1name='pft',long_name='senescent leaf C saved for pruning', units='gC/m2', &
-               interpinic_flag='interp', readvar=readvar, data=this%leafc_senescent_patch)
+          call restartvar(ncid=ncid, flag=flag, varname='pleafc', xtype=ncd_double,  &
+                   dim1name='pft',dim2name='phytomer',long_name='',units='', &
+                   interpinic_flag='interp', readvar=readvar, data=this%pleafc_patch)
+   
+          call restartvar(ncid=ncid, flag=flag, varname='pgrainc', xtype=ncd_double,  &
+                   dim1name='pft',dim2name='phytomer',long_name='',units='', &
+                   interpinic_flag='interp', readvar=readvar, data=this%pgrainc_patch)
+   
+          call restartvar(ncid=ncid, flag=flag, varname='pleafc_xfer', xtype=ncd_double,  &
+                   dim1name='pft',dim2name='phytomer',long_name='',units='', &
+                   interpinic_flag='interp', readvar=readvar, data=this%pleafc_xfer_patch)
+   
+          call restartvar(ncid=ncid, flag=flag, varname='pleafc_storage', xtype=ncd_double,  &
+                   dim1name='pft',dim2name='phytomer',long_name='',units='', &
+                   interpinic_flag='interp', readvar=readvar, data=this%pleafc_storage_patch)
+   
+          call restartvar(ncid=ncid, flag=flag, varname='leafc_senescent', xtype=ncd_double,  &
+                  dim1name='pft',long_name='senescent leaf C saved for pruning', units='gC/m2', &
+                  interpinic_flag='interp', readvar=readvar, data=this%leafc_senescent_patch)
 
        end if
 
@@ -1508,11 +1510,13 @@ contains
                       end if
 
                       if ( mxnp > 0 ) then
-                        this%pleafc_patch(p,:)             = 0._r8
-                        this%pgrainc_patch(p,:)            = 0._r8
-                        this%pleafc_xfer_patch(p,:)        = 0._r8
-                        this%pleafc_storage_patch(p,:)     = 0._r8
-                        this%leafc_senescent_patch(p)      = 0._r8
+                        do j = 1, mxnp
+                          this%pleafc_patch(i,j)             = 0._r8
+                          this%pgrainc_patch(i,j)            = 0._r8
+                          this%pleafc_xfer_patch(i,j)        = 0._r8
+                          this%pleafc_storage_patch(i,j)     = 0._r8
+                        end do
+                        this%leafc_senescent_patch(i)      = 0._r8
                       end if
 
                       ! calculate totvegc explicitly so that it is available for the isotope 
@@ -2430,10 +2434,12 @@ contains
           this%cropseedc_deficit_patch(i)  = value_patch
        end if
        if ( mxnp>0 ) then
-          this%pgrainc_patch(i,:)             = value_patch
-          this%pleafc_patch(i,:)              = value_patch
-          this%pleafc_xfer_patch(i,:)         = value_patch
-          this%pleafc_storage_patch(i,:)      = value_patch
+          do j = 1, mxnp
+           this%pgrainc_patch(i,j)             = value_patch
+           this%pleafc_patch(i,j)              = value_patch
+           this%pleafc_xfer_patch(i,j)         = value_patch
+           this%pleafc_storage_patch(i,j)      = value_patch
+          end do
           this%leafc_senescent_patch(i)       = value_patch
        end if
     end do

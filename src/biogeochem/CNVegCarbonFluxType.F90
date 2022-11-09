@@ -272,7 +272,7 @@ module CNVegCarbonFluxType
 
      ! crop fluxes
      real(r8), pointer :: crop_seedc_to_leaf_patch                  (:)     ! (gC/m2/s) seed source to leaf, for crops
-     real(r8), pointer :: crop_seedc_to_livestem_patch              (:)     ! (gC/m2/s) seed source to livestem, for w0ody crops (e.g., palm)
+     real(r8), pointer :: crop_seedc_to_deadstem_patch              (:)     ! (gC/m2/s) seed source to livestem, for w0ody crops (e.g., palm)
 
      ! summary (diagnostic) flux variables, not involved in mass balance
      real(r8), pointer :: gpp_before_downreg_patch                  (:)     ! (gC/m2/s) gross primary production before down regulation
@@ -666,7 +666,7 @@ contains
     allocate(this%dwt_crop_productc_gain_patch      (begp:endp))                  ; this%dwt_crop_productc_gain_patch(:) =nan
 
     allocate(this%crop_seedc_to_leaf_patch          (begp:endp))                  ; this%crop_seedc_to_leaf_patch  (:)  =nan
-    allocate(this%crop_seedc_to_livestem_patch      (begp:endp))                  ; this%crop_seedc_to_livestem_patch  (:)  =nan
+    allocate(this%crop_seedc_to_deadstem_patch      (begp:endp))                  ; this%crop_seedc_to_deadstem_patch  (:)  =nan
 
     allocate(this%cwdc_hr_col                       (begc:endc))                  ; this%cwdc_hr_col               (:)  =nan
     allocate(this%cwdc_loss_col                     (begc:endc))                  ; this%cwdc_loss_col             (:)  =nan
@@ -2987,10 +2987,10 @@ contains
             avgflag='A', long_name='crop seed source to leaf', &
             ptr_patch=this%crop_seedc_to_leaf_patch, default='inactive')
 
-       this%crop_seedc_to_livestem_patch(begp:endp) = spval
-       call hist_addfld1d (fname='CROP_SEEDC_TO_LIVESTEM', units='gC/m^2/s', &
-            avgflag='A', long_name='crop seed source to livestem for woody crop (palm)', &
-            ptr_patch=this%crop_seedc_to_livestem_patch, default='inactive')
+       this%crop_seedc_to_deadstem_patch(begp:endp) = spval
+       call hist_addfld1d (fname='CROP_SEEDC_TO_DEADSTEM', units='gC/m^2/s', &
+            avgflag='A', long_name='crop seed source to deadstem for woody crop (YFan)', &
+            ptr_patch=this%crop_seedc_to_deadstem_patch, default='inactive')
 
         this%sr_col(begc:endc) = spval
         call hist_addfld1d (fname='SR', units='gC/m^2/s', &
@@ -3903,7 +3903,7 @@ contains
 
        this%crop_seedc_to_leaf_patch(i)                  = value_patch
        this%grainc_to_cropprodc_patch(i)                 = value_patch
-       this%crop_seedc_to_livestem_patch(i)              = value_patch
+       this%crop_seedc_to_deadstem_patch(i)              = value_patch
     end do
 
     if ( use_crop )then
@@ -3929,18 +3929,20 @@ contains
     end if
 
     if ( mxnp > 0 )then
+      do j = 1, mxnp
        do fi = 1,num_patch
           i = filter_patch(fi)
-          this%pgrainc_to_food_patch(i,:)            = value_patch
-          this%cpool_to_pgrainc_patch(i,:)           = value_patch
-          this%pleafc_to_litter_patch(i,:)           = value_patch
-          this%pleafc_xfer_to_pleafc_patch(i,:)      = value_patch
-          this%cpool_to_pleafc_patch(i,:)            = value_patch
-          this%cpool_to_pleafc_storage_patch(i,:)    = value_patch
-          this%pleafc_storage_to_xfer_patch(i,:)     = value_patch
-          this%pleafc_storage_to_litter_patch(i,:)   = value_patch
-          this%pleafc_xfer_to_litter_patch(i,:)      = value_patch
+          this%pgrainc_to_food_patch(i,j)            = value_patch
+          this%cpool_to_pgrainc_patch(i,j)           = value_patch
+          this%pleafc_to_litter_patch(i,j)           = value_patch
+          this%pleafc_xfer_to_pleafc_patch(i,j)      = value_patch
+          this%cpool_to_pleafc_patch(i,j)            = value_patch
+          this%cpool_to_pleafc_storage_patch(i,j)    = value_patch
+          this%pleafc_storage_to_xfer_patch(i,j)     = value_patch
+          this%pleafc_storage_to_litter_patch(i,j)   = value_patch
+          this%pleafc_xfer_to_litter_patch(i,j)      = value_patch
        end do
+      end do
     end if 
 
 

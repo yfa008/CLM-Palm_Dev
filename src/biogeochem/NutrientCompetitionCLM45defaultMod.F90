@@ -29,7 +29,8 @@ module NutrientCompetitionCLM45defaultMod
   !
   type, extends(nutrient_competition_method_type) :: nutrient_competition_clm45default_type
      private
-     real(r8), allocatable :: afruitn(:,:),aleafn(:,:)    !grain and leaf allocation for each phytomer
+     real(r8), allocatable :: afruitn(:,:),aleafn(:,:)    !fruit and leaf allocation for each phytomer
+     real(r8), allocatable :: rfruitn(:,:),rleafn(:,:)    !intermediate allocation ratios 
    contains
      ! public methocs
      procedure, public :: init                                ! Initialize the class
@@ -94,8 +95,12 @@ contains
     if ( mxnp > 0 )then
        allocate(this%afruitn(bounds%begp:bounds%endp,1:mxnp))
        allocate(this%aleafn(bounds%begp:bounds%endp,1:mxnp))
-       this%afruitn(bounds%begp:bounds%endp,1:mxnp) = nan
-       this%aleafn(bounds%begp:bounds%endp,1:mxnp) = nan
+       allocate(this%rfruitn(bounds%begp:bounds%endp,1:mxnp))
+       allocate(this%rleafn(bounds%begp:bounds%endp,1:mxnp))
+       this%afruitn(bounds%begp:bounds%endp,1:mxnp) = 0._r8
+       this%aleafn(bounds%begp:bounds%endp,1:mxnp) = 0._r8
+       this%rfruitn(bounds%begp:bounds%endp,1:mxnp) = 0._r8
+       this%rleafn(bounds%begp:bounds%endp,1:mxnp) = 0._r8
     end if
   end subroutine InitAllocate
   !-----------------------------------------------------------------------
@@ -216,6 +221,11 @@ contains
     SHR_ASSERT_ALL((lbound(this%aleafn) <= (/bounds%begp,mxnp/)), errMsg(sourcefile, __LINE__))
     SHR_ASSERT_ALL((ubound(this%afruitn) >= (/bounds%endp,mxnp/)), errMsg(sourcefile, __LINE__))
     SHR_ASSERT_ALL((lbound(this%afruitn) <= (/bounds%begp,mxnp/)), errMsg(sourcefile, __LINE__))
+    SHR_ASSERT_ALL((ubound(this%rleafn) >= (/bounds%endp,mxnp/)), errMsg(sourcefile, __LINE__))
+    SHR_ASSERT_ALL((lbound(this%rleafn) <= (/bounds%begp,mxnp/)), errMsg(sourcefile, __LINE__))
+    SHR_ASSERT_ALL((ubound(this%rfruitn) >= (/bounds%endp,mxnp/)), errMsg(sourcefile, __LINE__))
+    SHR_ASSERT_ALL((lbound(this%rfruitn) <= (/bounds%begp,mxnp/)), errMsg(sourcefile, __LINE__))
+
 
     associate(                                                                                       &
          fpg                          => fpg_col                                                   , & ! Input:  [real(r8) (:)   ]  fraction of potential gpp (no units)    
@@ -687,8 +697,8 @@ contains
     real(r8) dayspyr                ! days per year
     real(r8) gddperday
     real(r8) :: psum_exp, psum_bud   !total leaf C/N sink size for expanded/unexpanded phytomers
-    real(r8) :: rleafn (bounds%begp:bounds%endp,1:mxnp)   !fruit and leaf allocation ratio for each phytomer
-    real(r8) :: rfruitn(bounds%begp:bounds%endp,1:mxnp)
+    !real(r8) :: rleafn (bounds%begp:bounds%endp,1:mxnp)   !fruit and leaf allocation ratio for each phytomer
+    !real(r8) :: rfruitn(bounds%begp:bounds%endp,1:mxnp)
 
     !-----------------------------------------------------------------------
 
@@ -960,37 +970,36 @@ contains
          if (ivt(p) >= npcropmin) then ! skip 2 generic crops
 
             if (croplive(p)) then
-			
+	
 	     !!for multilayer phytmoer structure, calculate f1, f3, f5 according to subroutine PalmPhenology
              if (phytomer(ivt(p)) > 0) then
 	        !Sub-PFT (phytomer) leaf allocation
 	        ! ==================
 
-		!calculate leaf sink size and update leaf alloc ratio for each phytomer
-		where (livep(p,:) == 0._r8 .or. plaipeak(p,:) == 1) !adjust lai for each phytomer
-			rleafn(p,:) = 0._r8
-		elsewhere (hui(p) >= huileafnp(p,:) .and. hui(p) < huilfexpnp(p,:)) !pre-expansion growth
-			rleafn(p,:) = 1._r8 !use flat rate
-		elsewhere (hui(p) >= huilfexpnp(p,:) .and. hui(p) < huilfmatnp(p,:)) !post-expansion
-			!   rleafn(p,:) = (1._r8 - (hui(p)-huilfexpnp(p,:))/ &   !simple linear decline
-			!                 (huilfmatnp(p,:)-huilfexpnp(p,:)))
-			rleafn(p,:) = 1._r8 !use flat rate
-		elsewhere
-			rleafn(p,:) = 0._r8
-		endwhere
+		  !calculate leaf sink size and update leaf alloc ratio for each phytomer
+		  where (livep(p,:) == 0._r8 .or. plaipeak(p,:) == 1) !adjust lai for each phytomer
+		     this%rleafn(p,:) = 0._r8
+		  elsewhere (hui(p) >= huileafnp(p,:) .and. hui(p) < huilfexpnp(p,:)) !pre-expansion growth
+		     this%rleafn(p,:) = 1._r8 !use flat rate
+		  elsewhere (hui(p) >= huilfexpnp(p,:) .and. hui(p) < huilfmatnp(p,:)) !post-expansion
+		  !   this%rleafn(p,:) = (1._r8 - (hui(p)-huilfexpnp(p,:))/ &   !simple linear decline
+		  !                 (huilfmatnp(p,:)-huilfexpnp(p,:)))
+		     this%rleafn(p,:) = 1._r8 !use flat rate
+		  elsewhere
+		     this%rleafn(p,:) = 0._r8
+		  endwhere
 
-		!calculate bunch sink size and update fruit allocation for each phytomer
-		!assume bunch development increases until end of fruit-fill (summit of oil synthesis)
-		!where (pgrainc(p,:) >= grnmx(ivt(p)))   !fruit may also stop growth before phenological
-		!    rfruitn(p,:) = 0._r8                 !maturity when a max bunch C size is reached
-		where (hui(p) >= huigrnnp(p,:) .and. hui(p) < grnmatnp(p,:) &
-				.and. plai(p,:) > 0._r8)
-			rfruitn(p,:) = (hui(p)- huigrnnp(p,:))/(grnmatnp(p,:)- huigrnnp(p,:))   !simple linear
-			!   rfruitn(p,:) = (1- rsex(p,:))*(1- rabort(p,:)) !use flat rate, only rescale by rsex/rabort
-		elsewhere
-			rfruitn(p,:) = 0._r8
-		endwhere
-		where (huigrnnp(p,:) < huigrain(p)) rfruitn(p,:) = 0._r8 !the initial bunches before fruiting threshold are mostly male (Corley and Tinker 2003)
+		  !calculate bunch sink size and update fruit allocation for each phytomer
+		  !assume bunch development increases until end of fruit-fill (summit of oil synthesis)
+		  ! where (pgrainc(p,:) >= grnmx(ivt(p)))   !fruit may also stop growth before phenological
+		  !    this%rfruitn(p,:) = 0._r8                 !maturity when a max bunch C size is reached
+		  where (hui(p) >= huigrnnp(p,:) .and. hui(p) < grnmatnp(p,:) &
+		         .and. plai(p,:) > 0._r8)
+		     this%rfruitn(p,:) = (hui(p)- huigrnnp(p,:))/(grnmatnp(p,:)- huigrnnp(p,:))   !simple linear
+		  elsewhere
+		     this%rfruitn(p,:) = 0._r8
+		  endwhere
+		  where (huigrnnp(p,:) < huigrain(p)) this%rfruitn(p,:) = 0._r8 !the initial bunches before fruiting threshold are mostly male (Corley and Tinker 2003)
 
 
 		  !PFT level allocation
@@ -1003,59 +1012,59 @@ contains
 		  !above-ground vegetative growth is more sink-limited (more or less constant at given developmental stage, leaf number and size)
 		  !while yield is source-limited (e.g. depend on excess assimilates available)
 		  if (leafout(p) >= huileaf(p) .and. hui(p) < huigrain(p)) then
-			 arepr(p) = 0._r8
+		     arepr(p) = 0._r8
 
-			 if (sum(rleafn(p,:)) == 0._r8) then !when plai all reach laimx too early, all allocation goes to root
-				aleaf(p) = 1.e-5_r8
-				astem(p) = 0._r8
-				aroot(p) = 1._r8 - aleaf(p) - astem(p)
-			 else
-				aroot(p) = max(0._r8, min(1._r8, arooti(ivt(p)) -  &
-				  (arooti(ivt(p)) - arootf(ivt(p))) *  &
-				   min(1._r8, real(idpp(p))/mxmat(ivt(p)))))
-				aleaf(p) = max(1.e-5_r8, (1._r8 - aroot(p))*fleafi(ivt(p)))
-				astem(p) = 1._r8 - aleaf(p) - aroot(p)
-			 end if
-			 grain_flag(p) = 0._r8
+		     if (sum(this%rleafn(p,:)) == 0._r8) then !when plai all reach laimx too early, all allocation goes to root
+		        aleaf(p) = 1.e-5_r8
+		        astem(p) = 0._r8
+		        aroot(p) = 1._r8 - aleaf(p) - astem(p)
+		     else
+		        aroot(p) = max(0._r8, min(1._r8, arooti(ivt(p)) -  &
+		           (arooti(ivt(p)) - arootf(ivt(p))) *  &
+		           min(1._r8, real(idpp(p))/mxmat(ivt(p)))))
+		        aleaf(p) = max(1.e-5_r8, (1._r8 - aroot(p))*fleafi(ivt(p)))
+		        astem(p) = 1._r8 - aleaf(p) - aroot(p)
+		     end if
+		     grain_flag(p) = 0._r8
 
-			 !astem2(p) = astem(p) ! save for use by equations after shift
-			 aleafi(p) = aleaf(p) ! to reproductive phenology stage
-			 idpp2(p)  = idpp(p)
+		     !astem2(p) = astem(p) ! save for use by equations after shift
+		     aleafi(p) = aleaf(p) ! to reproductive phenology stage
+		     idpp2(p)  = idpp(p)
 		  else if (hui(p) >= huigrain(p)) then
-		         grain_flag(p) = 1._r8
+		     grain_flag(p) = 1._r8
 
-			 !assume allocation rates apprach the final values and stablize after 1/2 of max age,
-			 aroot(p) = max(0._r8, min(1._r8, arooti(ivt(p)) - &
-			   (arooti(ivt(p)) - arootf(ivt(p))) * &
-			    min(1._r8, real(idpp(p))/mxmat(ivt(p)))))
+		     !assume allocation rates apprach the final values and stablize after 1/2 of max age,
+		     aroot(p) = max(0._r8, min(1._r8, arooti(ivt(p)) - &
+		        (arooti(ivt(p)) - arootf(ivt(p))) * &
+		        min(1._r8, real(idpp(p))/mxmat(ivt(p)))))
 
-			 aleaf(p) = max(1.e-5_r8, min(1._r8, aleafi(p) - &
-			   (aleafi(p) - aleaff(ivt(p))) * &
-			    max(0._r8, min(1._r8, real(idpp(p) - idpp2(p))/ &
-			   (declfact(ivt(p))*mxmat(ivt(p))- idpp2(p))))**allconsl(ivt(p)) ))
+		     aleaf(p) = max(1.e-5_r8, min(1._r8, aleafi(p) - &
+		        (aleafi(p) - aleaff(ivt(p))) * &
+		        max(0._r8, min(1._r8, real(idpp(p) - idpp2(p))/ &
+		        (declfact(ivt(p))*mxmat(ivt(p))- idpp2(p))))**allconsl(ivt(p)) ))
 
-			 astem(p) = 1._r8 - aleaf(p) - aroot(p)
+		     astem(p) = 1._r8 - aleaf(p) - aroot(p)
 
-			!palm is perennial evergreen and yields every month, using last year NPP will delay the yield dynamics. 23.01.2015
-			
-			!use monthly sum of NPP so that fruit allocation dynamics is not delayed 20.04.2015
-			 arepr(p) = 2._r8/(1.0_r8 + exp(-b_par(ivt(p))*(monsum_npp(p) - 100._r8))) - a_par(ivt(p))
+		     !palm is perennial evergreen and yields every month, using last year NPP will delay the yield dynamics. 23.01.2015
+		
+		     !use monthly sum of NPP so that fruit allocation dynamics is not delayed 20.04.2015
+		     arepr(p) = 2._r8/(1.0_r8 + exp(-b_par(ivt(p))*(monsum_npp(p) - 100._r8))) - a_par(ivt(p))
 
-			!when plai all reach laimx too early, allocation goes to root and fruit
-			 if (sum(rleafn(p,:)) == 0._r8) then
-				!arepr(p) = 1.e5_r8  !the same effect as setting aleaf(p) = 1.e-5_r8
-				aleaf(p) = 1.e-5_r8
-				astem(p) = 0._r8
-			 end if
-			 if (sum(rfruitn(p,:)) == 0._r8) then
-				arepr(p) = 0._r8
-			 end if
+		     !when plai all reach laimx too early, allocation goes to root and fruit
+		     if (sum(this%rleafn(p,:)) == 0._r8) then
+		        !arepr(p) = 1.e5_r8  !the same effect as setting aleaf(p) = 1.e-5_r8
+		        aleaf(p) = 1.e-5_r8
+		        astem(p) = 0._r8
+		     end if
+		     if (sum(this%rfruitn(p,:)) == 0._r8) then
+		        arepr(p) = 0._r8
+		     end if
 
 		  else !pre-emergence
-			 aleaf(p) = 1.e-5_r8
-			 astem(p) = 0._r8
-			 aroot(p) = 0._r8
-			 arepr(p) = 0._r8
+		     aleaf(p) = 1.e-5_r8
+		     astem(p) = 0._r8
+		     aroot(p) = 0._r8
+		     arepr(p) = 0._r8
 
 		  end if
 
@@ -1065,15 +1074,15 @@ contains
 
 		  !Sub-PFT level allocation to leaf/grain of phytomers
 		  !calculate the total sink size of expended / bud phytomers
-		  psum_exp = sum(rleafn(p,:), mask=(hui(p) >= huilfexpnp(p,:) .and. hui(p) < huilfmatnp(p,:)))
-		  psum_bud = sum(rleafn(p,:), mask=(hui(p) >= huileafnp(p,:) .and. hui(p) < huilfexpnp(p,:)))
+		  psum_exp = sum(this%rleafn(p,:), mask=(hui(p) >= huilfexpnp(p,:) .and. hui(p) < huilfmatnp(p,:)))
+		  psum_bud = sum(this%rleafn(p,:), mask=(hui(p) >= huileafnp(p,:) .and. hui(p) < huilfexpnp(p,:)))
 
 		  where (hui(p) >= huileafnp(p,:) .and. hui(p) < huilfexpnp(p,:)) !pre-expansion growth
-			 this%aleafn(p,:) = rleafn(p,:) / max(1.e-5_r8, psum_bud)
+		      this%aleafn(p,:) = this%rleafn(p,:) / max(1.e-5_r8, psum_bud)
 		  elsewhere (hui(p) >= huilfexpnp(p,:) .and. hui(p) < huilfmatnp(p,:)) !post-expansion
-			 this%aleafn(p,:) = rleafn(p,:) / max(1.e-5_r8, psum_exp)
+		      this%aleafn(p,:) = this%rleafn(p,:) / max(1.e-5_r8, psum_exp)
 		  endwhere
-		  this%afruitn(p,:) = rfruitn(p,:) / max(1.e-5_r8, sum(rfruitn(p,:)))
+		  this%afruitn(p,:) = this%rfruitn(p,:) / max(1.e-5_r8, sum(this%rfruitn(p,:)))
 
              else   ! .not phytomer structure
 
@@ -1111,7 +1120,7 @@ contains
                           exp(-bfact(ivt(p))*hui(p)/huigrain(p))) / &
                           (exp(-bfact(ivt(p)))-1) ! fraction alloc to leaf (from J Norman alloc curve)
                      aleaf(p) = max(1.e-5_r8, (1._r8 - aroot(p)) * fleaf)
-					 
+		 
 		    if (perennial(ivt(p)) == 1 ) then
                      aroot(p) = max(0._r8, min(1._r8, arooti(ivt(p)) - &
                                    (arooti(ivt(p)) - arootf(ivt(p))) * &
@@ -1121,7 +1130,7 @@ contains
                                    (aleaf0(p) - aleaff(ivt(p))) * &
                                    min(1._r8, real(idpp(p))/real(mxmat(ivt(p))))))
 		    end if
-					 
+		 
                      astem(p) = 1._r8 - arepr(p) - aleaf(p) - aroot(p)
                   end if
 
@@ -1142,69 +1151,69 @@ contains
 	       !for perennial crops add a continuous phenological cycle at annual time step (Y.Fan)
 	       else if (hui(p) >= huigrain(p) .and. perennial(ivt(p)) == 1) then
 		    if (hui(p) >= huigrain2(p) .and. hui(p) < gddmaturity2(p)) then
-			  if (peaklai(p) == 1) then !
-				 if (perennial(ivt(p)) == 1) then
-					aleaf(p) = aleaff(ivt(p))
-					astem(p) = astemf(ivt(p))
-				 else
-					aleaf(p) = 1.e-5_r8
-					astem(p) = 0._r8
-				 end if
-				 aroot(p) = arootf(ivt(p))
-			  else
-				!root allocation continue decrease to the base level arootf until the end of life
-				 aroot(p) = max(0._r8, min(1._r8, arooti(ivt(p)) - &
-							   (arooti(ivt(p)) - arootf(ivt(p))) * &
-							   min(1._r8, real(idpp(p))/real(mxmat(ivt(p))))))
-				!leaf /stem allocation decreases to the base level during grainfill
-				 if (aleafi(p) > aleaff(ivt(p))) then
-					aleaf(p) = max(1.e-5_r8, max(aleaff(ivt(p)), aleaf(p) * &
-							 (1._r8 - min((hui(p)- huigrain2(p))/           &
-							 ((gddmaturity2(p)*declfact(ivt(p)))-           &
-							 huigrain2(p)),1._r8)**allconsl(ivt(p)) )))
-				 end if
-				 if (astemi(p) > astemf(ivt(p))) then
-					astem(p) = max(0._r8, max(astemf(ivt(p)), astem(p) * &
-							 (1._r8 - min((hui(p)- huigrain2(p))/        &
-							 ((gddmaturity2(p)*declfact(ivt(p)))-        &
-							 huigrain2(p)),1._r8)**allconss(ivt(p)) )))
-				 end if
-			  end if
-			  arepr(p) = 1._r8 - aroot(p) - astem(p) - aleaf(p)
-			 ! No N retranslocation for generic perennial crops (Y.Fan 2022.09)
-			 ! if (grain_flag(p) == 0._r8) then
-			 !        t1 = 1 / dt
-			 !        leafn_to_retransn(p) = t1 * ((leafc(p) / leafcn(ivt(p))) - (leafc(p) / fleafcn(ivt(p))))
-			 !        livestemn_to_retransn(p) = t1 * ((livestemc(p) / livewdcn(ivt(p))) - (livestemc(p) / fstemcn(ivt(p))))
-			 !        if (ffrootcn(ivt(p)) > 0._r8) then
-			 !       	frootn_to_retransn(p) = t1 * ((frootc(p) / frootcn(ivt(p))) - (frootc(p) / ffrootcn(ivt(p))))
-			 !        else
-			 !       	frootn_to_retransn(p) = 0._r8
-			 !        end if
-			 !        grain_flag(p) = 1._r8
-			 ! end if
+		       if (peaklai(p) == 1) then !
+		          if (perennial(ivt(p)) == 1) then
+		             aleaf(p) = aleaff(ivt(p))
+		             astem(p) = astemf(ivt(p))
+		          else
+		             aleaf(p) = 1.e-5_r8
+		             astem(p) = 0._r8
+		          end if
+		          aroot(p) = arootf(ivt(p))
+		       else
+		          !root allocation continue decrease to the base level arootf until the end of life
+		          aroot(p) = max(0._r8, min(1._r8, arooti(ivt(p)) - &
+		                   (arooti(ivt(p)) - arootf(ivt(p))) * &
+		                   min(1._r8, real(idpp(p))/real(mxmat(ivt(p))))))
+		          !leaf /stem allocation decreases to the base level during grainfill
+		          if (aleafi(p) > aleaff(ivt(p))) then
+		             aleaf(p) = max(1.e-5_r8, max(aleaff(ivt(p)), aleaf(p) * &
+		                      (1._r8 - min((hui(p)- huigrain2(p))/           &
+		                      ((gddmaturity2(p)*declfact(ivt(p)))-           &
+		                      huigrain2(p)),1._r8)**allconsl(ivt(p)) )))
+		          end if
+		          if (astemi(p) > astemf(ivt(p))) then
+		             astem(p) = max(0._r8, max(astemf(ivt(p)), astem(p) * &
+		                      (1._r8 - min((hui(p)- huigrain2(p))/        &
+		                      ((gddmaturity2(p)*declfact(ivt(p)))-        &
+		                      huigrain2(p)),1._r8)**allconss(ivt(p)) )))
+		          end if
+		       end if
+		       arepr(p) = 1._r8 - aroot(p) - astem(p) - aleaf(p)
+		      ! No N retranslocation for generic perennial crops (Y.Fan 2022.09)
+		      ! if (grain_flag(p) == 0._r8) then
+		      !        t1 = 1 / dt
+		      !        leafn_to_retransn(p) = t1 * ((leafc(p) / leafcn(ivt(p))) - (leafc(p) / fleafcn(ivt(p))))
+		      !        livestemn_to_retransn(p) = t1 * ((livestemc(p) / livewdcn(ivt(p))) - (livestemc(p) / fstemcn(ivt(p))))
+		      !        if (ffrootcn(ivt(p)) > 0._r8) then
+		      !       	frootn_to_retransn(p) = t1 * ((frootc(p) / frootcn(ivt(p))) - (frootc(p) / ffrootcn(ivt(p))))
+		      !        else
+		      !       	frootn_to_retransn(p) = 0._r8
+		      !        end if
+		      !        grain_flag(p) = 1._r8
+		      ! end if
 
 		    else !outside of grainfill period, root and leaf alloc continue decline through ageing
-			  arepr(p) = 0._r8
-			  grain_flag(p) = 0._r8 !set to 0 before the next grainfill
-			  if (peaklai(p) == 1) then ! lai at maximum allowed
-				 if (perennial(ivt(p)) == 1) then
-					aleaf(p) = aleaff(ivt(p))
-					astem(p) = astemf(ivt(p))
-				 else
-					aleaf(p) = 1.e-5_r8
-					astem(p) = 0._r8
-				 end if
-				 aroot(p) = 1._r8 - arepr(p) - aleaf(p) - astem(p)
-			  else
-				 aroot(p) = max(0._r8, min(1._r8, arooti(ivt(p)) - &
-							   (arooti(ivt(p)) - arootf(ivt(p))) * &
-							   min(1._r8, real(idpp(p))/real(mxmat(ivt(p))))))
-				 aleaf(p) = max(1.e-5_r8, min(1._r8, aleaf0(p) - &
-							   (aleaf0(p) - aleaff(ivt(p))) * &
-							   min(1._r8, real(idpp(p))/real(mxmat(ivt(p))))))
-				 astem(p) = 1._r8 - arepr(p) - aleaf(p) - aroot(p)
-			  end if
+		       arepr(p) = 0._r8
+		       grain_flag(p) = 0._r8 !set to 0 before the next grainfill
+		       if (peaklai(p) == 1) then ! lai at maximum allowed
+		          if (perennial(ivt(p)) == 1) then
+		             aleaf(p) = aleaff(ivt(p))
+		             astem(p) = astemf(ivt(p))
+		          else
+		             aleaf(p) = 1.e-5_r8
+		             astem(p) = 0._r8
+		          end if
+		          aroot(p) = 1._r8 - arepr(p) - aleaf(p) - astem(p)
+		       else
+		          aroot(p) = max(0._r8, min(1._r8, arooti(ivt(p)) - &
+		             (arooti(ivt(p)) - arootf(ivt(p))) * &
+		             min(1._r8, real(idpp(p))/real(mxmat(ivt(p))))))
+		          aleaf(p) = max(1.e-5_r8, min(1._r8, aleaf0(p) - &
+		             (aleaf0(p) - aleaff(ivt(p))) * &
+		             min(1._r8, real(idpp(p))/real(mxmat(ivt(p))))))
+		          astem(p) = 1._r8 - arepr(p) - aleaf(p) - aroot(p)
+		       end if
 		    end if
 		   
                else if (hui(p) >= huigrain(p)) then

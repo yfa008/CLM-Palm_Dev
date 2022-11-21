@@ -90,7 +90,7 @@ module CNVegCarbonStateType
      real(r8), pointer :: pgrainc_patch            (:,:) ! (gC/m2) phytomer grain C
      real(r8), pointer :: pleafc_xfer_patch        (:,:) ! (gC/m2) phytomer leaf C transfer
      real(r8), pointer :: pleafc_storage_patch     (:,:) ! (gC/m2) phytomer leaf C storage
-     real(r8), pointer :: leafc_senescent_patch    (:)   ! (gC/m2) leaf C saved for pruning and transferring to litter pool
+     !real(r8), pointer :: leafc_senescent_patch    (:)   ! (gC/m2) leaf C saved for pruning and transferring to litter pool
      !real(r8), pointer :: totfoodc_col             (:)   ! (gC/m2) total column food carbon
 
    contains
@@ -280,7 +280,7 @@ contains
     allocate(this%pgrainc_patch            (begp:endp,1:mxnp))      ; this%pgrainc_patch        (:,:) = nan
     allocate(this%pleafc_xfer_patch        (begp:endp,1:mxnp))      ; this%pleafc_xfer_patch    (:,:) = nan
     allocate(this%pleafc_storage_patch     (begp:endp,1:mxnp))      ; this%pleafc_storage_patch (:,:) = nan
-    allocate(this%leafc_senescent_patch    (begp:endp))             ; this%leafc_senescent_patch (:) = nan
+    !allocate(this%leafc_senescent_patch    (begp:endp))             ; this%leafc_senescent_patch (:) = nan
     !allocate(this%totfoodc_col             (begc:endc))             ; this%totfoodc_col        (:)  = nan
 
   end subroutine InitAllocate
@@ -1034,7 +1034,7 @@ contains
               this%pleafc_xfer_patch(p,j)        = 0._r8
               this%pleafc_storage_patch(p,j)     = 0._r8
             end do
-            this%leafc_senescent_patch(p)      = 0._r8
+            !this%leafc_senescent_patch(p)      = 0._r8
           end if
 
        endif
@@ -1294,9 +1294,9 @@ contains
                    dim1name='pft',dim2name='phytomer',long_name='',units='', &
                    interpinic_flag='interp', readvar=readvar, data=this%pleafc_storage_patch)
    
-          call restartvar(ncid=ncid, flag=flag, varname='leafc_senescent', xtype=ncd_double,  &
-                  dim1name='pft',long_name='senescent leaf C saved for pruning', units='gC/m2', &
-                  interpinic_flag='interp', readvar=readvar, data=this%leafc_senescent_patch)
+          !call restartvar(ncid=ncid, flag=flag, varname='leafc_senescent', xtype=ncd_double,  &
+          !        dim1name='pft',long_name='senescent leaf C saved for pruning', units='gC/m2', &
+          !        interpinic_flag='interp', readvar=readvar, data=this%leafc_senescent_patch)
 
        end if
 
@@ -1516,7 +1516,7 @@ contains
                           this%pleafc_xfer_patch(i,j)        = 0._r8
                           this%pleafc_storage_patch(i,j)     = 0._r8
                         end do
-                        this%leafc_senescent_patch(i)      = 0._r8
+                        !this%leafc_senescent_patch(i)      = 0._r8
                       end if
 
                       ! calculate totvegc explicitly so that it is available for the isotope 
@@ -1553,11 +1553,11 @@ contains
                               this%grainc_xfer_patch(i)
                       end if
 
-                      if ( mxnp > 0 ) then
-                         this%totvegc_patch(i) =         &
-                              this%totvegc_patch(i)    + &
-                              this%leafc_senescent_patch(i)
-                      end if
+                     ! if ( mxnp > 0 ) then
+                     !    this%totvegc_patch(i) =         &
+                     !         this%totvegc_patch(i)    + &
+                     !         this%leafc_senescent_patch(i)
+                     ! end if
 
                    endif
                 end if
@@ -2440,7 +2440,7 @@ contains
            this%pleafc_xfer_patch(i,j)         = value_patch
            this%pleafc_storage_patch(i,j)      = value_patch
           end do
-          this%leafc_senescent_patch(i)       = value_patch
+          !this%leafc_senescent_patch(i)       = value_patch
        end if
     end do
 
@@ -2562,11 +2562,11 @@ contains
                this%grainc_patch(p)
        end if
 
-       if ( mxnp > 0 ) then
-          this%dispvegc_patch(p) =         &
-               this%dispvegc_patch(p)    + &
-               this%leafc_senescent_patch(p)
-       end if
+       ! if ( mxnp > 0 ) then
+       !    this%dispvegc_patch(p) =         &
+       !         this%dispvegc_patch(p)    + &
+       !         this%leafc_senescent_patch(p)
+       ! end if
 
        ! total vegetation carbon, excluding cpool (TOTVEGC)
        this%totvegc_patch(p) = &

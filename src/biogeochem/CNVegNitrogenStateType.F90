@@ -80,7 +80,7 @@ module CNVegNitrogenStateType
      real(r8), pointer :: pgrainn_patch            (:,:) ! (gN/m2) phytomer grain N
      real(r8), pointer :: pleafn_xfer_patch        (:,:) ! (gN/m2) phytomer leaf N transfer
      real(r8), pointer :: pleafn_storage_patch     (:,:) ! (gN/m2) phytomer leaf N transfer
-     real(r8), pointer :: leafn_senescent_patch    (:)   ! (gN/m2) leaf N saved for pruning and transferring to litter pool
+     !real(r8), pointer :: leafn_senescent_patch    (:)   ! (gN/m2) leaf N saved for pruning and transferring to litter pool
      !real(r8), pointer :: totfoodn_col             (:)   ! (gN/m2) total column food N 
 
    contains
@@ -184,7 +184,7 @@ contains
     allocate(this%pgrainn_patch            (begp:endp,1:mxnp))  ; this%pgrainn_patch         (:,:) = nan
     allocate(this%pleafn_xfer_patch        (begp:endp,1:mxnp))  ; this%pleafn_xfer_patch     (:,:) = nan
     allocate(this%pleafn_storage_patch     (begp:endp,1:mxnp))  ; this%pleafn_storage_patch  (:,:) = nan
-    allocate(this%leafn_senescent_patch    (begp:endp))         ; this%leafn_senescent_patch  (:)  = nan
+    !allocate(this%leafn_senescent_patch    (begp:endp))         ; this%leafn_senescent_patch  (:)  = nan
     !allocate(this%totfoodn_col             (begc:endc))         ; this%totfoodn_col           (:)  = nan
 
   end subroutine InitAllocate
@@ -499,7 +499,7 @@ contains
               this%pleafn_xfer_patch(p,j)        = 0._r8
               this%pleafn_storage_patch(p,j)     = 0._r8
             end do
-            this%leafn_senescent_patch(p)      = 0._r8
+            !this%leafn_senescent_patch(p)      = 0._r8
           end if
 
           if (MM_Nuptake_opt .eqv. .false.) then  ! if not running in floating CN ratio option 
@@ -730,9 +730,9 @@ contains
                    dim1name='pft',dim2name='phytomer',long_name='',units='', &
                    interpinic_flag='interp', readvar=readvar, data=this%pleafn_storage_patch)
    
-       call restartvar(ncid=ncid, flag=flag, varname='leafn_senescent', xtype=ncd_double,  &
-                  dim1name='pft',long_name='senescent leaf N saved for pruning',units='gN/m2', &
-                  interpinic_flag='interp', readvar=readvar, data=this%leafn_senescent_patch)
+       !call restartvar(ncid=ncid, flag=flag, varname='leafn_senescent', xtype=ncd_double,  &
+       !           dim1name='pft',long_name='senescent leaf N saved for pruning',units='gN/m2', &
+       !           interpinic_flag='interp', readvar=readvar, data=this%leafn_senescent_patch)
 
     end if 
 
@@ -854,7 +854,7 @@ contains
                  this%pleafn_xfer_patch(p,j)       = 0._r8
                  this%pleafn_storage_patch(p,j)    = 0._r8
                end do
-               this%leafn_senescent_patch(p)    = 0._r8
+               !this%leafn_senescent_patch(p)    = 0._r8
              end if        
    
              ! tree types need to be initialized with some stem mass so that
@@ -914,11 +914,11 @@ contains
                               this%grainn_xfer_patch(p)
              end if
 
-             if ( mxnp > 0 ) then
-                 this%totvegn_patch(p) =         &
-                      this%totvegn_patch(p)    + &
-                      this%leafn_senescent_patch(p)
-             end if
+             !if ( mxnp > 0 ) then
+             !    this%totvegn_patch(p) =         &
+             !         this%totvegn_patch(p)    + &
+             !         this%leafn_senescent_patch(p)
+             !end if
        end do
      end if
 
@@ -992,7 +992,7 @@ contains
               this%pleafn_xfer_patch(i,j)         = value_patch
               this%pleafn_storage_patch(i,j)      = value_patch
             end do
-            this%leafn_senescent_patch(i)       = value_patch
+            !this%leafn_senescent_patch(i)       = value_patch
          end if
 
        end do
@@ -1104,11 +1104,11 @@ contains
                this%cropseedn_deficit_patch(p)
        end if
 
-       if ( mxnp > 0 ) then
-          this%dispvegn_patch(p) =         &
-               this%dispvegn_patch(p)    + &
-               this%leafn_senescent_patch(p)
-       end if
+       !if ( mxnp > 0 ) then
+       !   this%dispvegn_patch(p) =         &
+       !        this%dispvegn_patch(p)    + &
+       !        this%leafn_senescent_patch(p)
+       !end if
 
        ! total vegetation nitrogen (TOTVEGN)
        this%totvegn_patch(p) = &

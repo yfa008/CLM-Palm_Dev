@@ -344,6 +344,7 @@ contains
             cnveg_carbonstate_inst, cnveg_nitrogenstate_inst, cnveg_carbonflux_inst, cnveg_nitrogenflux_inst)
 
        call CNOffsetLitterfall(num_soilp, filter_soilp, &
+            num_soilc, filter_soilc, soilbiogeochem_state_inst,&
             cnveg_state_inst, cnveg_carbonstate_inst, cnveg_nitrogenstate_inst, cnveg_carbonflux_inst, cnveg_nitrogenflux_inst, crop_inst)
 
        call CNBackgroundLitterfall(num_soilp, filter_soilp, &
@@ -358,7 +359,7 @@ contains
        ! gather all patch-level litterfall fluxes to the column for litter C and N inputs
 
        call CNLitterToColumn(bounds, num_soilc, filter_soilc, &
-            cnveg_state_inst, cnveg_carbonflux_inst, cnveg_nitrogenflux_inst, soilbiogeochem_state_inst, &
+            cnveg_state_inst, cnveg_carbonflux_inst, cnveg_nitrogenflux_inst, &
             crop_inst,cnveg_carbonstate_inst,cnveg_nitrogenstate_inst, &
             leaf_prof_patch(bounds%begp:bounds%endp,1:nlevdecomp_full), & 
             froot_prof_patch(bounds%begp:bounds%endp,1:nlevdecomp_full))
@@ -3151,6 +3152,7 @@ contains
 
   !-----------------------------------------------------------------------
   subroutine CNOffsetLitterfall (num_soilp, filter_soilp, &
+       num_soilc, filter_soilc, soilbiogeochem_state_inst,&
        cnveg_state_inst, cnveg_carbonstate_inst, cnveg_nitrogenstate_inst, cnveg_carbonflux_inst, cnveg_nitrogenflux_inst, crop_inst)
     !
     ! !DESCRIPTION:
@@ -3160,13 +3162,17 @@ contains
     ! !USES:
     use pftconMod        , only : npcropmin !, mxlivenp, pprodharv10
     use CNSharedParamsMod, only : use_fun
-    use clm_varctl       , only : CNratio_floating    
+    use clm_varctl       , only : CNratio_floating   
+    use dynHarvestMod , only: CNHarvestPftToColumn !for woody crop types 
     !
     ! !ARGUMENTS:
     integer                       , intent(in)    :: num_soilp       ! number of soil patches in filter
     integer                       , intent(in)    :: filter_soilp(:) ! filter for soil patches
+    integer                         , intent(in)    :: num_soilc       ! number of soil columns in filter
+    integer                         , intent(in)    :: filter_soilc(:) ! filter for soil columns
+    type(soilbiogeochem_state_type) , intent(in)    :: soilbiogeochem_state_inst
     type(cnveg_state_type)        , intent(inout) :: cnveg_state_inst
-    type(crop_type)                   , intent(inout) :: crop_inst
+    type(crop_type)               , intent(inout) :: crop_inst
     type(cnveg_carbonstate_type)  , intent(in)    :: cnveg_carbonstate_inst
     type(cnveg_nitrogenstate_type), intent(in)    :: cnveg_nitrogenstate_inst
     type(cnveg_carbonflux_type)   , intent(inout) :: cnveg_carbonflux_inst
@@ -3338,7 +3344,7 @@ contains
                t1 = 1.0_r8 / dt
    
                ! clear-cut carbon fluxes, remove all displayed/storage/transfer pools
-               ! the following hrv fluxes will not be added to litter pool unless using function NHarvestPftToColumn from fpftdynMod, otherwise will have C balance error
+               ! the following hrv fluxes will not be added to litter pool unless using function NHarvestPftToColumn, otherwise will have C balance error
                ! summarize into litter in CNLitterToColumn mod by calling NHarvestPftToColumn
                ! displayed pools (similar to wood harvest fluxes in dynHarvestMod)
                hrv_leafc_to_litter(p)               = leafc(p)          * t1
@@ -3368,7 +3374,14 @@ contains
                !this pool is large and cannot be added into litter, otherwise will drain out SMINN soon! (Y.Fan 2016)
                wood_harvestc(p)                     = deadstemc(p)     * t1 
                wood_harvestn(p)                     = deadstemn(p)     * t1 
-   
+
+               !summarize hrv fluxes to column level in similar way to natural
+               !tree PFTs with the following function from dynHarvestMod.F90
+               call CNHarvestPftToColumn(num_soilc, filter_soilc, &
+                    soilbiogeochem_state_inst,cnveg_carbonflux_inst,cnveg_nitrogenflux_inst)
+               !wood harvest function is designed for natural tree PFTs but can be
+               !applied to perennial woody crops like oil palm (Y.Fan 2022)
+
                ! clear-up phytomer pools too
                pgrainc_to_food(p,:)           = t1 * pgrainc(p,:)  + cpool_to_pgrainc(p,:)
                pgrainn_to_food(p,:)           = t1 * pgrainn(p,:)  + npool_to_pgrainn(p,:)
@@ -3556,8 +3569,8 @@ contains
          pleafc_to_litter      =>    cnveg_carbonflux_inst%pleafc_to_litter_patch            , & ! InOut:  [real(r8) (:,:)]  phytomer leaf C litterfall (gC/m2/s)
          pleafn_to_litter      =>    cnveg_nitrogenflux_inst%pleafn_to_litter_patch          , & ! InOut:  [real(r8) (:,:)]  phytomer leaf N litterfall (gN/m2/s)
          pleafn_to_retransn    =>    cnveg_nitrogenflux_inst%pleafn_to_retransn_patch        , & ! Input:  [real(r8) (:,:)] phytomer leaf N restranslocation (gN/m2/s)
-         leafc_senescent       =>    cnveg_carbonstate_inst%leafc_senescent_patch            , & ! InOut:  [real(r8) (:)]  (gC/m2) leaf C saved for pruning (added by Y.Fan)
-         leafn_senescent       =>    cnveg_nitrogenstate_inst%leafn_senescent_patch          , & ! InOut:  [real(r8) (:)]  (gN/m2) leaf N saved for pruning (added by Y.Fan)
+         !leafc_senescent       =>    cnveg_carbonstate_inst%leafc_senescent_patch            , & ! InOut:  [real(r8) (:)]  (gC/m2) leaf C saved for pruning (added by Y.Fan)
+         !leafn_senescent       =>    cnveg_nitrogenstate_inst%leafn_senescent_patch          , & ! InOut:  [real(r8) (:)]  (gN/m2) leaf N saved for pruning (added by Y.Fan)
 
          leafc             =>    cnveg_carbonstate_inst%leafc_patch              , & ! Input:  [real(r8) (:) ]  (gC/m2) leaf C                                    
          frootc            =>    cnveg_carbonstate_inst%frootc_patch             , & ! Input:  [real(r8) (:) ]  (gC/m2) fine root C                               
@@ -3598,16 +3611,16 @@ contains
 !                    pleafn_to_retransn(p,:) = 1.2_r8 * bglfr_p(p,:) * (pleafn(p,:) - pleafc(p,:)/lflitcn(ivt(p)))
 !                endwhere
 !            end if
-            !Since SUM is a nonelemental function, it is evaluated fully for all items of a variable included in sum().
-            !do not use sum in where/elsewhere clause, use mask condition instead
-            !leafc_senescent(p) = leafc_senescent(p) + sum(pleafc_to_litter(p,:), mask=(livep(p,:) == 0._r8 .and. rankp(p,:) > 0))*dt
-            !leafn_senescent(p) = leafn_senescent(p) + sum(pleafn_to_litter(p,:), mask=(livep(p,:) == 0._r8 .and. rankp(p,:) > 0))*dt
-            leafc_senescent(p) = leafc_senescent(p) + sum(pleafc_to_litter(p,:))*dt
-            leafn_senescent(p) = leafn_senescent(p) + sum(pleafn_to_litter(p,:))*dt
-            !at pruning, move senescent pools to litter in CNLitterToColum
+!            !Since SUM is a nonelemental function, it is evaluated fully for all items of a variable included in sum().
+!            !do not use sum in where/elsewhere clause, use mask condition instead
+!            !leafc_senescent(p) = leafc_senescent(p) + sum(pleafc_to_litter(p,:), mask=(livep(p,:) == 0._r8 .and. rankp(p,:) > 0))*dt
+!            !leafn_senescent(p) = leafn_senescent(p) + sum(pleafn_to_litter(p,:), mask=(livep(p,:) == 0._r8 .and. rankp(p,:) > 0))*dt
+!            leafc_senescent(p) = leafc_senescent(p) + sum(pleafc_to_litter(p,:))*dt
+!            leafn_senescent(p) = leafn_senescent(p) + sum(pleafn_to_litter(p,:))*dt
+!            !at pruning, move senescent pools to litter in CNLitterToColum
 
-            leafc_to_litter(p) = sum(pleafc_to_litter(p,:)) !only meant for real-time updating leafc and leafn for maintenance respriation
-            leafn_to_litter(p) = sum(pleafn_to_litter(p,:)) !but they don't actually go to litter pool except at the time step of pruning
+            leafc_to_litter(p) = sum(pleafc_to_litter(p,:)) 
+            leafn_to_litter(p) = sum(pleafn_to_litter(p,:)) 
             leafn_to_retransn(p) = sum(pleafn_to_retransn(p,:)) !use explicit N profile for each layer
          end if
 
@@ -3617,7 +3630,7 @@ contains
           if (phytomer(ivt(p)) > 0) then
             !bglfr rate for fine root, assume the same as leaf turnover rate, like other PFTs
             frootc_to_litter(p) = bglfr(p) * frootc(p)
-            !frootn_to_litter(p) = bglfr(p) * frootn(p)
+            frootn_to_litter(p) = bglfr(p) * frootn(p)
           else !for trees and other crops
 
             ! units for bglfr are already 1/s
@@ -3871,7 +3884,7 @@ contains
 
   !-----------------------------------------------------------------------
   subroutine CNLitterToColumn (bounds, num_soilc, filter_soilc,         &
-       cnveg_state_inst,cnveg_carbonflux_inst,cnveg_nitrogenflux_inst,soilbiogeochem_state_inst, &
+       cnveg_state_inst,cnveg_carbonflux_inst,cnveg_nitrogenflux_inst, &
        crop_inst,cnveg_carbonstate_inst,cnveg_nitrogenstate_inst, & 
        leaf_prof_patch, froot_prof_patch)
     !
@@ -3883,7 +3896,7 @@ contains
     use clm_varpar , only : max_patch_per_col, nlevdecomp
     use pftconMod  , only : npcropmin
     use clm_varctl , only : use_grainproduct
-    use dynHarvestMod , only: CNHarvestPftToColumn !need to make this subroutine public
+    !use dynHarvestMod , only: CNHarvestPftToColumn !need to make this subroutine public
     !
     ! !ARGUMENTS:
     type(bounds_type)               , intent(in)    :: bounds
@@ -3892,7 +3905,7 @@ contains
     type(cnveg_state_type)          , intent(in)    :: cnveg_state_inst
     type(crop_type)                 , intent(inout) :: crop_inst
     type(cnveg_carbonstate_type)    , intent(in)    :: cnveg_carbonstate_inst
-    type(soilbiogeochem_state_type) , intent(in)    :: soilbiogeochem_state_inst
+    !type(soilbiogeochem_state_type) , intent(in)    :: soilbiogeochem_state_inst
     type(cnveg_nitrogenstate_type)  , intent(in)    :: cnveg_nitrogenstate_inst
     type(cnveg_carbonflux_type)     , intent(inout) :: cnveg_carbonflux_inst
     type(cnveg_nitrogenflux_type)   , intent(inout) :: cnveg_nitrogenflux_inst
@@ -3911,11 +3924,11 @@ contains
     associate(                                                                                & 
          leaf_prof                 => leaf_prof_patch                                       , & ! Input:  [real(r8) (:,:) ]  (1/m) profile of leaves                         
          froot_prof                => froot_prof_patch                                      , & ! Input:  [real(r8) (:,:) ]  (1/m) profile of fine roots                     
-         phytomer                  =>    pftcon%phytomer                                    , & ! Input:  [integer (:)]   total number of phytomers in life time (>0 use the new PhytomerPhenology) (added by Y.Fan)
-         leafc_senescent           =>    cnveg_carbonstate_inst%leafc_senescent_patch       , & ! InOut:  [real(r8) (:)]  (gC/m2) leaf C saved for pruning (added by Y.Fan)
-         leafn_senescent           =>    cnveg_nitrogenstate_inst%leafn_senescent_patch     , & ! InOut:  [real(r8) (:)]  (gN/m2) leaf N saved for pruning (added by Y.Fan)
-         offset_flag               =>    cnveg_state_inst%offset_flag_patch                 , & ! Input:  [real(r8) (:)]  offset flag for perennial crop ratation (Y.Fan)
-         prune                     =>    crop_inst%prune_patch                            , & ! Input:  [real(r8) (:)]  flag for pruning (Y.Fan)
+         !phytomer                  =>    pftcon%phytomer                                    , & ! Input:  [integer (:)]   total number of phytomers in life time (>0 use the new PhytomerPhenology) (added by Y.Fan)
+         !leafc_senescent           =>    cnveg_carbonstate_inst%leafc_senescent_patch       , & ! InOut:  [real(r8) (:)]  (gC/m2) leaf C saved for pruning (added by Y.Fan)
+         !leafn_senescent           =>    cnveg_nitrogenstate_inst%leafn_senescent_patch     , & ! InOut:  [real(r8) (:)]  (gN/m2) leaf N saved for pruning (added by Y.Fan)
+         !offset_flag               =>    cnveg_state_inst%offset_flag_patch                 , & ! Input:  [real(r8) (:)]  offset flag for perennial crop ratation (Y.Fan)
+         !prune                     =>    crop_inst%prune_patch                            , & ! Input:  [real(r8) (:)]  flag for pruning (Y.Fan)
          woody                     =>    pftcon%woody                                      , & ! Input:  [real(r8) (:)]  binary flag for woody lifeform (1=woody, 0=not woody)
          deadstemc_to_litter       =>    cnveg_carbonflux_inst%deadstemc_to_litter_patch     , & ! InOut:  [real(r8) (:)]  dead stem C litterfall (gC/m2/s) (Y.Fan)
          deadstemn_to_litter       =>    cnveg_nitrogenflux_inst%deadstemn_to_litter_patch   , & ! InOut:  [real(r8) (:)]  deadstem N to litter (gN/m2/s) (Y.Fan)
@@ -3960,48 +3973,52 @@ contains
                   p = col%patchi(c) + pi - 1
                   if (patch%active(p)) then
 
-                    !for oil palm, only move senescnet pool to litter at the time of pruning
-                    if (phytomer(ivt(p)) > 0) then
-                       ! leaf litter carbon fluxes
-                       if (prune(p) .or. offset_flag(p) == 1._r8) then
-                          !do not write two conditions together like (phytomer(ivt(p)) > 0 .and. prune(p)),
-                          !otherwise the else block below will execute and leafc_to_litter will move to litter pool at every time step and cause cbalance error
-                          !for palm structure, leafc_to_litter(p) only meant for real-time updating leafc in CNCStateUpdate1Mod for respiration cost
-                          !here leafc_to_litter(p) only comes together with leafc_senescent(p) for one time step at each pruning
-                          phenology_c_to_litr_met_c(c,j) = phenology_c_to_litr_met_c(c,j) &
-                              + (leafc_to_litter(p) + leafc_senescent(p)/dt) * lf_flab(ivt(p)) * wtcol(p) * leaf_prof(p,j)
-                          phenology_c_to_litr_cel_c(c,j) = phenology_c_to_litr_cel_c(c,j) &
-                              + (leafc_to_litter(p) + leafc_senescent(p)/dt) * lf_fcel(ivt(p)) * wtcol(p) * leaf_prof(p,j)
-                          phenology_c_to_litr_lig_c(c,j) = phenology_c_to_litr_lig_c(c,j) &
-                              + (leafc_to_litter(p) + leafc_senescent(p)/dt) * lf_flig(ivt(p)) * wtcol(p) * leaf_prof(p,j)
+                   !****now simplify the leaf litterfall routine for oil palm,
+                   !all leaf litter fluxes are treated in the background
+                   !litterfall and offset litterfall subroutines (2022.10)
+  
+                   ! if (phytomer(ivt(p)) > 0) then
+                   !    ! leaf litter carbon fluxes
+                   !    !for oil palm, only move senescnet pool to litter at the time of pruning
+                   !    if (prune(p) .or. offset_flag(p) == 1._r8) then
+                   !       !do not write two conditions together like (phytomer(ivt(p)) > 0 .and. prune(p)),
+                   !       !otherwise the else block below will execute and leafc_to_litter will move to litter pool at every time step and cause cbalance error
+                   !       !for palm structure, leafc_to_litter(p) only meant for real-time updating leafc in CNCStateUpdate1Mod for respiration cost
+                   !       !here leafc_to_litter(p) only comes together with leafc_senescent(p) for one time step at each pruning
+                   !       phenology_c_to_litr_met_c(c,j) = phenology_c_to_litr_met_c(c,j) &
+                   !           + (leafc_to_litter(p) + leafc_senescent(p)/dt) * lf_flab(ivt(p)) * wtcol(p) * leaf_prof(p,j)
+                   !       phenology_c_to_litr_cel_c(c,j) = phenology_c_to_litr_cel_c(c,j) &
+                   !           + (leafc_to_litter(p) + leafc_senescent(p)/dt) * lf_fcel(ivt(p)) * wtcol(p) * leaf_prof(p,j)
+                   !       phenology_c_to_litr_lig_c(c,j) = phenology_c_to_litr_lig_c(c,j) &
+                   !           + (leafc_to_litter(p) + leafc_senescent(p)/dt) * lf_flig(ivt(p)) * wtcol(p) * leaf_prof(p,j)
 
-                          ! leaf litter nitrogen fluxes
-                          phenology_n_to_litr_met_n(c,j) = phenology_n_to_litr_met_n(c,j) &
-                              + (leafn_to_litter(p) + leafn_senescent(p)/dt) * lf_flab(ivt(p)) * wtcol(p) * leaf_prof(p,j)
-                          phenology_n_to_litr_cel_n(c,j) = phenology_n_to_litr_cel_n(c,j) &
-                              + (leafn_to_litter(p) + leafn_senescent(p)/dt) * lf_fcel(ivt(p)) * wtcol(p) * leaf_prof(p,j)
-                          phenology_n_to_litr_lig_n(c,j) = phenology_n_to_litr_lig_n(c,j) &
-                              + (leafn_to_litter(p) + leafn_senescent(p)/dt) * lf_flig(ivt(p)) * wtcol(p) * leaf_prof(p,j)
+                   !       ! leaf litter nitrogen fluxes
+                   !       phenology_n_to_litr_met_n(c,j) = phenology_n_to_litr_met_n(c,j) &
+                   !           + (leafn_to_litter(p) + leafn_senescent(p)/dt) * lf_flab(ivt(p)) * wtcol(p) * leaf_prof(p,j)
+                   !       phenology_n_to_litr_cel_n(c,j) = phenology_n_to_litr_cel_n(c,j) &
+                   !           + (leafn_to_litter(p) + leafn_senescent(p)/dt) * lf_fcel(ivt(p)) * wtcol(p) * leaf_prof(p,j)
+                   !       phenology_n_to_litr_lig_n(c,j) = phenology_n_to_litr_lig_n(c,j) &
+                   !           + (leafn_to_litter(p) + leafn_senescent(p)/dt) * lf_flig(ivt(p)) * wtcol(p) * leaf_prof(p,j)
 
-                          ! clear up the senescent pools
-                          leafc_senescent(p) = 0._r8
-                          leafn_senescent(p) = 0._r8
+                   !       ! clear up the senescent pools
+                   !       leafc_senescent(p) = 0._r8
+                   !       leafn_senescent(p) = 0._r8
 
-                          !at final rotation (don't worry about harvest fluxes
-                          !of some inmmature palm fruits at the final rotation, 14.03.2022
-                          if (offset_flag(p) == 1._r8) then
-                             call CNHarvestPftToColumn(num_soilc, filter_soilc, &
-                                  soilbiogeochem_state_inst,cnveg_carbonflux_inst, cnveg_nitrogenflux_inst)
-                             !must need to summarize hrv fluxes to column level, use the function from pftdynMod
-                          end if
-                          !the CNHarvestPftToColumn function will summarize both leaf/froot/livestem pools to litter materials met_c/cel_c/lig_c &
-                          !and also summarize wood product pools (hrv_deadstemc_to_prod10c/hrv_deadstemc_to_prod100c) to column level
+                   !       !at final rotation (don't worry about harvest fluxes
+                   !       !of some inmmature palm fruits at the final rotation, 14.03.2022
+                   !       if (offset_flag(p) == 1._r8) then
+                   !          call CNHarvestPftToColumn(num_soilc, filter_soilc, &
+                   !               soilbiogeochem_state_inst,cnveg_carbonflux_inst, cnveg_nitrogenflux_inst)
+                   !          !must need to summarize hrv fluxes to column level, use the function from pftdynMod
+                   !       end if
+                   !       !the CNHarvestPftToColumn function will summarize both leaf/froot/livestem pools to litter materials met_c/cel_c/lig_c &
+                   !       !and also summarize wood product pools (hrv_deadstemc_to_prod10c/hrv_deadstemc_to_prod100c) to column level
 
-                          ! deadstem is added to 10-year wood product pool instead (Y.Fan 2016)
-                          ! adding deadstem into litter pool will dramatically increase LITTERC_HR which will drain out SMINN very soon!
-                       end if
+                   !       ! deadstem is added to 10-year wood product pool instead (Y.Fan 2016)
+                   !       ! adding deadstem into litter pool will dramatically increase LITTERC_HR which will drain out SMINN very soon!
+                   !   ! end if
 
-                    else
+                   ! else
 
                      ! leaf litter carbon fluxes
                      phenology_c_to_litr_met_c(c,j) = phenology_c_to_litr_met_c(c,j) &
@@ -4018,7 +4035,7 @@ contains
                           + leafn_to_litter(p) * lf_fcel(ivt(p)) * wtcol(p) * leaf_prof(p,j)
                      phenology_n_to_litr_lig_n(c,j) = phenology_n_to_litr_lig_n(c,j) &
                           + leafn_to_litter(p) * lf_flig(ivt(p)) * wtcol(p) * leaf_prof(p,j)
-                    end if
+                   ! end if
 
                      ! fine root litter carbon fluxes
                      phenology_c_to_litr_met_c(c,j) = phenology_c_to_litr_met_c(c,j) &
@@ -4058,7 +4075,8 @@ contains
                         phenology_n_to_litr_lig_n(c,j) = phenology_n_to_litr_lig_n(c,j) &
                              + livestemn_to_litter(p) * lf_flig(ivt(p)) * wtcol(p) * leaf_prof(p,j)
 
-                        !if(woody(ivt(p)) == 1.0_r8) then  !added for woody crop types (Y.Fan)
+                        !if(woody(ivt(p)) == 1.0_r8) then   
+                        !below will be zero for non-woody crop types (Y.Fan)
                             !dead stem
                             phenology_c_to_litr_met_c(c,j) = phenology_c_to_litr_met_c(c,j) &
                               + deadstemc_to_litter(p) * lf_flab(ivt(p)) * wtcol(p) * leaf_prof(p,j)

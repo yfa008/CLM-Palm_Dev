@@ -1381,6 +1381,7 @@ contains
     use pftconMod              , only : npcropmin, pftcon
     use pftconMod              , only : ntmp_soybean, nirrig_tmp_soybean
     use pftconMod              , only : ntrp_soybean, nirrig_trp_soybean
+    use pftconMod              , only : ncocoa, nirrig_cocoa
     use pftconMod              , only : noilpalm, nirrig_oilpalm, mxnp
 ! mxmat, a_par, b_par 
     use clm_varcon             , only : secspday, dzsoi_decomp
@@ -1498,6 +1499,7 @@ contains
          declfact              => pftcon%declfact                                   , & ! Input:
          season_decid          => pftcon%season_decid                               , & ! Input:  binary flag for seasonal-deciduous leaf habit (0 or 1)
          stress_decid          => pftcon%stress_decid                               , & ! Input:  binary flag for stress-deciduous leaf habit (0 or 1)
+	 semi_decid            => pftcon%semi_decid                                 , & ! Input:  binary flag for semi-deciduous leaf habit (0 or 1)
          psnsun                => photosyns_inst%psnsun_patch                       , & ! Input:  [real(r8) (:)   ]  sunlit leaf-level photosynthesis (umol CO2 /m**2/ s)
          psnsha                => photosyns_inst%psnsha_patch                       , & ! Input:  [real(r8) (:)   ]  shaded leaf-level photosynthesis (umol CO2 /m**2/ s)
          c13_psnsun            => photosyns_inst%c13_psnsun_patch                   , & ! Input:  [real(r8) (:)   ]  sunlit leaf-level photosynthesis (umol CO2 /m**2/ s)
@@ -1535,25 +1537,25 @@ contains
          mxmat                 =>    pftcon%mxmat                                   , & ! Input:
          a_par                 =>    pftcon%a_par                                   , & ! Input:
          b_par                 =>    pftcon%b_par                                   , & ! Input:
-         gddmaturity2          => crop_inst%gddmaturity2_patch               , & ! Input:  [real(r8) (:)   ]  gdd needed to harvest since previous harvest (Y.Fan)
-         huigrain2             => crop_inst%huigrain2_patch                  , & ! Input:  [real(r8) (:)]  gdd needed from last harvest to start of next grainfill (Y.Fan)
-         idpp                  => crop_inst%idpp_patch                       , & ! Input:  [integer (:)]  days past planting (Y.Fan)
-         idpp2                 => crop_inst%idpp2_patch                      , & ! InOut:  [integer (:)]  Saved idpp from phase2 before grainfill starts
+         aleaf0                => cnveg_state_inst%aleaf0_patch                     , & ! Input:  [real(r8) (:)]  initial leaf allocation coefficient
+         gddmaturity2          => cnveg_state_inst%gddmaturity2_patch               , & ! Input:  [real(r8) (:)   ]  gdd needed to harvest since previous harvest (Y.Fan)
+         huigrain2             => cnveg_state_inst%huigrain2_patch                  , & ! Input:  [real(r8) (:)]  gdd needed from last harvest to start of next grainfill (Y.Fan)
+         idpp                  => cnveg_state_inst%idpp_patch                       , & ! Input:  [integer (:)]  days past planting (Y.Fan)
+         idpp2                 => cnveg_state_inst%idpp2_patch                      , & ! InOut:  [integer (:)]  Saved idpp from phase2 before grainfill starts
 
-        ! gdd15                 => temperature_inst%gdd15_patch               , & ! Input:  [real(r8) (:)]  growing deg. days base 15 deg C (ddays) (Y.Fan)
+        !gdd15                 => temperature_inst%gdd15_patch               , & ! Input:  [real(r8) (:)]  growing deg. days base 15 deg C (ddays) (Y.Fan)
         !gdd1520               => temperature_inst%gdd1520_patch             , & ! Input:  [real(r8) (:)]  20 yr mean of gdd15
-         aleaf0                => crop_inst%aleaf0_patch                     , & ! Input:  [real(r8) (:)]  initial leaf allocation coefficient
-         livep                 => crop_inst%livep_patch                      , & ! Input:  [logical(r8) (:,:)]  Flag, true if this phytomer is alive
-         plaipeak                  => crop_inst%plaipeak_patch                 , & ! Input:  [integer (:,:)]   Flag, 1: max allowed lai per phytomer; 0: not at max
-         huileafnp                 => crop_inst%huileafnp_patch                , & ! Input:  [real(r8) (:,:)]  hui needed for initiation of successive phytomers
-         huilfexpnp                => crop_inst%huilfexpnp_patch               , & ! Input:  [real(r8) (:,:)]  hui needed for leaf expansion of successive phytomers
-         huilfmatnp                => crop_inst%huilfmatnp_patch               , & ! Input:  [real(r8) (:,:)]  hui needed for leaf maturity of successive phytomers
-         huigrnnp                  => crop_inst%huigrnnp_patch                 , & ! Input:  [real(r8) (:,:)]  hui needed for start of grainfill of successive phytomers
-         grnmatnp                  => crop_inst%grnmatnp_patch                 , & ! Input:  [real(r8) (:,:)]  hui needed for grain maturity of successive phytomers
-         pgrainc                   => cnveg_carbonstate_inst%pgrainc_patch     , & ! InOut:  [real(r8) (:,:)]  (gC/m2) phytomer grain C
-         pgrainn                   => cnveg_nitrogenstate_inst%pgrainn_patch   , & ! InOut:  [real(r8) (:,:)]  (gN/m2) phytomer grain N
-         tlai                      => canopystate_inst%tlai_patch              , & ! Input:  [real(r8) (:)] one-sided leaf area index, no burying by snow
-         plai                      => crop_inst%plai_patch              , & ! Input:  [real(r8) (:,:)]  one-sided leaf area index of each phytomer
+         livep                 => crop_inst%livep_patch                      , & ! Input:  [real(r8) (:,:)]  Flag, true if this phytomer is alive
+         plaipeak              => crop_inst%plaipeak_patch                 , & ! Input:  [integer (:,:)]   Flag, 1: max allowed lai per phytomer; 0: not at max
+         huileafnp             => crop_inst%huileafnp_patch                , & ! Input:  [real(r8) (:,:)]  hui needed for initiation of successive phytomers
+         huilfexpnp            => crop_inst%huilfexpnp_patch               , & ! Input:  [real(r8) (:,:)]  hui needed for leaf expansion of successive phytomers
+         huilfmatnp            => crop_inst%huilfmatnp_patch               , & ! Input:  [real(r8) (:,:)]  hui needed for leaf maturity of successive phytomers
+         huigrnnp              => crop_inst%huigrnnp_patch                 , & ! Input:  [real(r8) (:,:)]  hui needed for start of grainfill of successive phytomers
+         grnmatnp              => crop_inst%grnmatnp_patch                 , & ! Input:  [real(r8) (:,:)]  hui needed for grain maturity of successive phytomers
+         pgrainc               => cnveg_carbonstate_inst%pgrainc_patch     , & ! InOut:  [real(r8) (:,:)]  (gC/m2) phytomer grain C
+         pgrainn               => cnveg_nitrogenstate_inst%pgrainn_patch   , & ! InOut:  [real(r8) (:,:)]  (gN/m2) phytomer grain N
+         tlai                  => canopystate_inst%tlai_patch              , & ! Input:  [real(r8) (:)] one-sided leaf area index, no burying by snow
+         plai                  => crop_inst%plai_patch              , & ! Input:  [real(r8) (:,:)]  one-sided leaf area index of each phytomer
 
          xsmrpool              => cnveg_carbonstate_inst%xsmrpool_patch             , & ! Input:  [real(r8) (:)   ]  (gC/m2) temporary photosynthate C pool
          leafc                 => cnveg_carbonstate_inst%leafc_patch                , & ! Input:  [real(r8) (:)   ]
@@ -1734,21 +1736,20 @@ contains
          if (ivt(p) >= npcropmin) then ! skip 2 generic crops
 
             if (croplive(p)) then
-			
 	     !!for multilayer phytmoer structure, calculate f1, f3, f5 according to subroutine PalmPhenology
              if (phytomer(ivt(p)) > 0) then
 	        !Sub-PFT (phytomer) leaf allocation
 	        ! ==================
 
 		!calculate leaf sink size and update leaf alloc ratio for each phytomer
-		where (livep(p,:) == .false. .or. plaipeak(p,:) == 1) !adjust lai for each phytomer
+		where (livep(p,:) == 0._r8 .or. plaipeak(p,:) == 1) !adjust lai for each phytomer
 			rleafn(p,:) = 0._r8
 		elsewhere (hui(p) >= huileafnp(p,:) .and. hui(p) < huilfexpnp(p,:)) !pre-expansion growth
-			rleafn(p,:) = 1._r8	!use flat rate
+			rleafn(p,:) = 1._r8 !use flat rate
 		elsewhere (hui(p) >= huilfexpnp(p,:) .and. hui(p) < huilfmatnp(p,:)) !post-expansion
 			!   rleafn(p,:) = (1._r8 - (hui(p)-huilfexpnp(p,:))/ &   !simple linear decline
 			!                 (huilfmatnp(p,:)-huilfexpnp(p,:)))
-			rleafn(p,:) = 1._r8	!use flat rate
+			rleafn(p,:) = 1._r8 !use flat rate
 		elsewhere
 			rleafn(p,:) = 0._r8
 		endwhere
@@ -1894,9 +1895,17 @@ contains
                      aleaf(p) = max(1.e-5_r8, min(1._r8, aleaf0(p) - &
                                    (aleaf0(p) - aleaff(ivt(p))) * &
                                    min(1._r8, real(idpp(p))/real(mxmat(ivt(p))))))
-		    end if
-					 
+		    end if		     
+		     		 
                      astem(p) = 1._r8 - arepr(p) - aleaf(p) - aroot(p)
+		     
+		     ! Ashehad added this  
+	                  if (semi_decid(ivt(p)) /= 1._r8) then
+			      aleaf(p) = aleaff(ivt(p)) * exp(-0.15_r8)    
+		              aroot(p) = arootf(ivt(p)) * exp(-0.2_r8)     
+		              arepr(p) = 0._r8		 
+                              astem(p) = 1._r8 - arepr(p) - aleaf(p) - aroot(p)	      			  
+                          end if	
                   end if
 
                   ! AgroIBIS included here an immediate adjustment to aleaf & astem if the
@@ -1912,7 +1921,7 @@ contains
                   ! ==================
                   ! shift allocation either when enough gdd are accumulated or maximum number
                   ! of days has elapsed since planting
-               
+             write(9,*) hui(p), huigrain(p), huigrain2(p),gddmaturity2(p)   
 	       !for perennial crops add a continuous phenological cycle at annual time step (Y.Fan)
 	       else if (hui(p) >= huigrain(p) .and. perennial(ivt(p)) == 1) then
 		    if (hui(p) >= huigrain2(p) .and. hui(p) < gddmaturity2(p)) then
@@ -1929,34 +1938,47 @@ contains
 				!root allocation continue decrease to the base level arootf until the end of life
 				 aroot(p) = max(0._r8, min(1._r8, arooti(ivt(p)) - &
 							   (arooti(ivt(p)) - arootf(ivt(p))) * &
-							   min(1._r8, real(idpp(p))/real(mxmat(ivt(p))))))
+							   min(1._r8, real(idpp(p))/real(mxmat(ivt(p)))))) 
 				!leaf /stem allocation decreases to the base level during grainfill
 				 if (aleafi(p) > aleaff(ivt(p))) then
 					aleaf(p) = max(1.e-5_r8, max(aleaff(ivt(p)), aleaf(p) * &
 							 (1._r8 - min((hui(p)- huigrain2(p))/           &
 							 ((gddmaturity2(p)*declfact(ivt(p)))-           &
-							 huigrain2(p)),1._r8)**allconsl(ivt(p)) )))
+							 huigrain2(p)),1._r8)**allconsl(ivt(p)) ))) 
 				 end if
 				 if (astemi(p) > astemf(ivt(p))) then
-					astem(p) = max(0._r8, max(astemf(ivt(p)), astem(p) * &
+					astem(p) = 1.0_r8 * max(0._r8, max(astemf(ivt(p)), astem(p) * &
 							 (1._r8 - min((hui(p)- huigrain2(p))/        &
 							 ((gddmaturity2(p)*declfact(ivt(p)))-        &
 							 huigrain2(p)),1._r8)**allconss(ivt(p)) )))
-				 end if
+				 end if				 
 			  end if
-			  arepr(p) = 1._r8 - aroot(p) - astem(p) - aleaf(p)
+			  write(10,*) aleaf(p), astem(p), aroot(p)			  
+			  
+			  ! Ashehad added this  
+	                  if (semi_decid(ivt(p)) == 1._r8) then
+			      arepr(p) = aleaf(p) * 1.15_r8
+			      aroot(p) = 1._r8 - aleaf(p) - astem(p) - arepr(p)			      			  
+			  else
+			     aleaf(p) = aleaff(ivt(p)) * exp(-0.8_r8)     
+			     aroot(p) = arootf(ivt(p)) * exp(-0.2_r8)     
+			     astem(p) = astemf(ivt(p)) * exp(-0.6_r8)    
+	                     arepr(p) = 1._r8 - aroot(p) - aleaf(p) - astem(p)
+                          end if			  			 		  
+			  
 			  !retranslocation starts at the begining of grnfill for one step like corn and cereals
-			  if (grain_flag(p) == 0._r8) then
-				 t1 = 1 / dt
-				 leafn_to_retransn(p) = t1 * ((leafc(p) / leafcn(ivt(p))) - (leafc(p) / fleafcn(ivt(p))))
-				 livestemn_to_retransn(p) = t1 * ((livestemc(p) / livewdcn(ivt(p))) - (livestemc(p) / fstemcn(ivt(p))))
-				 if (ffrootcn(ivt(p)) > 0._r8) then
-					frootn_to_retransn(p) = t1 * ((frootc(p) / frootcn(ivt(p))) - (frootc(p) / ffrootcn(ivt(p))))
-				 else
-					frootn_to_retransn(p) = 0._r8
-				 end if
-				 grain_flag(p) = 1._r8
-			  end if
+			  ! Y.Fan suggested to block retranslocation below
+			  !if (grain_flag(p) == 0._r8) then
+				 !t1 = 1 / dt
+				 !leafn_to_retransn(p) = t1 * ((leafc(p) / leafcn(ivt(p))) - (leafc(p) / fleafcn(ivt(p))))
+				 !livestemn_to_retransn(p) = t1 * ((livestemc(p) / livewdcn(ivt(p))) - (livestemc(p) / fstemcn(ivt(p))))
+				 !if (ffrootcn(ivt(p)) > 0._r8) then
+					!frootn_to_retransn(p) = t1 * ((frootc(p) / frootcn(ivt(p))) - (frootc(p) / ffrootcn(ivt(p))))
+				 !else
+					!frootn_to_retransn(p) = 0._r8
+				 !end if
+				 !grain_flag(p) = 1._r8
+			  !end if
 
 		    else !outside of grainfill period, root and leaf alloc continue decline through ageing
 			  arepr(p) = 0._r8
@@ -2064,30 +2086,30 @@ contains
 
          ! based on available C, use constant allometric relationships to
          ! determine N requirements
-         if(use_fun)then ! In FUN, growth respiration is not part of the allometry calculation. 
-	         if (woody(ivt(p)) == 1.0_r8) then
-	            c_allometry(p) = (1._r8)*(1._r8+f1+f3*(1._r8+f2))
-	            n_allometry(p) = 1._r8/cnl + f1/cnfr + (f3*f4*(1._r8+f2))/cnlw + &
-	                 (f3*(1._r8-f4)*(1._r8+f2))/cndw
-	         else if (ivt(p) >= npcropmin) then ! skip generic crops
+         if(use_fun)then ! In FUN, growth respiration is not part of the allometry calculation. 	 
+		 if (ivt(p) >= npcropmin) then ! skip generic crops
 	            cng = graincn(ivt(p))
 	            c_allometry(p) = (1._r8)*(1._r8+f1+f5+f3*(1._r8+f2))
 	            n_allometry(p) = 1._r8/cnl + f1/cnfr + f5/cng + (f3*f4*(1._r8+f2))/cnlw + &
-	                 (f3*(1._r8-f4)*(1._r8+f2))/cndw
+	                 (f3*(1._r8-f4)*(1._r8+f2))/cndw			 
+		 else if (woody(ivt(p)) == 1.0_r8 .and. ivt(p) < npcropmin) then
+	            c_allometry(p) = (1._r8)*(1._r8+f1+f3*(1._r8+f2))
+	            n_allometry(p) = 1._r8/cnl + f1/cnfr + (f3*f4*(1._r8+f2))/cnlw + &
+	                 (f3*(1._r8-f4)*(1._r8+f2))/cndw	         	         
 	         else
 	            c_allometry(p) = 1._r8+f1
 	            n_allometry(p) = 1._r8/cnl + f1/cnfr
 	         end if           
-        else !no FUN.
-	         if (woody(ivt(p)) == 1.0_r8) then
-	            c_allometry(p) = (1._r8+g1)*(1._r8+f1+f3*(1._r8+f2))
-	            n_allometry(p) = 1._r8/cnl + f1/cnfr + (f3*f4*(1._r8+f2))/cnlw + &
-	                 (f3*(1._r8-f4)*(1._r8+f2))/cndw
-	         else if (ivt(p) >= npcropmin) then ! skip generic crops
+        else !no FUN.	
+	         if (ivt(p) >= npcropmin) then ! skip generic crops
 	            cng = graincn(ivt(p))
 	            c_allometry(p) = (1._r8+g1)*(1._r8+f1+f5+f3*(1._r8+f2))
 	            n_allometry(p) = 1._r8/cnl + f1/cnfr + f5/cng + (f3*f4*(1._r8+f2))/cnlw + &
-	                 (f3*(1._r8-f4)*(1._r8+f2))/cndw
+	                 (f3*(1._r8-f4)*(1._r8+f2))/cndw         
+		 else if (woody(ivt(p)) == 1.0_r8 .and. ivt(p) < npcropmin) then
+	            c_allometry(p) = (1._r8+g1)*(1._r8+f1+f3*(1._r8+f2))
+	            n_allometry(p) = 1._r8/cnl + f1/cnfr + (f3*f4*(1._r8+f2))/cnlw + &
+	                 (f3*(1._r8-f4)*(1._r8+f2))/cndw	                  	         
 	         else
 	            c_allometry(p) = 1._r8+g1+f1+f1*g1
 	            n_allometry(p) = 1._r8/cnl + f1/cnfr

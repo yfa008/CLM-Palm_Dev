@@ -26,6 +26,7 @@ module DaylengthMod
   ! called from outside this module.
   public :: daylength            ! function to compute daylength
   public :: ComputeMaxDaylength  ! compute max daylength for each grid cell
+  public :: ComputeMinDaylength  ! compute min daylength for each grid cell
   !
   !-----------------------------------------------------------------------
 
@@ -119,6 +120,36 @@ contains
     end do
 
   end subroutine ComputeMaxDaylength
+  
+   !-----------------------------------------------------------------------
+  subroutine ComputeMinDaylength(bounds, lat, obliquity, min_daylength)
+    !
+    ! !DESCRIPTION:
+    ! Compute min daylength for each grid cell
+    !
+    ! !ARGUMENTS:
+    type(bounds_type), intent(in) :: bounds
+    real(r8), intent(in)  :: obliquity           ! earth's obliquity (radians)
+    real(r8), intent(in)  :: lat(bounds%begg: )  ! latitude (radians)
+    real(r8), intent(out) :: min_daylength(bounds%begg: ) ! minimum daylength for each gridcell (s)
+    !
+    ! !LOCAL VARIABLES:
+    integer  :: g
+    real(r8) :: min_decl  ! min declination angle
+
+    character(len=*), parameter :: subname = 'ComputeMinDaylength'
+    !-----------------------------------------------------------------------
+
+    SHR_ASSERT_ALL((ubound(lat) == (/bounds%endg/)), errMsg(sourcefile, __LINE__))
+    SHR_ASSERT_ALL((ubound(min_daylength) == (/bounds%endg/)), errMsg(sourcefile, __LINE__))
+
+    do g = bounds%begg,bounds%endg
+       min_decl = obliquity * -1._r8       
+       if (lat(g) < 0._r8) min_decl = -min_decl
+       min_daylength(g) = daylength(lat(g), min_decl)
+    end do
+
+  end subroutine ComputeMinDaylength
 
   !-----------------------------------------------------------------------
   subroutine InitDaylength(bounds, declin, declinm1, obliquity)
@@ -186,6 +217,7 @@ contains
     dayl      => grc%dayl,      & ! InOut:  [real(r8) (:)] day length (s)
     prev_dayl => grc%prev_dayl, & ! Output: [real(r8) (:)] day length from previous time step (s)
     max_dayl  => grc%max_dayl , & ! Output: [real(r8) (:)] maximum day length (s)
+    min_dayl  => grc%min_dayl , & ! Output: [real(r8) (:)] minimum day length (s)
 
     begg      => bounds%begg  , & ! beginning grid cell index
     endg      => bounds%endg    & ! ending grid cell index
@@ -207,6 +239,11 @@ contains
          lat = lat(bounds%begg:bounds%endg), &
          obliquity = obliquity, &
          max_daylength = max_dayl(bounds%begg:bounds%endg))
+	 
+    call ComputeMinDaylength(bounds, &
+         lat = lat(bounds%begg:bounds%endg), &
+         obliquity = obliquity, &
+         min_daylength = min_dayl(bounds%begg:bounds%endg))
 
     end associate
 

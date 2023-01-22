@@ -43,6 +43,7 @@ contains
     use pftconMod        , only : nsugarcane, nirrig_sugarcane
     use pftconMod        , only : pftcon
     use pftconMod        , only : noilpalm, nirrig_oilpalm !(Y.Fan)
+    use pftconMod        , only : ncocoa, nirrig_cocoa !(A.Ali)
     use clm_varpar       , only : nlevcan ! N canopy layers: nlevcan =1 big leaf; nlevcan >1 multilayer canopy (Y.Fan)
     use clm_varctl       , only : spinup_state
     use clm_time_manager , only : get_rad_step_size, get_days_per_year ! added get_days (Y.Fan)
@@ -123,7 +124,7 @@ contains
         np                  =>  crop_inst%np_patch                   , & ! Input:  [integer (:)]   total number of phytomers having appeared so far
         rankp               =>  crop_inst%rankp_patch                , & ! Input:  [integer (:,:)]  rank of phytomers 1=youngest and 0=dead
         !livep               =>  pps%livep                , & ! Input:  [real(r8) (:,:)] Flag, true if this phytomer is alive
-        sla                 =>  crop_inst%sla_patch                  , & ! Input:  [real(r8) (:,:)] specific leaf area of each phytomer (added by Y.Fan)
+        psla                =>  crop_inst%psla_patch                 , & ! Input:  [real(r8) (:,:)] specific leaf area of each phytomer (added by Y.Fan)
         plai                =>  crop_inst%plai_patch                 , & ! Input:  [real(r8) (:,:)] one-sided leaf area index of each phytomer
         pleafc              =>  cnveg_carbonstate_inst%pleafc_patch               , & ! Input:  [real(r8) (:,:)] (gC/m2) phytomer leaf C
         plaipeak            =>  crop_inst%plaipeak_patch         , & ! Output: [integer  (:) ] Flag, 1: max allowed lai; 0: not at max (Y.Fan)
@@ -204,18 +205,18 @@ contains
              !laimx is per phytomer for oil palm, not per PFT
              plaimx = laimx(ivt(p)) *min(stocking/150._r8, 2._r8) !rescale plaimx when planting is too sparse/too dense
 
-             !dsladlai is set to zero, effectively sla(p,:) = slatop(ivt(p)); do not use SLA scaling for oil palm!
+             !dsladlai is set to zero, effectively psla(p,:) = slatop(ivt(p)); do not use SLA scaling for oil palm!
              !Oil palm SLA actually decrease slightly, instead of increase, from canopy top to bottom
              !SLA scaling was only intented for trees to give a canopy gradient in foliage nitrogen in the CLM4
              !CLM4.5 use Kn instead of dsladlai to scale foliage nitrogen profile
 
              np1 = sum(minloc(rankp(p,:), mask=(rankp(p,:) > 0))) !the top youngest expanded phytomer
              np2 = sum(maxloc(rankp(p,:), mask=(rankp(p,:) > 0))) !the bottom expanded phytomer, sequence np2 < np1
-             sla(p,np2:np1) = (/ ((slatop(ivt(p)) + (np1-i)*dsladlai(ivt(p))), i=np2, np1, 1) /)
+             psla(p,np2:np1) = (/ ((slatop(ivt(p)) + (np1-i)*dsladlai(ivt(p))), i=np2, np1, 1) /)
 !             !or below function
 !             do n = np1, np2, -1
 !                if (hui(p) < huilfmatnp(p,n) .and. plai(p,n) < laimx(ivt(p))) &
-!                   sla(p,n) = slatop(ivt(p)) + dsladlai(ivt(p))*sum(plai(p,n:np1)) !SLA stops increase when C allocation stops
+!                   psla(p,n) = slatop(ivt(p)) + dsladlai(ivt(p))*sum(plai(p,n:np1)) !SLA stops increase when C allocation stops
 !                !else if (rankp(p,n) == 0) then
 !                !   exit
 !                !end if
@@ -223,7 +224,7 @@ contains
 
              !only calculate LAI for expanded phytomers
              where (rankp(p,:) > 0)
-                plai(p,:) = sla(p,:) * pleafc(p,:)
+                plai(p,:) = psla(p,:) * pleafc(p,:)
              elsewhere
                 plai(p,:) = 0._r8
              endwhere

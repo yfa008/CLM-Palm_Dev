@@ -1120,6 +1120,7 @@ contains
 
     real(r8) :: dtime                           ! land model time step (sec)
     integer  :: g                               ! index
+    integer  :: g_d                             ! gridcell indices
     !------------------------------------------------------------------------------
 
     ! Temperature and soil water response functions
@@ -1152,6 +1153,8 @@ contains
          i_flnr     => pftcon%i_flnr                         , & ! Input:  [real(r8) (:)   ]  
          s_flnr     => pftcon%s_flnr                         , & ! Input:  [real(r8) (:)   ]  
          mbbopt     => pftcon%mbbopt                         , & ! Input:  [real(r8) (:)   ]  Ball-Berry slope of conduct/photosyn (umol H2O/umol CO2)
+	 semi_decid  => pftcon%semi_decid                    , & ! Input:  binary flag for semi-deciduous leaf habit (0 or 1)
+	 max_dayl    => grc%max_dayl                         , & ! Input:  [real(r8) (:)   ]  maximum daylength for this grid cell (s)
          ivt        => patch%itype                           , & ! Input:  [integer  (:)   ]  patch vegetation type
          forc_pbot  => atm2lnd_inst%forc_pbot_downscaled_col , & ! Input:  [real(r8) (:)   ]  atmospheric pressure (Pa)
 
@@ -1321,6 +1324,7 @@ contains
 
       do f = 1, fn
          p = filterp(f)
+	 g_d = patch%gridcell(p)
 
          if (lnc_opt .eqv. .false.) then     
             ! Leaf nitrogen concentration at the top of the canopy (g N leaf / m**2 leaf)
@@ -1392,7 +1396,17 @@ contains
                if ( CNAllocate_Carbon_only() ) vcmax25top = vcmax25top * fnitr(patch%itype(p))
             end if
          else if (vcmax_opt == 3) then                                                                   
-            vcmax25top = ( i_vcad(patch%itype(p)) + s_vcad(patch%itype(p)) * lnc(p) ) * dayl_factor(p)  
+            vcmax25top = ( i_vcad(patch%itype(p)) + s_vcad(patch%itype(p)) * lnc(p) ) * dayl_factor(p)
+	    
+	    ! Ashehad added this    
+	    if (semi_decid(ivt(p)) == 1._r8) then
+	    if (tlai(p) > 1.5_r8 .and. max_dayl(g_d) <= 12.5_r8 * 3600._r8) then
+	       vcmax25top = 100.0_r8 * dayl_factor(p) * (1._r8 - exp(-0.6_r8 * tlai(p)))
+	    else
+	       vcmax25top = 100.0_r8 * dayl_factor(p)
+            end if
+	    end if
+	     
          else if (vcmax_opt == 4) then                                                                   
             nptreemax = 9  ! is this number correct? check later 
             if (patch%itype(p) >= nptreemax) then   ! if not tree 
@@ -2538,6 +2552,7 @@ contains
 
     ! Other
     integer  :: f,p,c,iv          ! indices
+    integer  :: g_d               ! gridcell indices
     real(r8) :: cf                ! s m**2/umol -> s/m
     real(r8) :: rsmax0            ! maximum stomatal resistance [s/m]
     real(r8) :: gb                ! leaf boundary layer conductance (m/s)
@@ -2696,6 +2711,8 @@ contains
          fnitr      => pftcon%fnitr                          , & ! Input:  foliage nitrogen limitation factor (-)
          slatop     => pftcon%slatop                         , & ! Input:  specific leaf area at top of canopy, projected area basis [m^2/gC]
          dsladlai   => pftcon%dsladlai                       , & ! Input:  change in sla per unit lai
+	 semi_decid => pftcon%semi_decid                     , & ! Input:  binary flag for stress-deciduous leaf habit (0 or 1)
+	 max_dayl   => grc%max_dayl                          , & ! Input:  [real(r8) (:)   ]  maximum daylength for this grid cell (s)
          i_vcad     => pftcon%i_vcad                         , & ! Input:  [real(r8) (:)   ]  
          s_vcad     => pftcon%s_vcad                         , & ! Input:  [real(r8) (:)   ]  
          i_flnr     => pftcon%i_flnr                         , & ! Input:  [real(r8) (:)   ]  
@@ -2929,6 +2946,7 @@ contains
 
       do f = 1, fn
          p = filterp(f)
+	 g_d = patch%gridcell(p)
 
          if (lnc_opt .eqv. .false.) then     
             ! Leaf nitrogen concentration at the top of the canopy (g N leaf / m**2 leaf)
@@ -2997,6 +3015,16 @@ contains
             end if
          else if (vcmax_opt == 3) then
             vcmax25top = ( i_vcad(patch%itype(p)) + s_vcad(patch%itype(p)) * lnc(p) ) * dayl_factor(p)
+	    
+	    ! Ashehad added this	    
+	    if (semi_decid(ivt(p)) == 1._r8 .and. max_dayl(g_d) <= 12.5_r8 * 3600._r8) then
+	    if (tlai(p) > 1.5_r8) then
+	      vcmax25top = 100.0_r8 * dayl_factor(p) * (1._r8 - exp(-0.6_r8 * tlai(p)))
+	    else
+	      vcmax25top = 100.0_r8 * dayl_factor(p)
+            end if
+	    end if
+	    
          else if (vcmax_opt == 4) then
             nptreemax = 9  ! is this number correct? check later
             if (patch%itype(p) >= nptreemax) then   ! if not tree
@@ -3334,6 +3362,11 @@ contains
                   gsminsha     = medlynintercept(patch%itype(p))
                   gs_slope_sun = medlynslope(patch%itype(p))
                   gs_slope_sha = medlynslope(patch%itype(p))
+		  
+		  if (semi_decid(ivt(p)) == 1._r8 .and. max_dayl(g) > 12.5_r8 * 3600._r8) then
+	             gs_slope_sun = medlynslope(patch%itype(p)) * 1.35_r8
+                     gs_slope_sha = medlynslope(patch%itype(p)) * 1.35_r8
+	          end if
                else if ( stomatalcond_mtd == stomatalcond_mtd_bb1987 )then
                   gsminsun     = bbb(p)
                   gsminsha     = bbb(p)
@@ -4134,7 +4167,7 @@ contains
 
     if ( stomatalcond_mtd == stomatalcond_mtd_medlyn2011 )then
        term = 1.6_r8 * an_sun(p,iv) / (cs_sun / forc_pbot(c) * 1.e06_r8)
-       aquad = 1.0_r8
+       aquad = 1.0_r8      	  
        bquad = -(2.0 * (medlynintercept(patch%itype(p))*1.e-06_r8 + term) + (medlynslope(patch%itype(p)) * term)**2 / &
                (gb_mol*1.e-06_r8 * rh_can))
        cquad = medlynintercept(patch%itype(p))*medlynintercept(patch%itype(p))*1.e-12_r8 + &

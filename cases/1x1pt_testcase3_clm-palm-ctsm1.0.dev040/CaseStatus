@@ -245,3 +245,18 @@ ERROR: BUILD FAIL: buildexe failed, cat /usr/users/yfan1/cesm/exeroot/1x1pt_test
 2021-08-22 18:51:21: case.build error 
 ERROR: BUILD FAIL: clm.buildlib failed, cat /usr/users/yfan1/cesm/exeroot/1x1pt_testcase3_clm-palm-ctsm1.0.dev040/bld/lnd.bldlog.210822-185115
  ---------------------------------------------------
+2022-04-14 16:19:06: case.setup starting 
+ ---------------------------------------------------
+2022-04-14 16:19:07: case.setup error 
+ERROR: module command module -q load subversion intel-parallel-studio intel netcdf-c netcdf-fortran intel-mpi hdf5 netcdf-c netcdf-fortran failed with message:
+Lmod has detected the following error: These module(s) or extension(s) exist but cannot be loaded as requested:
+"intel-mpi"
+   Try: "module spider intel-mpi" to see how to load the module(s).
+ ---------------------------------------------------
+2022-04-14 16:44:03: case.setup starting 
+ ---------------------------------------------------
+2022-04-14 16:44:05: case.setup error 
+ERROR: module command module -q load subversion intel-parallel-studio intel netcdf-c netcdf-fortran intel-mpi hdf5 netcdf-c netcdf-fortran failed with message:
+Lmod has detected the following error: These module(s) or extension(s) exist but cannot be loaded as requested: "intel-mpi"
+   Try: "module spider intel-mpi" to see how to load the module(s).
+ ---------------------------------------------------

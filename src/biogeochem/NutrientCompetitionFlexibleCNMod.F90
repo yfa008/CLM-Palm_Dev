@@ -1382,6 +1382,7 @@ contains
     use pftconMod              , only : ntmp_soybean, nirrig_tmp_soybean
     use pftconMod              , only : ntrp_soybean, nirrig_trp_soybean
     use pftconMod              , only : noilpalm, nirrig_oilpalm, mxnp
+    use pftconMod              , only : ncocoa, nirrig_cocoa
 ! mxmat, a_par, b_par 
     use clm_varcon             , only : secspday, dzsoi_decomp
     use clm_varctl             , only : use_c13, use_c14
@@ -1498,6 +1499,7 @@ contains
          declfact              => pftcon%declfact                                   , & ! Input:
          season_decid          => pftcon%season_decid                               , & ! Input:  binary flag for seasonal-deciduous leaf habit (0 or 1)
          stress_decid          => pftcon%stress_decid                               , & ! Input:  binary flag for stress-deciduous leaf habit (0 or 1)
+	 semi_decid            => pftcon%semi_decid                                 , & ! Input:  binary flag for semi-deciduous leaf habit (0 or 1)
          psnsun                => photosyns_inst%psnsun_patch                       , & ! Input:  [real(r8) (:)   ]  sunlit leaf-level photosynthesis (umol CO2 /m**2/ s)
          psnsha                => photosyns_inst%psnsha_patch                       , & ! Input:  [real(r8) (:)   ]  shaded leaf-level photosynthesis (umol CO2 /m**2/ s)
          c13_psnsun            => photosyns_inst%c13_psnsun_patch                   , & ! Input:  [real(r8) (:)   ]  sunlit leaf-level photosynthesis (umol CO2 /m**2/ s)
@@ -1898,6 +1900,13 @@ contains
 		    end if
 					 
                      astem(p) = 1._r8 - arepr(p) - aleaf(p) - aroot(p)
+		     ! Ashehad added this  
+	               if (semi_decid(ivt(p)) /= 1._r8) then
+			   aleaf(p) = aleaff(ivt(p)) * exp(-0.15_r8)    
+		           aroot(p) = arootf(ivt(p)) * exp(-0.2_r8)     
+		           arepr(p) = 0._r8		 
+                           astem(p) = 1._r8 - arepr(p) - aleaf(p) - aroot(p)	      			  
+                       end if
                   end if
 
                   ! AgroIBIS included here an immediate adjustment to aleaf & astem if the
@@ -1946,6 +1955,18 @@ contains
 				 end if
 			  end if
 			  arepr(p) = 1._r8 - aroot(p) - astem(p) - aleaf(p)
+			  
+			  ! Ashehad added this  
+	                  if (semi_decid(ivt(p)) == 1._r8) then
+			      arepr(p) = aleaf(p) * 1.15_r8
+			      aroot(p) = 1._r8 - aleaf(p) - astem(p) - arepr(p)			      			  
+			  else
+			     aleaf(p) = aleaff(ivt(p)) * exp(-0.8_r8)     
+			     aroot(p) = arootf(ivt(p)) * exp(-0.2_r8)     
+			     astem(p) = astemf(ivt(p)) * exp(-0.6_r8)    
+	                     arepr(p) = 1._r8 - aroot(p) - aleaf(p) - astem(p)
+                          end if
+			  
 			 !No N retranslocation for generic perennial crops (Y.Fan 2022.07)
 			 ! if (grain_flag(p) == 0._r8) then
 			 !        t1 = 1 / dt
@@ -2073,7 +2094,7 @@ contains
                c_allometry(p) = (1._r8)*(1._r8+f1+f5+f3*(1._r8+f2))
                n_allometry(p) = 1._r8/cnl + f1/cnfr + f5/cng + (f3*f4*(1._r8+f2))/cnlw + &
                  (f3*(1._r8-f4)*(1._r8+f2))/cndw
-            else if (woody(ivt(p)) == 1.0_r8) then
+            else if (woody(ivt(p)) == 1.0_r8 .and. ivt(p) < npcropmin) then
                c_allometry(p) = (1._r8)*(1._r8+f1+f3*(1._r8+f2))
                n_allometry(p) = 1._r8/cnl + f1/cnfr + (f3*f4*(1._r8+f2))/cnlw + &
                     (f3*(1._r8-f4)*(1._r8+f2))/cndw
@@ -2087,7 +2108,7 @@ contains
                c_allometry(p) = (1._r8+g1)*(1._r8+f1+f5+f3*(1._r8+f2))
                n_allometry(p) = 1._r8/cnl + f1/cnfr + f5/cng + (f3*f4*(1._r8+f2))/cnlw + &
                     (f3*(1._r8-f4)*(1._r8+f2))/cndw
-            else if (woody(ivt(p)) == 1.0_r8) then
+            else if (woody(ivt(p)) == 1.0_r8 .and. ivt(p) < npcropmin) then
                c_allometry(p) = (1._r8+g1)*(1._r8+f1+f3*(1._r8+f2))
                n_allometry(p) = 1._r8/cnl + f1/cnfr + (f3*f4*(1._r8+f2))/cnlw + &
                     (f3*(1._r8-f4)*(1._r8+f2))/cndw

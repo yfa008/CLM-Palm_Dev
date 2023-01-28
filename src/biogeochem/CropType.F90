@@ -70,7 +70,7 @@ module CropType
      !real(r8) , pointer :: crop_patch(:)                       !binary flag: crop or not
      !integer ,  pointer :: perennial_patch(:)                  !binary flag for perennial crop phenology (1=perennial, 0=not perennial)
      !integer , pointer :: phytomer_patch(:)                    !total number of phytomers in life time, if >0 use phytomer structure
-     real(r8), pointer :: harvest_flag_patch(:)                !harvest flag for perennial crops 
+     !real(r8), pointer :: harvest_flag_patch(:)                !harvest flag for perennial crops  A.Ali turned it off
      real(r8), pointer :: harvest_counter_patch(:)             !harvest counter to tag the phytomer 
      logical , pointer :: prune_patch(:)                       !Flag, if true do pruning
      real(r8), pointer :: bglfr_p_patch(:,:)                   !background litterfall rate for each phytomer 
@@ -264,7 +264,7 @@ contains
     !allocate(this%avgrepsink_patch      (begp:endp))                 ; this%avgrepsink_patch    (:)   = 0._r8
     !allocate(this%perennial_patch       (begp:endp))                 ; this%perennial_patch     (:)   = 0
     !allocate(this%phytomer_patch        (begp:endp))                 ; this%phytomer_patch      (:)   = 0
-    allocate(this%harvest_flag_patch    (begp:endp))                 ; this%harvest_flag_patch  (:)   = 0._r8
+    !allocate(this%harvest_flag_patch    (begp:endp))                 ; this%harvest_flag_patch  (:)   = 0._r8
     allocate(this%harvest_counter_patch (begp:endp))                 ; this%harvest_counter_patch (:) = 0._r8
     allocate(this%prune_patch           (begp:endp))                 ; this%prune_patch         (:)   = .false.
     allocate(this%bglfr_p_patch         (begp:endp,1:mxnp))          ; this%bglfr_p_patch       (:,:) = 0._r8
@@ -332,10 +332,10 @@ contains
                   ptr_patch=this%plai_patch, default='inactive')
     end if
     
-    this%harvest_flag_patch(begp:endp) = spval
-    call hist_addfld1d (fname='HARVEST_FLAG', units='none', &
-            avgflag='A', long_name='harvest flag', &
-            ptr_patch=this%harvest_flag_patch, default='inactive')
+    !this%harvest_flag_patch(begp:endp) = spval
+    !call hist_addfld1d (fname='HARVEST_FLAG', units='none', &
+            !avgflag='A', long_name='harvest flag', &
+            !ptr_patch=this%harvest_flag_patch, default='inactive')
 
     this%harvest_counter_patch(begp:endp) = spval
     call hist_addfld1d (fname='HARVEST_COUNTER', units='none', &
@@ -676,9 +676,9 @@ contains
               dim1name='pft',dim2name='phytomer',long_name='hui needed for end of life of successive phytomers', &
               units='', flag=flag, interpinic_flag='interp', readvar=readvar, data=this%huilfendnp_patch)
   
-         call restartvar(ncid=ncid, varname='harvest_flag', xtype=ncd_double,  &
-              dim1name='pft',long_name='harvest flag',units='unitless', & 
-              flag=flag, interpinic_flag='interp', readvar=readvar, data=this%harvest_flag_patch)
+         !call restartvar(ncid=ncid, varname='harvest_flag', xtype=ncd_double,  &
+              !dim1name='pft',long_name='harvest flag',units='unitless', & 
+              !flag=flag, interpinic_flag='interp', readvar=readvar, data=this%harvest_flag_patch)
   
          call restartvar(ncid=ncid, varname='harvest_counter', xtype=ncd_double,  &
               dim1name='pft',long_name='harvest counter',units='unitless', &

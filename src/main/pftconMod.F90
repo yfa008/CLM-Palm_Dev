@@ -201,6 +201,8 @@ module pftconMod
      real(r8), allocatable :: leaf_long     (:)   ! leaf longevity (yrs)
      real(r8), allocatable :: evergreen     (:)   ! binary flag for evergreen leaf habit (0 or 1)
      real(r8), allocatable :: stress_decid  (:)   ! binary flag for stress-deciduous leaf habit (0 or 1)
+     real(r8), allocatable :: semi_decid    (:)   ! binary flag for semi-deciduous leaf habit (0 or 1)
+     integer,  allocatable :: clearcut_yr   (:)   ! clear cut year for semi-deciduous PFT
      real(r8), allocatable :: season_decid  (:)   ! binary flag for seasonal-deciduous leaf habit (0 or 1)
      real(r8), allocatable :: pconv         (:)   ! proportion of deadstem to conversion flux
      real(r8), allocatable :: pprod10       (:)   ! proportion of deadstem to 10-yr product pool
@@ -449,7 +451,9 @@ contains
     allocate( this%leaf_long     (0:mxpft) )
     allocate( this%evergreen     (0:mxpft) )    
     allocate( this%stress_decid  (0:mxpft) ) 
-    allocate( this%season_decid  (0:mxpft) ) 
+    allocate( this%season_decid  (0:mxpft) )
+    allocate( this%semi_decid    (0:mxpft) )
+    allocate( this%clearcut_yr   (0:mxpft) )  
     allocate( this%dwood         (0:mxpft) )
     allocate( this%root_density  (0:mxpft) )
     allocate( this%root_radius   (0:mxpft) )
@@ -809,6 +813,12 @@ contains
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
     call ncd_io('season_decid', this%season_decid, 'read', ncid, readvar=readv, posNOTonfile=.true.)
+    if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
+    
+    call ncd_io('semi_decid', this%semi_decid, 'read', ncid, readvar=readv, posNOTonfile=.true.)
+    if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
+    
+    call ncd_io('clearcut_yr', this%clearcut_yr, 'read', ncid, readvar=readv, posNOTonfile=.true.)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
     call ncd_io('pftpar20', this%pftpar20, 'read', ncid, readvar=readv, posNOTonfile=.true.)
@@ -1477,6 +1487,8 @@ contains
     deallocate( this%leaf_long)
     deallocate( this%evergreen)
     deallocate( this%stress_decid)
+    deallocate( this%semi_decid)
+    deallocate( this%clearcut_yr)
     deallocate( this%season_decid)
     deallocate( this%dwood)
     deallocate( this%root_density)

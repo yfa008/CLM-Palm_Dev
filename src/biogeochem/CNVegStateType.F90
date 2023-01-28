@@ -50,6 +50,7 @@ module CNVegStateType
      real(r8) , pointer :: aleaf0_patch                (:)     ! initial leaf allocation coefficient saved for perennial crops (Y.Fan)
      real(r8) , pointer :: huigrain2_patch             (:)     ! huigrain for perennial crops after the initial harvest (Y.Fan)
      real(r8) , pointer :: gddmaturity2_patch          (:)     ! GDD needed for subsequent harvests of perennial crops (ddays) (Y.Fan)
+     real(r8), pointer :: harvest_flag_patch(:)                ! harvest flag for perennial crops (A. Ali)
  
      real(r8) , pointer :: gdp_lf_col                  (:)     ! col global real gdp data (k US$/capita)
      real(r8) , pointer :: peatf_lf_col                (:)     ! col global peatland fraction data (0-1)
@@ -221,6 +222,7 @@ contains
     allocate(this%aleaf0_patch        (begp:endp))                   ; this%aleaf0_patch        (:)   = spval
     allocate(this%gddmaturity2_patch  (begp:endp))                   ; this%gddmaturity2_patch  (:)   = spval
     allocate(this%huigrain2_patch     (begp:endp))                   ; this%huigrain2_patch     (:)   = spval
+    allocate(this%harvest_flag_patch  (begp:endp))                   ; this%harvest_flag_patch  (:)   = nan
 
     allocate(this%gdp_lf_col          (begc:endc))                   ;
     allocate(this%peatf_lf_col        (begc:endc))                   ; 
@@ -471,6 +473,11 @@ contains
     call hist_addfld1d (fname='LEAFCN_OFFSET', units='unitless', &
          avgflag='A', long_name='Leaf C:N used by FUN', &
          ptr_patch=this%leafcn_offset_patch, default='inactive')
+	 
+    this%harvest_flag_patch(begp:endp) = spval
+    call hist_addfld1d (fname='HARVEST_FLAG', units='none', &
+            avgflag='A', long_name='harvest flag', &
+            ptr_patch=this%harvest_flag_patch, default='inactive')
 
     this%plantCN_patch(begp:endp)       = spval
     call hist_addfld1d (fname='PLANTCN', units='unitless', &
@@ -628,6 +635,7 @@ contains
           this%bgtr_patch(p)                  = spval
           this%c_allometry_patch(p)           = spval
           this%n_allometry_patch(p)           = spval
+	  this%harvest_flag_patch(p)          = spval
           this%tempsum_potential_gpp_patch(p) = spval
           this%annsum_potential_gpp_patch(p)  = spval
           this%tempmax_retransn_patch(p)      = spval
@@ -654,6 +662,7 @@ contains
           this%lgsf_patch(p)           = 0._r8
           this%bglfr_patch(p)          = 0._r8
           this%bgtr_patch(p)           = 0._r8
+	  this%harvest_flag_patch(p)   = 0._r8 
           this%annavg_t2m_patch(p)     = 280._r8
           this%tempavg_t2m_patch(p)    = 0._r8
           this%grain_flag_patch(p)     = 0._r8
@@ -943,6 +952,10 @@ contains
        call restartvar(ncid=ncid, flag=flag,  varname='gddmaturity2', xtype=ncd_double,  &
             dim1name='pft', long_name='Growing degree days needed to next harvest for perennial crops', units='ddays', &
             interpinic_flag='interp', readvar=readvar, data=this%gddmaturity2_patch)
+	    
+       call restartvar(ncid=ncid, flag=flag, varname='harvest_flag', xtype=ncd_double,  &
+              dim1name='pft',long_name='harvest flag',units='unitless', & 
+              interpinic_flag='interp', readvar=readvar, data=this%harvest_flag_patch)
 
     end if
     if ( flag == 'read' .and. num_reseed_patch > 0 )then
@@ -968,6 +981,7 @@ contains
           this%annavg_t2m_patch(p)     = 280._r8
           this%tempavg_t2m_patch(p)    = 0._r8
           this%grain_flag_patch(p)     = 0._r8
+	  this%harvest_flag_patch(p)   = 0._r8
 
           this%c_allometry_patch(p)           = 0._r8
           this%n_allometry_patch(p)           = 0._r8

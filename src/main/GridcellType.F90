@@ -33,6 +33,7 @@ module GridcellType
 
      ! Daylength
      real(r8) , pointer :: max_dayl        (:) ! maximum daylength for this grid cell (s)
+     real(r8) , pointer :: min_dayl        (:) ! minimum daylength for this grid cell (s)
      real(r8) , pointer :: dayl            (:) ! daylength (seconds)
      real(r8) , pointer :: prev_dayl       (:) ! daylength from previous timestep (seconds)
      real(r8) , pointer :: min_dayl        (:) ! minimum daylength for this grid cell (s)
@@ -75,6 +76,7 @@ contains
 
     ! This is initiailized in module DayLength
     allocate(this%max_dayl  (begg:endg)) ; this%max_dayl  (:) = nan
+    allocate(this%min_dayl  (begg:endg)) ; this%min_dayl  (:) = nan
     allocate(this%dayl      (begg:endg)) ; this%dayl      (:) = nan
     allocate(this%prev_dayl (begg:endg)) ; this%prev_dayl (:) = nan
     allocate(this%min_dayl  (begg:endg)) ; this%min_dayl  (:) = nan

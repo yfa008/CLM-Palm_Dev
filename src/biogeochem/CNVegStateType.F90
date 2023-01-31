@@ -50,7 +50,6 @@ module CNVegStateType
      real(r8) , pointer :: aleaf0_patch                (:)     ! initial leaf allocation coefficient saved for perennial crops (Y.Fan)
      real(r8) , pointer :: huigrain2_patch             (:)     ! huigrain for perennial crops after the initial harvest (Y.Fan)
      real(r8) , pointer :: gddmaturity2_patch          (:)     ! GDD needed for subsequent harvests of perennial crops (ddays) (Y.Fan)
-     real(r8), pointer :: harvest_flag_patch(:)                ! harvest flag for perennial crops (A. Ali)
  
      real(r8) , pointer :: gdp_lf_col                  (:)     ! col global real gdp data (k US$/capita)
      real(r8) , pointer :: peatf_lf_col                (:)     ! col global peatland fraction data (0-1)
@@ -662,7 +661,6 @@ contains
           this%lgsf_patch(p)           = 0._r8
           this%bglfr_patch(p)          = 0._r8
           this%bgtr_patch(p)           = 0._r8
-	  this%harvest_flag_patch(p)   = 0._r8 
           this%annavg_t2m_patch(p)     = 280._r8
           this%tempavg_t2m_patch(p)    = 0._r8
           this%grain_flag_patch(p)     = 0._r8
@@ -952,10 +950,7 @@ contains
        call restartvar(ncid=ncid, flag=flag,  varname='gddmaturity2', xtype=ncd_double,  &
             dim1name='pft', long_name='Growing degree days needed to next harvest for perennial crops', units='ddays', &
             interpinic_flag='interp', readvar=readvar, data=this%gddmaturity2_patch)
-	    
-       call restartvar(ncid=ncid, flag=flag, varname='harvest_flag', xtype=ncd_double,  &
-              dim1name='pft',long_name='harvest flag',units='unitless', & 
-              interpinic_flag='interp', readvar=readvar, data=this%harvest_flag_patch)
+    
 
     end if
     if ( flag == 'read' .and. num_reseed_patch > 0 )then

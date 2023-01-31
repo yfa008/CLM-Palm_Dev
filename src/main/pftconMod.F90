@@ -811,6 +811,12 @@ contains
 
     call ncd_io('stress_decid', this%stress_decid, 'read', ncid, readvar=readv, posNOTonfile=.true.)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
+    
+    call ncd_io('semi_decid', this%semi_decid, 'read', ncid, readvar=readv, posNOTonfile=.true.)
+    if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
+    
+    call ncd_io('clearcut_yr', this%clearcut_yr, 'read', ncid, readvar=readv, posNOTonfile=.true.)
+    if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
     call ncd_io('season_decid', this%season_decid, 'read', ncid, readvar=readv, posNOTonfile=.true.)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))

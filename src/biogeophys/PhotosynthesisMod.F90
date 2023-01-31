@@ -1400,13 +1400,12 @@ contains
 	    
 	    ! Ashehad added this    
 	    if (semi_decid(ivt(p)) == 1._r8) then
-	    if (tlai(p) > 1.5_r8 .and. max_dayl(g_d) <= 12.5_r8 * 3600._r8) then
-	       vcmax25top = 100.0_r8 * dayl_factor(p) * (1._r8 - exp(-0.6_r8 * tlai(p)))
-	    else
-	       vcmax25top = 100.0_r8 * dayl_factor(p)
-            end if
+	       if (tlai(p) > 1.5_r8 .and. max_dayl(g_d) <= 12.5_r8 * 3600._r8) then
+	          vcmax25top = 100.0_r8 * dayl_factor(p) * (1._r8 - exp(-0.6_r8 * tlai(p)))
+	       else
+	          vcmax25top = 100.0_r8 * dayl_factor(p)
+               end if
 	    end if
-	    
          else if (vcmax_opt == 4) then                                                                   
             nptreemax = 9  ! is this number correct? check later 
             if (patch%itype(p) >= nptreemax) then   ! if not tree 
@@ -3018,11 +3017,11 @@ contains
 	    
 	    ! Ashehad added this    
 	    if (semi_decid(ivt(p)) == 1._r8) then
-	    if (tlai(p) > 1.5_r8 .and. max_dayl(g_d) <= 12.5_r8 * 3600._r8) then
-	       vcmax25top = 100.0_r8 * dayl_factor(p) * (1._r8 - exp(-0.6_r8 * tlai(p)))
-	    else
-	       vcmax25top = 100.0_r8 * dayl_factor(p)
-            end if
+	       if (tlai(p) > 1.5_r8 .and. max_dayl(g_d) <= 12.5_r8 * 3600._r8) then
+	          vcmax25top = 100.0_r8 * dayl_factor(p) * (1._r8 - exp(-0.6_r8 * tlai(p)))
+	       else
+	          vcmax25top = 100.0_r8 * dayl_factor(p)
+               end if
 	    end if
 	    
          else if (vcmax_opt == 4) then
@@ -4168,7 +4167,7 @@ contains
 
     if ( stomatalcond_mtd == stomatalcond_mtd_medlyn2011 )then
        term = 1.6_r8 * an_sun(p,iv) / (cs_sun / forc_pbot(c) * 1.e06_r8)
-       aquad = 1.0_r8
+       aquad = 1.0_r8      	  
        bquad = -(2.0 * (medlynintercept(patch%itype(p))*1.e-06_r8 + term) + (medlynslope(patch%itype(p)) * term)**2 / &
                (gb_mol*1.e-06_r8 * rh_can))
        cquad = medlynintercept(patch%itype(p))*medlynintercept(patch%itype(p))*1.e-12_r8 + &

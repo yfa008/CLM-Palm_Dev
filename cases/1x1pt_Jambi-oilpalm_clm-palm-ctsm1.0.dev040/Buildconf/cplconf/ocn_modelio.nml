@@ -1,0 +1,13 @@
+&modelio
+  diri = "/GFPS8p/fanyc/cesm_out/exeroot/1x1pt_Jambi-oilpalm_clm-palm-ctsm1.0.dev040/bld/ocn"
+  diro = "/GFPS8p/fanyc/cesm_out/exeroot/1x1pt_Jambi-oilpalm_clm-palm-ctsm1.0.dev040/run"
+  logfile = "ocn.log.221117-143403"
+/
+&pio_inparm
+  pio_netcdf_format = "64bit_offset"
+  pio_numiotasks = -99
+  pio_rearranger = 1
+  pio_root = 1
+  pio_stride = 24
+  pio_typename = "netcdf"
+/

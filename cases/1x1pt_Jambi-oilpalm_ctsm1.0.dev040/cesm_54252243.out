@@ -1,0 +1,62 @@
+Creating component namelists
+  2022-11-21 10:21:44 atm
+   Calling /GFPS8p/fanyc/clm_efforts_palm/cime/src/components/data_comps/datm/cime_config/buildnml
+  2022-11-21 10:21:44 lnd
+   Calling /GFPS8p/fanyc/clm_efforts_palm/cime_config/buildnml
+  2022-11-21 10:21:45 ice
+   Calling /GFPS8p/fanyc/clm_efforts_palm/cime/src/components/stub_comps/sice/cime_config/buildnml
+  2022-11-21 10:21:45 ocn
+   Calling /GFPS8p/fanyc/clm_efforts_palm/cime/src/components/stub_comps/socn/cime_config/buildnml
+  2022-11-21 10:21:45 rof
+   Calling /GFPS8p/fanyc/clm_efforts_palm/components/mosart//cime_config/buildnml
+  2022-11-21 10:21:45 glc
+   Calling /GFPS8p/fanyc/clm_efforts_palm/cime/src/components/stub_comps/sglc/cime_config/buildnml
+  2022-11-21 10:21:45 wav
+   Calling /GFPS8p/fanyc/clm_efforts_palm/cime/src/components/stub_comps/swav/cime_config/buildnml
+  2022-11-21 10:21:45 esp
+   Calling /GFPS8p/fanyc/clm_efforts_palm/cime/src/components/stub_comps/sesp/cime_config/buildnml
+  2022-11-21 10:21:45 cpl
+   Calling /GFPS8p/fanyc/clm_efforts_palm/cime/src/drivers/mct/cime_config/buildnml
+Finished creating component namelists
+Checking that inputdata is available as part of case submission
+Loading input file list: 'Buildconf/clm.input_data_list'
+Loading input file list: 'Buildconf/cpl.input_data_list'
+Loading input file list: 'Buildconf/datm.input_data_list'
+Loading input file list: 'Buildconf/mosart.input_data_list'
+Check case OK
+submit_jobs case.run
+Submit job case.run
+Starting job script case.run
+Generating namelists for /GFPS8p/fanyc/clm_efforts_palm/cases/1x1pt_Jambi-oilpalm_ctsm1.0.dev040
+Creating component namelists
+  2022-11-21 10:21:46 atm
+   Calling /GFPS8p/fanyc/clm_efforts_palm/cime/src/components/data_comps/datm/cime_config/buildnml
+  2022-11-21 10:21:46 lnd
+   Calling /GFPS8p/fanyc/clm_efforts_palm/cime_config/buildnml
+  2022-11-21 10:21:47 ice
+   Calling /GFPS8p/fanyc/clm_efforts_palm/cime/src/components/stub_comps/sice/cime_config/buildnml
+  2022-11-21 10:21:47 ocn
+   Calling /GFPS8p/fanyc/clm_efforts_palm/cime/src/components/stub_comps/socn/cime_config/buildnml
+  2022-11-21 10:21:47 rof
+   Calling /GFPS8p/fanyc/clm_efforts_palm/components/mosart//cime_config/buildnml
+  2022-11-21 10:21:47 glc
+   Calling /GFPS8p/fanyc/clm_efforts_palm/cime/src/components/stub_comps/sglc/cime_config/buildnml
+  2022-11-21 10:21:47 wav
+   Calling /GFPS8p/fanyc/clm_efforts_palm/cime/src/components/stub_comps/swav/cime_config/buildnml
+  2022-11-21 10:21:47 esp
+   Calling /GFPS8p/fanyc/clm_efforts_palm/cime/src/components/stub_comps/sesp/cime_config/buildnml
+  2022-11-21 10:21:47 cpl
+   Calling /GFPS8p/fanyc/clm_efforts_palm/cime/src/drivers/mct/cime_config/buildnml
+Finished creating component namelists
+-------------------------------------------------------------------------
+ - Prestage required restarts into /GFPS8p/fanyc/cesm_out/exeroot/1x1pt_Jambi-oilpalm_ctsm1.0.dev040/run
+ - Case input data directory (DIN_LOC_ROOT) is /GFPS8p/fanyc/cesm_input 
+ - Checking for required input datasets in DIN_LOC_ROOT
+-------------------------------------------------------------------------
+run command is mpirun -n 1 -machinefile /GFPS8p/fanyc/clm_efforts_palm/cases/1x1pt_Jambi-oilpalm_ctsm1.0.dev040/mpd.hosts /GFPS8p/fanyc/cesm_out/exeroot/1x1pt_Jambi-oilpalm_ctsm1.0.dev040/bld/cesm.exe  >> cesm.log.$LID 2>&1  
+[54252243 ## Mon Nov 21 10:25:57 2022] 收到作业终止请求（bkill）.
+srun.sw: interrupt (one more within 1 sec to abort)
+srun.sw: task 0: running
+srun.sw: sending Ctrl-C to job 54252243.0
+srun.sw: Job step aborted: Waiting up to 32 seconds for job step to finish.
+slurmstepd: error: *** STEP 54252243.0 ON cn060156 CANCELLED AT 2022-11-21T10:25:57 ***

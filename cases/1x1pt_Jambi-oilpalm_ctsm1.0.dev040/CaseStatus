@@ -1,0 +1,549 @@
+2022-11-18 18:26:30: xmlchange success <command> ./xmlchange CLM_USRDAT_NAME=1x1pt_Jambi,DATM_MODE=CLM1PT,CLM_BLDNML_OPTS=-mask navy -bgc bgc -crop  </command>
+ ---------------------------------------------------
+2022-11-18 18:26:31: xmlchange success <command> ./xmlchange DATM_PRESAERO=clim_2000  </command>
+ ---------------------------------------------------
+2022-11-18 18:26:31: xmlchange success <command> ./xmlchange STOP_N=15,STOP_OPTION=nyears  </command>
+ ---------------------------------------------------
+2022-11-18 18:26:32: xmlchange success <command> ./xmlchange RUN_STARTDATE=2001-01-01,STOP_DATE=20141231  </command>
+ ---------------------------------------------------
+2022-11-18 18:26:32: xmlchange success <command> ./xmlchange RUN_TYPE=hybrid,RUN_REFCASE=1x1pt_Jambi-crop-spinup_clm-palm-ctsm1.0.dev040,RUN_REFDATE=0506-01-01,GET_REFCASE=FALSE  </command>
+ ---------------------------------------------------
+2022-11-18 18:26:32: xmlchange success <command> ./xmlchange CCSM_CO2_PPMV=284.7  </command>
+ ---------------------------------------------------
+2022-11-18 18:26:33: xmlchange success <command> ./xmlchange ATM_DOMAIN_FILE=domain.lnd.${CLM_USRDAT_NAME}_navy.nc  </command>
+ ---------------------------------------------------
+2022-11-18 18:26:33: xmlchange success <command> ./xmlchange ATM_DOMAIN_PATH=$DIN_LOC_ROOT/share/domains/domain.clm  </command>
+ ---------------------------------------------------
+2022-11-18 18:26:33: xmlchange success <command> ./xmlchange LND_DOMAIN_FILE=domain.lnd.${CLM_USRDAT_NAME}_navy.nc  </command>
+ ---------------------------------------------------
+2022-11-18 18:26:34: xmlchange success <command> ./xmlchange LND_DOMAIN_PATH=$DIN_LOC_ROOT/share/domains/domain.clm  </command>
+ ---------------------------------------------------
+2022-11-18 18:27:05: case.setup starting 
+ ---------------------------------------------------
+2022-11-18 18:27:06: case.setup success 
+ ---------------------------------------------------
+2022-11-18 18:27:34: case.build starting 
+ ---------------------------------------------------
+CESM version is ctsm1.0.dev040-32-g72f323f
+Processing externals description file : Externals.cfg
+Processing externals description file : Externals_CLM.cfg
+Processing externals description file : Externals_CISM.cfg
+Processing externals description file : Externals_CDEPS.cfg
+Checking status of externals: clm, fates, cism, source_cism, rtm, mosart, mizuroute, ccs_config, cime, cmeps, cdeps, fox, genf90, cpl7, share, mct, parallelio, doc-builder, 
+e-  ./ccs_config
+        -, not checked out --> ccs_config_cesm0.0.38
+sM  ./cime
+        modified sandbox, ctsm/ctsm1.0/cime5.7.9/n05 --> cime6.0.45
+    ./components/cdeps
+        clean sandbox, on cdeps0.12.65
+e-  ./components/cdeps/fox
+        -, not checked out --> 4.1.2.1
+e-  ./components/cdeps/share/genf90
+        -, not checked out --> 4816965
+    ./components/cism
+        clean sandbox, on cismwrap_2_1_95
+e-  ./components/cism/source_cism
+        -, not checked out --> cism_main_2.01.011
+    ./components/cmeps
+        clean sandbox, on cmeps0.13.71
+e-  ./components/cpl7
+        -, not checked out --> cpl7.0.14
+    ./components/mizuRoute
+        clean sandbox, on 34723c2e4df7caa16812770f8d53ebc83fa22360
+s   ./components/mosart
+        clean sandbox, release-cesm2.0.04 --> mosart1_0_45
+    ./components/rtm
+        clean sandbox, on rtm1_0_78
+e-o ./doc/doc-builder
+        -, not checked out --> v1.0.8
+e-  ./libraries/mct
+        -, not checked out --> MCT_2.11.0
+e-  ./libraries/parallelio
+        -, not checked out --> pio2_5_7
+e-  ./share
+        -, not checked out --> share1.0.13
+s   ./src/fates
+        clean sandbox, sci.1.8.1_api.3.0.0 --> sci.1.59.7_api.24.1.0
+2022-11-18 18:33:01: case.build success 
+ ---------------------------------------------------
+2022-11-18 18:41:03: case.submit starting 
+ ---------------------------------------------------
+2022-11-18 18:41:06: case.run starting 
+ ---------------------------------------------------
+2022-11-18 18:41:07: model execution starting 
+ ---------------------------------------------------
+2022-11-18 18:41:07: model execution success 
+ ---------------------------------------------------
+2022-11-18 18:41:07: case.run error 
+ERROR: RUN FAIL: Command 'mpirun -n 1 -machinefile mpd.hosts /GFPS8p/fanyc/clm_efforts_palm/output/1x1pt_Jambi-oilpalm_ctsm1.0.dev040/bld/cesm.exe  >> cesm.log.$LID 2>&1 ' failed
+See log file for details: /GFPS8p/fanyc/clm_efforts_palm/output/1x1pt_Jambi-oilpalm_ctsm1.0.dev040/run/cesm.log.54247288.221118-184106
+ ---------------------------------------------------
+2022-11-18 18:41:07: st_archive starting 
+ ---------------------------------------------------
+2022-11-18 18:41:07: st_archive success 
+ ---------------------------------------------------
+2022-11-18 18:41:07: case.submit success 
+ ---------------------------------------------------
+2022-11-19 11:40:27: case.submit starting 
+ ---------------------------------------------------
+2022-11-19 11:40:30: case.run starting 
+ ---------------------------------------------------
+2022-11-19 11:40:31: model execution starting 
+ ---------------------------------------------------
+2022-11-19 11:40:33: model execution success 
+ ---------------------------------------------------
+2022-11-19 11:40:33: case.run error 
+ERROR: RUN FAIL: Command 'mpirun -n 1 -machinefile /GFPS8p/fanyc/clm_efforts_palm/cases/1x1pt_Jambi-oilpalm_ctsm1.0.dev040/mpd.hosts /GFPS8p/fanyc/clm_efforts_palm/output/1x1pt_Jambi-oilpalm_ctsm1.0.dev040/bld/cesm.exe  >> cesm.log.$LID 2>&1 ' failed
+See log file for details: /GFPS8p/fanyc/clm_efforts_palm/output/1x1pt_Jambi-oilpalm_ctsm1.0.dev040/run/cesm.log.54249631.221119-114030
+ ---------------------------------------------------
+2022-11-19 11:40:33: st_archive starting 
+ ---------------------------------------------------
+2022-11-19 11:40:33: st_archive success 
+ ---------------------------------------------------
+2022-11-19 11:40:33: case.submit success 
+ ---------------------------------------------------
+2022-11-19 11:46:36: case.submit starting 
+ ---------------------------------------------------
+2022-11-19 11:46:40: case.run starting 
+ ---------------------------------------------------
+2022-11-19 11:46:41: model execution starting 
+ ---------------------------------------------------
+2022-11-19 11:46:43: model execution success 
+ ---------------------------------------------------
+2022-11-19 11:46:43: case.run error 
+ERROR: RUN FAIL: Command 'mpirun -n 1 -machinefile /GFPS8p/fanyc/clm_efforts_palm/cases/1x1pt_Jambi-oilpalm_ctsm1.0.dev040/mpd.hosts /GFPS8p/fanyc/clm_efforts_palm/output/1x1pt_Jambi-oilpalm_ctsm1.0.dev040/bld/cesm.exe  >> cesm.log.$LID 2>&1 ' failed
+See log file for details: /GFPS8p/fanyc/clm_efforts_palm/output/1x1pt_Jambi-oilpalm_ctsm1.0.dev040/run/cesm.log.54249640.221119-114640
+ ---------------------------------------------------
+2022-11-19 11:46:43: st_archive starting 
+ ---------------------------------------------------
+2022-11-19 11:46:43: st_archive success 
+ ---------------------------------------------------
+2022-11-19 11:46:43: case.submit success 
+ ---------------------------------------------------
+2022-11-21 09:45:15: case.submit starting 
+ ---------------------------------------------------
+2022-11-21 09:45:19: case.run starting 
+ ---------------------------------------------------
+2022-11-21 09:45:20: model execution starting 
+ ---------------------------------------------------
+2022-11-21 09:54:48: model execution success 
+ ---------------------------------------------------
+2022-11-21 09:54:48: case.run success 
+ ---------------------------------------------------
+2022-11-21 09:54:50: st_archive starting 
+ ---------------------------------------------------
+2022-11-21 09:54:50: st_archive success 
+ ---------------------------------------------------
+2022-11-21 09:54:50: case.submit success 
+ ---------------------------------------------------
+2022-11-21 10:15:05: build.clean starting 
+ ---------------------------------------------------
+2022-11-21 10:15:07: build.clean success 
+ ---------------------------------------------------
+2022-11-21 10:15:20: setup.clean starting 
+ ---------------------------------------------------
+2022-11-21 10:15:20: setup.clean success 
+ ---------------------------------------------------
+2022-11-21 10:15:23: case.setup starting 
+ ---------------------------------------------------
+2022-11-21 10:15:24: case.setup success 
+ ---------------------------------------------------
+2022-11-21 10:15:27: case.build starting 
+ ---------------------------------------------------
+CESM version is ctsm1.0.dev040-32-g72f323f
+Processing externals description file : Externals.cfg
+Processing externals description file : Externals_CLM.cfg
+Processing externals description file : Externals_CISM.cfg
+Processing externals description file : Externals_CDEPS.cfg
+Checking status of externals: clm, fates, cism, source_cism, rtm, mosart, mizuroute, ccs_config, cime, cmeps, cdeps, fox, genf90, cpl7, share, mct, parallelio, doc-builder, 
+e-  ./ccs_config
+        -, not checked out --> ccs_config_cesm0.0.38
+sM  ./cime
+        modified sandbox, ctsm/ctsm1.0/cime5.7.9/n05 --> cime6.0.45
+    ./components/cdeps
+        clean sandbox, on cdeps0.12.65
+e-  ./components/cdeps/fox
+        -, not checked out --> 4.1.2.1
+e-  ./components/cdeps/share/genf90
+        -, not checked out --> 4816965
+    ./components/cism
+        clean sandbox, on cismwrap_2_1_95
+e-  ./components/cism/source_cism
+        -, not checked out --> cism_main_2.01.011
+    ./components/cmeps
+        clean sandbox, on cmeps0.13.71
+e-  ./components/cpl7
+        -, not checked out --> cpl7.0.14
+    ./components/mizuRoute
+        clean sandbox, on 34723c2e4df7caa16812770f8d53ebc83fa22360
+s   ./components/mosart
+        clean sandbox, release-cesm2.0.04 --> mosart1_0_45
+    ./components/rtm
+        clean sandbox, on rtm1_0_78
+e-o ./doc/doc-builder
+        -, not checked out --> v1.0.8
+e-  ./libraries/mct
+        -, not checked out --> MCT_2.11.0
+e-  ./libraries/parallelio
+        -, not checked out --> pio2_5_7
+e-  ./share
+        -, not checked out --> share1.0.13
+s   ./src/fates
+        clean sandbox, sci.1.8.1_api.3.0.0 --> sci.1.59.7_api.24.1.0
+2022-11-21 10:20:36: case.build success 
+ ---------------------------------------------------
+2022-11-21 10:21:43: case.submit starting 
+ ---------------------------------------------------
+2022-11-21 10:21:46: case.run starting 
+ ---------------------------------------------------
+2022-11-21 10:21:47: model execution starting 
+ ---------------------------------------------------
+2022-11-21 10:29:38: case.submit starting 
+ ---------------------------------------------------
+2022-11-21 10:29:42: case.run starting 
+ ---------------------------------------------------
+2022-11-21 10:29:43: model execution starting 
+ ---------------------------------------------------
+2022-11-21 10:36:47: case.submit starting 
+ ---------------------------------------------------
+2022-11-21 10:36:51: case.run starting 
+ ---------------------------------------------------
+2022-11-21 10:36:52: model execution starting 
+ ---------------------------------------------------
+2022-11-21 10:46:12: model execution success 
+ ---------------------------------------------------
+2022-11-21 10:46:12: case.run success 
+ ---------------------------------------------------
+2022-11-21 10:46:14: st_archive starting 
+ ---------------------------------------------------
+2022-11-21 10:46:14: st_archive success 
+ ---------------------------------------------------
+2022-11-21 10:46:14: case.submit success 
+ ---------------------------------------------------
+2023-01-30 16:28:11: build.clean starting 
+ ---------------------------------------------------
+2023-01-30 16:28:13: build.clean success 
+ ---------------------------------------------------
+2023-01-30 16:28:28: setup.clean starting 
+ ---------------------------------------------------
+2023-01-30 16:28:28: setup.clean success 
+ ---------------------------------------------------
+2023-01-30 16:28:32: case.setup starting 
+ ---------------------------------------------------
+2023-01-30 16:28:33: case.setup success 
+ ---------------------------------------------------
+2023-01-30 16:28:38: case.build starting 
+ ---------------------------------------------------
+2023-01-30 16:33:38: case.build error 
+ERROR: Error gathering provenance information from manage_externals.
+
+manage_externals error message:
+
+
+manage_externals output:
+    Processing externals description file : Externals.cfg
+    Processing externals description file : Externals_CLM.cfg
+    Processing externals description file : Externals_CISM.cfg
+    Checking status of externals: clm, fates, dictionary keys changed during iteration
+
+To solve this, either:
+
+(1) Find and fix the problem: From /GFPS8p/fanyc/clm_efforts_palm, try to get this command to work:
+    manage_externals/checkout_externals --status --verbose --no-logging
+
+(2) If you don't need provenance information, rebuild with --skip-provenance-check
+
+ ---------------------------------------------------
+2023-01-30 16:37:10: case.build starting 
+ ---------------------------------------------------
+2023-01-30 16:37:21: case.build success 
+ ---------------------------------------------------
+2023-01-30 16:41:48: case.submit starting 
+ ---------------------------------------------------
+2023-01-30 16:41:52: case.run starting 
+ ---------------------------------------------------
+2023-01-30 16:41:53: model execution starting 
+ ---------------------------------------------------
+2023-01-30 16:51:11: model execution success 
+ ---------------------------------------------------
+2023-01-30 16:51:11: case.run success 
+ ---------------------------------------------------
+2023-01-30 16:51:14: st_archive starting 
+ ---------------------------------------------------
+2023-01-30 16:51:14: st_archive success 
+ ---------------------------------------------------
+2023-01-30 16:51:14: case.submit success 
+ ---------------------------------------------------
+2023-01-30 18:38:48: build.clean starting 
+ ---------------------------------------------------
+2023-01-30 18:38:50: build.clean success 
+ ---------------------------------------------------
+2023-01-30 18:38:53: case.build starting 
+ ---------------------------------------------------
+2023-01-30 18:43:23: case.build error 
+ERROR: Error gathering provenance information from manage_externals.
+
+manage_externals error message:
+
+
+manage_externals output:
+    Processing externals description file : Externals.cfg
+    Processing externals description file : Externals_CLM.cfg
+    Processing externals description file : Externals_CISM.cfg
+    Checking status of externals: clm, fates, dictionary keys changed during iteration
+
+To solve this, either:
+
+(1) Find and fix the problem: From /GFPS8p/fanyc/clm_efforts_palm, try to get this command to work:
+    manage_externals/checkout_externals --status --verbose --no-logging
+
+(2) If you don't need provenance information, rebuild with --skip-provenance-check
+
+ ---------------------------------------------------
+2023-01-30 18:44:05: case.build starting 
+ ---------------------------------------------------
+2023-01-30 18:44:09: case.build success 
+ ---------------------------------------------------
+2023-01-30 18:44:27: case.submit starting 
+ ---------------------------------------------------
+2023-01-30 18:44:28: case.run starting 
+ ---------------------------------------------------
+2023-01-30 18:44:29: model execution starting 
+ ---------------------------------------------------
+2023-01-30 18:44:30: model execution success 
+ ---------------------------------------------------
+2023-01-30 18:44:30: case.run error 
+ERROR: RUN FAIL: Command 'mpirun -n 1 -machinefile /GFPS8p/fanyc/clm_efforts_palm/cases/1x1pt_Jambi-oilpalm_ctsm1.0.dev040/mpd.hosts /GFPS8p/fanyc/cesm_out/exeroot/1x1pt_Jambi-oilpalm_ctsm1.0.dev040/bld/cesm.exe  >> cesm.log.$LID 2>&1 ' failed
+See log file for details: /GFPS8p/fanyc/cesm_out/exeroot/1x1pt_Jambi-oilpalm_ctsm1.0.dev040/run/cesm.log.54428226.230130-184428
+ ---------------------------------------------------
+2023-01-30 18:44:30: st_archive starting 
+ ---------------------------------------------------
+2023-01-30 18:44:30: st_archive success 
+ ---------------------------------------------------
+2023-01-30 18:44:30: case.submit success 
+ ---------------------------------------------------
+2023-01-30 19:18:13: case.submit starting 
+ ---------------------------------------------------
+2023-01-30 19:18:14: case.run starting 
+ ---------------------------------------------------
+2023-01-30 19:18:15: model execution starting 
+ ---------------------------------------------------
+2023-01-30 19:27:22: model execution success 
+ ---------------------------------------------------
+2023-01-30 19:27:22: case.run success 
+ ---------------------------------------------------
+2023-01-30 19:27:24: st_archive starting 
+ ---------------------------------------------------
+2023-01-30 19:27:25: st_archive success 
+ ---------------------------------------------------
+2023-01-30 19:27:25: case.submit success 
+ ---------------------------------------------------
+2023-01-30 19:44:54: case.submit starting 
+ ---------------------------------------------------
+2023-01-30 19:44:56: case.run starting 
+ ---------------------------------------------------
+2023-01-30 19:44:57: model execution starting 
+ ---------------------------------------------------
+2023-01-30 19:53:26: model execution success 
+ ---------------------------------------------------
+2023-01-30 19:53:26: case.run success 
+ ---------------------------------------------------
+2023-01-30 19:53:28: st_archive starting 
+ ---------------------------------------------------
+2023-01-30 19:53:28: st_archive success 
+ ---------------------------------------------------
+2023-01-30 19:53:28: case.submit success 
+ ---------------------------------------------------
+2023-01-30 21:22:19: case.submit starting 
+ ---------------------------------------------------
+2023-01-30 21:22:21: case.run starting 
+ ---------------------------------------------------
+2023-01-30 21:22:22: model execution starting 
+ ---------------------------------------------------
+2023-01-30 21:30:46: model execution success 
+ ---------------------------------------------------
+2023-01-30 21:30:46: case.run success 
+ ---------------------------------------------------
+2023-01-30 21:30:49: st_archive starting 
+ ---------------------------------------------------
+2023-01-30 21:30:49: st_archive success 
+ ---------------------------------------------------
+2023-01-30 21:30:49: case.submit success 
+ ---------------------------------------------------
+2023-01-30 21:55:52: case.submit starting 
+ ---------------------------------------------------
+2023-01-30 21:55:53: case.run starting 
+ ---------------------------------------------------
+2023-01-30 21:55:54: model execution starting 
+ ---------------------------------------------------
+2023-01-30 22:05:05: model execution success 
+ ---------------------------------------------------
+2023-01-30 22:05:05: case.run success 
+ ---------------------------------------------------
+2023-01-30 22:05:07: st_archive starting 
+ ---------------------------------------------------
+2023-01-30 22:05:08: st_archive success 
+ ---------------------------------------------------
+2023-01-30 22:05:08: case.submit success 
+ ---------------------------------------------------
+2023-01-30 22:09:55: case.submit starting 
+ ---------------------------------------------------
+2023-01-30 22:09:59: case.run starting 
+ ---------------------------------------------------
+2023-01-30 22:10:00: model execution starting 
+ ---------------------------------------------------
+2023-01-30 22:18:42: model execution success 
+ ---------------------------------------------------
+2023-01-30 22:18:42: case.run success 
+ ---------------------------------------------------
+2023-01-30 22:18:44: st_archive starting 
+ ---------------------------------------------------
+2023-01-30 22:18:46: st_archive success 
+ ---------------------------------------------------
+2023-01-30 22:18:46: case.submit success 
+ ---------------------------------------------------
+2023-02-01 11:01:09: build.clean starting 
+ ---------------------------------------------------
+2023-02-01 11:01:10: build.clean success 
+ ---------------------------------------------------
+2023-02-01 11:01:14: case.build starting 
+ ---------------------------------------------------
+2023-02-01 11:02:57: case.build error 
+ERROR: BUILD FAIL: clm.buildlib failed, cat /GFPS8p/fanyc/cesm_out/exeroot/1x1pt_Jambi-oilpalm_ctsm1.0.dev040/bld/lnd.bldlog.230201-110115
+ ---------------------------------------------------
+2023-02-01 11:13:34: case.build starting 
+ ---------------------------------------------------
+2023-02-01 11:13:48: case.build error 
+ERROR: BUILD FAIL: clm.buildlib failed, cat /GFPS8p/fanyc/cesm_out/exeroot/1x1pt_Jambi-oilpalm_ctsm1.0.dev040/bld/lnd.bldlog.230201-111335
+ ---------------------------------------------------
+2023-02-01 11:16:58: case.build starting 
+ ---------------------------------------------------
+2023-02-01 11:18:37: case.build error 
+ERROR: BUILD FAIL: clm.buildlib failed, cat /GFPS8p/fanyc/cesm_out/exeroot/1x1pt_Jambi-oilpalm_ctsm1.0.dev040/bld/lnd.bldlog.230201-111658
+ ---------------------------------------------------
+2023-02-01 11:41:38: case.build starting 
+ ---------------------------------------------------
+2023-02-01 11:41:54: case.build error 
+ERROR: BUILD FAIL: clm.buildlib failed, cat /GFPS8p/fanyc/cesm_out/exeroot/1x1pt_Jambi-oilpalm_ctsm1.0.dev040/bld/lnd.bldlog.230201-114138
+ ---------------------------------------------------
+2023-02-01 11:57:44: case.build starting 
+ ---------------------------------------------------
+2023-02-01 11:57:59: case.build error 
+ERROR: BUILD FAIL: clm.buildlib failed, cat /GFPS8p/fanyc/cesm_out/exeroot/1x1pt_Jambi-oilpalm_ctsm1.0.dev040/bld/lnd.bldlog.230201-115745
+ ---------------------------------------------------
+2023-02-01 11:59:14: case.build starting 
+ ---------------------------------------------------
+2023-02-01 12:00:28: case.build error 
+ERROR: Error gathering provenance information from manage_externals.
+
+manage_externals error message:
+
+
+manage_externals output:
+    Processing externals description file : Externals.cfg
+    Processing externals description file : Externals_CLM.cfg
+    Processing externals description file : Externals_CISM.cfg
+    Checking status of externals: clm, fates, dictionary keys changed during iteration
+
+To solve this, either:
+
+(1) Find and fix the problem: From /GFPS8p/fanyc/clm_efforts_palm, try to get this command to work:
+    manage_externals/checkout_externals --status --verbose --no-logging
+
+(2) If you don't need provenance information, rebuild with --skip-provenance-check
+
+ ---------------------------------------------------
+2023-02-01 12:09:14: case.build starting 
+ ---------------------------------------------------
+2023-02-01 12:09:24: case.build success 
+ ---------------------------------------------------
+2023-02-01 12:21:46: case.submit starting 
+ ---------------------------------------------------
+2023-02-01 12:21:51: case.run starting 
+ ---------------------------------------------------
+2023-02-01 12:21:52: model execution starting 
+ ---------------------------------------------------
+2023-02-01 12:30:33: model execution success 
+ ---------------------------------------------------
+2023-02-01 12:30:33: case.run success 
+ ---------------------------------------------------
+2023-02-01 12:30:35: st_archive starting 
+ ---------------------------------------------------
+2023-02-01 12:30:36: st_archive success 
+ ---------------------------------------------------
+2023-02-01 12:30:36: case.submit success 
+ ---------------------------------------------------
+2023-02-01 12:39:49: case.submit starting 
+ ---------------------------------------------------
+2023-02-01 12:39:52: case.run starting 
+ ---------------------------------------------------
+2023-02-01 12:39:54: model execution starting 
+ ---------------------------------------------------
+2023-02-01 12:49:13: model execution success 
+ ---------------------------------------------------
+2023-02-01 12:49:13: case.run success 
+ ---------------------------------------------------
+2023-02-01 12:49:15: st_archive starting 
+ ---------------------------------------------------
+2023-02-01 12:49:17: st_archive success 
+ ---------------------------------------------------
+2023-02-01 12:49:17: case.submit success 
+ ---------------------------------------------------
+2023-02-01 13:23:56: case.build starting 
+ ---------------------------------------------------
+2023-02-01 13:24:48: case.build error 
+ERROR: Error gathering provenance information from manage_externals.
+
+manage_externals error message:
+
+
+manage_externals output:
+    Processing externals description file : Externals.cfg
+    Processing externals description file : Externals_CLM.cfg
+    Processing externals description file : Externals_CISM.cfg
+    Checking status of externals: clm, fates, dictionary keys changed during iteration
+
+To solve this, either:
+
+(1) Find and fix the problem: From /GFPS8p/fanyc/clm_efforts_palm, try to get this command to work:
+    manage_externals/checkout_externals --status --verbose --no-logging
+
+(2) If you don't need provenance information, rebuild with --skip-provenance-check
+
+ ---------------------------------------------------
+2023-02-01 13:26:14: case.build starting 
+ ---------------------------------------------------
+2023-02-01 13:26:20: case.build success 
+ ---------------------------------------------------
+2023-02-01 13:32:33: case.submit starting 
+ ---------------------------------------------------
+2023-02-01 13:32:36: case.run starting 
+ ---------------------------------------------------
+2023-02-01 13:32:37: model execution starting 
+ ---------------------------------------------------
+2023-02-01 13:41:57: model execution success 
+ ---------------------------------------------------
+2023-02-01 13:41:57: case.run success 
+ ---------------------------------------------------
+2023-02-01 13:42:00: st_archive starting 
+ ---------------------------------------------------
+2023-02-01 13:42:01: st_archive success 
+ ---------------------------------------------------
+2023-02-01 13:42:01: case.submit success 
+ ---------------------------------------------------
+2023-02-01 13:52:53: case.submit starting 
+ ---------------------------------------------------
+2023-02-01 13:52:57: case.run starting 
+ ---------------------------------------------------
+2023-02-01 13:52:58: model execution starting 
+ ---------------------------------------------------
+2023-02-01 14:01:37: model execution success 
+ ---------------------------------------------------
+2023-02-01 14:01:37: case.run success 
+ ---------------------------------------------------
+2023-02-01 14:01:40: st_archive starting 
+ ---------------------------------------------------
+2023-02-01 14:01:41: st_archive success 
+ ---------------------------------------------------
+2023-02-01 14:01:41: case.submit success 
+ ---------------------------------------------------

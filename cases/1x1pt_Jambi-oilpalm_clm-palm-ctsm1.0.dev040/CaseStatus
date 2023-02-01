@@ -1,0 +1,830 @@
+2022-11-14 13:08:39: xmlchange success <command> ./xmlchange CLM_USRDAT_NAME=1x1pt_Jambi,DATM_MODE=CLM1PT,CLM_BLDNML_OPTS=-mask navy -bgc bgc -crop  </command>
+ ---------------------------------------------------
+2022-11-14 13:08:40: xmlchange success <command> ./xmlchange DATM_PRESAERO=clim_2000  </command>
+ ---------------------------------------------------
+2022-11-14 13:08:40: xmlchange success <command> ./xmlchange STOP_N=15,STOP_OPTION=nyears  </command>
+ ---------------------------------------------------
+2022-11-14 13:08:40: xmlchange success <command> ./xmlchange RUN_STARTDATE=2001-01-01,STOP_DATE=20141231  </command>
+ ---------------------------------------------------
+2022-11-14 13:08:41: xmlchange success <command> ./xmlchange RUN_TYPE=hybrid,RUN_REFCASE=1x1pt_Jambi-crop-spinup_clm-palm-ctsm1.0.dev040,RUN_REFDATE=0506-01-01,GET_REFCASE=FALSE  </command>
+ ---------------------------------------------------
+2022-11-14 13:08:41: xmlchange success <command> ./xmlchange CCSM_CO2_PPMV=284.7  </command>
+ ---------------------------------------------------
+2022-11-14 13:08:41: xmlchange success <command> ./xmlchange ATM_DOMAIN_FILE=domain.lnd.${CLM_USRDAT_NAME}_navy.nc  </command>
+ ---------------------------------------------------
+2022-11-14 13:08:42: xmlchange success <command> ./xmlchange ATM_DOMAIN_PATH=$DIN_LOC_ROOT/share/domains/domain.clm  </command>
+ ---------------------------------------------------
+2022-11-14 13:08:42: xmlchange success <command> ./xmlchange LND_DOMAIN_FILE=domain.lnd.${CLM_USRDAT_NAME}_navy.nc  </command>
+ ---------------------------------------------------
+2022-11-14 13:08:42: xmlchange success <command> ./xmlchange LND_DOMAIN_PATH=$DIN_LOC_ROOT/share/domains/domain.clm  </command>
+ ---------------------------------------------------
+2022-11-14 13:08:46: case.setup starting 
+ ---------------------------------------------------
+2022-11-14 13:08:46: case.setup success 
+ ---------------------------------------------------
+2022-11-14 13:08:55: case.build starting 
+ ---------------------------------------------------
+2022-11-14 13:08:56: case.build error 
+ERROR: Command /GFPS8p/fanyc/clm_efforts_palm/bld/build-namelist failed rc=255
+out=setting clm_usr_name -- but did NOT find any user datasets: 1x1pt_Jambi
+CLM adding use_case 2000_control defaults for var 'irrigate' with val '.true.'
+CLM adding use_case 2000_control defaults for var 'sim_year' with val '2000'
+CLM adding use_case 2000_control defaults for var 'sim_year_range' with val 'constant'
+CLM adding use_case 2000_control defaults for var 'stream_year_first_ndep' with val '2000'
+CLM adding use_case 2000_control defaults for var 'stream_year_first_popdens' with val '2000'
+CLM adding use_case 2000_control defaults for var 'stream_year_first_urbantv' with val '2000'
+CLM adding use_case 2000_control defaults for var 'stream_year_last_ndep' with val '2000'
+CLM adding use_case 2000_control defaults for var 'stream_year_last_popdens' with val '2000'
+CLM adding use_case 2000_control defaults for var 'stream_year_last_urbantv' with val '2000'
+CLM adding use_case 2000_control defaults for var 'use_case_desc' with val 'Conditions to simulate 2000 land-use'
+err=File::Glob::glob() will disappear in perl 5.30. Use File::Glob::bsd_glob() instead. at /GFPS8p/fanyc/clm_efforts_palm/bld/CLMBuildNamelist.pm line 4027.
+ERROR : CLM build-namelist::CLMBuildNamelist::add_default() : No default value found for fsurdat.
+            Are defaults provided for this resolution and land mask?
+ ---------------------------------------------------
+2022-11-14 13:09:28: case.build starting 
+ ---------------------------------------------------
+2022-11-14 13:10:59: case.build error 
+ERROR: BUILD FAIL: clm.buildlib failed, cat /GFPS8p/fanyc/cesm_out/exeroot/1x1pt_Jambi-oilpalm_clm-palm-ctsm1.0.dev040/bld/lnd.bldlog.221114-130928
+ ---------------------------------------------------
+2022-11-14 14:07:17: case.build starting 
+ ---------------------------------------------------
+2022-11-14 14:07:30: case.build error 
+ERROR: BUILD FAIL: clm.buildlib failed, cat /GFPS8p/fanyc/cesm_out/exeroot/1x1pt_Jambi-oilpalm_clm-palm-ctsm1.0.dev040/bld/lnd.bldlog.221114-140718
+ ---------------------------------------------------
+2022-11-14 14:08:23: build.clean starting 
+ ---------------------------------------------------
+2022-11-14 14:08:23: build.clean success 
+ ---------------------------------------------------
+2022-11-14 14:08:28: build.clean starting 
+ ---------------------------------------------------
+2022-11-14 14:08:28: build.clean success 
+ ---------------------------------------------------
+2022-11-14 14:08:31: case.build starting 
+ ---------------------------------------------------
+2022-11-14 14:12:05: case.build error 
+ERROR: BUILD FAIL: mosart.buildlib failed, cat /GFPS8p/fanyc/cesm_out/exeroot/1x1pt_Jambi-oilpalm_clm-palm-ctsm1.0.dev040/bld/rof.bldlog.221114-140831
+ ---------------------------------------------------
+2022-11-14 14:28:01: build.clean starting 
+ ---------------------------------------------------
+2022-11-14 14:28:03: build.clean success 
+ ---------------------------------------------------
+2022-11-14 14:28:06: case.build starting 
+ ---------------------------------------------------
+2022-11-14 14:28:08: case.build error 
+ERROR: Variable 'coupling_period' has invalid value ['10800.0'].
+ ---------------------------------------------------
+2022-11-14 14:28:33: build.clean starting 
+ ---------------------------------------------------
+2022-11-14 14:28:33: build.clean success 
+ ---------------------------------------------------
+2022-11-14 14:28:41: setup.clean starting 
+ ---------------------------------------------------
+2022-11-14 14:28:41: setup.clean success 
+ ---------------------------------------------------
+2022-11-14 14:28:44: case.setup starting 
+ ---------------------------------------------------
+2022-11-14 14:28:44: case.setup success 
+ ---------------------------------------------------
+2022-11-14 14:28:49: case.build starting 
+ ---------------------------------------------------
+2022-11-14 14:28:50: case.build error 
+ERROR: Variable 'coupling_period' has invalid value ['10800.0'].
+ ---------------------------------------------------
+2022-11-14 14:40:29: build.clean starting 
+ ---------------------------------------------------
+2022-11-14 14:40:29: build.clean success 
+ ---------------------------------------------------
+2022-11-14 14:40:33: case.build starting 
+ ---------------------------------------------------
+2022-11-14 14:40:33: case.build error 
+ERROR: Variable 'coupling_period' has invalid value ['10800.0'].
+ ---------------------------------------------------
+2022-11-14 14:46:02: build.clean starting 
+ ---------------------------------------------------
+2022-11-14 14:46:02: build.clean success 
+ ---------------------------------------------------
+2022-11-14 14:46:07: case.build starting 
+ ---------------------------------------------------
+2022-11-14 14:50:54: case.build error 
+ERROR: Error gathering provenance information from manage_externals.
+
+manage_externals error message:
+
+
+manage_externals output:
+    Processing externals description file : Externals.cfg
+    Processing externals description file : Externals_CLM.cfg
+    Processing externals description file : Externals_CISM.cfg
+    Processing externals description file : Externals_CDEPS.cfg
+    Checking status of externals: clm, fates, dictionary keys changed during iteration
+
+To solve this, either:
+
+(1) Find and fix the problem: From /GFPS8p/fanyc/clm_efforts_palm, try to get this command to work:
+    manage_externals/checkout_externals --status --verbose --no-logging
+
+(2) If you don't need provenance information, rebuild with --skip-provenance-check
+
+ ---------------------------------------------------
+2022-11-14 15:18:28: case.build starting 
+ ---------------------------------------------------
+CESM version is ctsm1.0.dev040-32-g72f323f
+Processing externals description file : Externals.cfg
+Processing externals description file : Externals_CLM.cfg
+Processing externals description file : Externals_CISM.cfg
+Processing externals description file : Externals_CDEPS.cfg
+Checking status of externals: clm, fates, cism, source_cism, rtm, mosart, mizuroute, ccs_config, cime, cmeps, cdeps, fox, genf90, cpl7, share, mct, parallelio, doc-builder, 
+e-  ./ccs_config
+        -, not checked out --> ccs_config_cesm0.0.38
+sM  ./cime
+        modified sandbox, ctsm/ctsm1.0/cime5.7.9/n05 --> cime6.0.45
+    ./components/cdeps
+        clean sandbox, on cdeps0.12.65
+e-  ./components/cdeps/fox
+        -, not checked out --> 4.1.2.1
+e-  ./components/cdeps/share/genf90
+        -, not checked out --> 4816965
+    ./components/cism
+        clean sandbox, on cismwrap_2_1_95
+e-  ./components/cism/source_cism
+        -, not checked out --> cism_main_2.01.011
+    ./components/cmeps
+        clean sandbox, on cmeps0.13.71
+e-  ./components/cpl7
+        -, not checked out --> cpl7.0.14
+    ./components/mizuRoute
+        clean sandbox, on 34723c2e4df7caa16812770f8d53ebc83fa22360
+s   ./components/mosart
+        clean sandbox, release-cesm2.0.04 --> mosart1_0_45
+    ./components/rtm
+        clean sandbox, on rtm1_0_78
+e-o ./doc/doc-builder
+        -, not checked out --> v1.0.8
+e-  ./libraries/mct
+        -, not checked out --> MCT_2.11.0
+e-  ./libraries/parallelio
+        -, not checked out --> pio2_5_7
+e-  ./share
+        -, not checked out --> share1.0.13
+s   ./src/fates
+        clean sandbox, sci.1.8.1_api.3.0.0 --> sci.1.59.7_api.24.1.0
+2022-11-14 15:18:45: case.build success 
+ ---------------------------------------------------
+2022-11-14 15:40:49: case.submit starting 
+ ---------------------------------------------------
+2022-11-14 15:41:13: case.submit error 
+
+ ---------------------------------------------------
+2022-11-14 15:42:23: case.submit starting 
+ ---------------------------------------------------
+2022-11-14 15:57:21: case.submit error 
+
+ ---------------------------------------------------
+2022-11-14 16:00:34: case.submit starting 
+ ---------------------------------------------------
+2022-11-14 16:53:41: case.submit error 
+
+ ---------------------------------------------------
+2022-11-14 20:16:31: case.submit starting 
+ ---------------------------------------------------
+2022-11-14 20:16:35: case.submit error 
+ERROR: Command: 'bsub  < .case.run --resubmit' failed with error 'b'wrong prog name --resubmit'' from dir '/GFPS8p/fanyc/clm_efforts_palm/cases/1x1pt_Jambi-oilpalm_clm-palm-ctsm1.0.dev040'
+ ---------------------------------------------------
+2022-11-14 20:51:20: build.clean starting 
+ ---------------------------------------------------
+2022-11-14 20:51:20: build.clean success 
+ ---------------------------------------------------
+2022-11-14 20:51:27: setup.clean starting 
+ ---------------------------------------------------
+2022-11-14 20:51:27: setup.clean success 
+ ---------------------------------------------------
+2022-11-14 20:51:30: case.setup starting 
+ ---------------------------------------------------
+2022-11-14 20:51:31: case.setup success 
+ ---------------------------------------------------
+2022-11-14 20:51:37: case.build starting 
+ ---------------------------------------------------
+CESM version is ctsm1.0.dev040-32-g72f323f
+Processing externals description file : Externals.cfg
+Processing externals description file : Externals_CLM.cfg
+Processing externals description file : Externals_CISM.cfg
+Processing externals description file : Externals_CDEPS.cfg
+Checking status of externals: clm, fates, cism, source_cism, rtm, mosart, mizuroute, ccs_config, cime, cmeps, cdeps, fox, genf90, cpl7, share, mct, parallelio, doc-builder, 
+e-  ./ccs_config
+        -, not checked out --> ccs_config_cesm0.0.38
+sM  ./cime
+        modified sandbox, ctsm/ctsm1.0/cime5.7.9/n05 --> cime6.0.45
+    ./components/cdeps
+        clean sandbox, on cdeps0.12.65
+e-  ./components/cdeps/fox
+        -, not checked out --> 4.1.2.1
+e-  ./components/cdeps/share/genf90
+        -, not checked out --> 4816965
+    ./components/cism
+        clean sandbox, on cismwrap_2_1_95
+e-  ./components/cism/source_cism
+        -, not checked out --> cism_main_2.01.011
+    ./components/cmeps
+        clean sandbox, on cmeps0.13.71
+e-  ./components/cpl7
+        -, not checked out --> cpl7.0.14
+    ./components/mizuRoute
+        clean sandbox, on 34723c2e4df7caa16812770f8d53ebc83fa22360
+s   ./components/mosart
+        clean sandbox, release-cesm2.0.04 --> mosart1_0_45
+    ./components/rtm
+        clean sandbox, on rtm1_0_78
+e-o ./doc/doc-builder
+        -, not checked out --> v1.0.8
+e-  ./libraries/mct
+        -, not checked out --> MCT_2.11.0
+e-  ./libraries/parallelio
+        -, not checked out --> pio2_5_7
+e-  ./share
+        -, not checked out --> share1.0.13
+s   ./src/fates
+        clean sandbox, sci.1.8.1_api.3.0.0 --> sci.1.59.7_api.24.1.0
+2022-11-14 20:51:57: case.build success 
+ ---------------------------------------------------
+2022-11-14 20:52:11: case.submit starting 
+ ---------------------------------------------------
+2022-11-14 20:52:13: case.submit error 
+ERROR: Command: 'bsub  < .case.run --resubmit' failed with error 'b'wrong prog name --resubmit'' from dir '/GFPS8p/fanyc/clm_efforts_palm/cases/1x1pt_Jambi-oilpalm_clm-palm-ctsm1.0.dev040'
+ ---------------------------------------------------
+2022-11-14 21:13:52: case.run starting 
+ ---------------------------------------------------
+2022-11-14 21:13:55: model execution starting 
+ ---------------------------------------------------
+2022-11-14 21:13:56: model execution success 
+ ---------------------------------------------------
+2022-11-14 21:13:56: case.run error 
+ERROR: RUN FAIL: Command 'bsub -K -o cesm.log.$LID -q q_x86_share -n 1 /GFPS8p/fanyc/cesm_out/exeroot/1x1pt_Jambi-oilpalm_clm-palm-ctsm1.0.dev040/bld/cesm.exe  >> cesm.log.$LID 2>&1 ' failed
+See log file for details: /GFPS8p/fanyc/cesm_out/exeroot/1x1pt_Jambi-oilpalm_clm-palm-ctsm1.0.dev040/run/cesm.log.221114-211352
+ ---------------------------------------------------
+2022-11-14 21:15:13: case.run starting 
+ ---------------------------------------------------
+2022-11-14 21:15:14: model execution starting 
+ ---------------------------------------------------
+2022-11-14 21:15:14: model execution success 
+ ---------------------------------------------------
+2022-11-14 21:15:14: case.run error 
+ERROR: RUN FAIL: Command 'bsub -K -o cesm.log.$LID -q q_x86_share -n 1 /GFPS8p/fanyc/cesm_out/exeroot/1x1pt_Jambi-oilpalm_clm-palm-ctsm1.0.dev040/bld/cesm.exe  >> cesm.log.$LID 2>&1 ' failed
+See log file for details: /GFPS8p/fanyc/cesm_out/exeroot/1x1pt_Jambi-oilpalm_clm-palm-ctsm1.0.dev040/run/cesm.log.221114-211513
+ ---------------------------------------------------
+2022-11-14 21:15:22: setup.clean starting 
+ ---------------------------------------------------
+2022-11-14 21:15:22: setup.clean success 
+ ---------------------------------------------------
+2022-11-14 21:15:26: case.setup starting 
+ ---------------------------------------------------
+2022-11-14 21:15:27: case.setup success 
+ ---------------------------------------------------
+2022-11-14 21:15:45: case.build starting 
+ ---------------------------------------------------
+CESM version is ctsm1.0.dev040-32-g72f323f
+Processing externals description file : Externals.cfg
+Processing externals description file : Externals_CLM.cfg
+Processing externals description file : Externals_CISM.cfg
+Processing externals description file : Externals_CDEPS.cfg
+Checking status of externals: clm, fates, cism, source_cism, rtm, mosart, mizuroute, ccs_config, cime, cmeps, cdeps, fox, genf90, cpl7, share, mct, parallelio, doc-builder, 
+e-  ./ccs_config
+        -, not checked out --> ccs_config_cesm0.0.38
+sM  ./cime
+        modified sandbox, ctsm/ctsm1.0/cime5.7.9/n05 --> cime6.0.45
+    ./components/cdeps
+        clean sandbox, on cdeps0.12.65
+e-  ./components/cdeps/fox
+        -, not checked out --> 4.1.2.1
+e-  ./components/cdeps/share/genf90
+        -, not checked out --> 4816965
+    ./components/cism
+        clean sandbox, on cismwrap_2_1_95
+e-  ./components/cism/source_cism
+        -, not checked out --> cism_main_2.01.011
+    ./components/cmeps
+        clean sandbox, on cmeps0.13.71
+e-  ./components/cpl7
+        -, not checked out --> cpl7.0.14
+    ./components/mizuRoute
+        clean sandbox, on 34723c2e4df7caa16812770f8d53ebc83fa22360
+s   ./components/mosart
+        clean sandbox, release-cesm2.0.04 --> mosart1_0_45
+    ./components/rtm
+        clean sandbox, on rtm1_0_78
+e-o ./doc/doc-builder
+        -, not checked out --> v1.0.8
+e-  ./libraries/mct
+        -, not checked out --> MCT_2.11.0
+e-  ./libraries/parallelio
+        -, not checked out --> pio2_5_7
+e-  ./share
+        -, not checked out --> share1.0.13
+s   ./src/fates
+        clean sandbox, sci.1.8.1_api.3.0.0 --> sci.1.59.7_api.24.1.0
+2022-11-14 21:16:01: case.build success 
+ ---------------------------------------------------
+2022-11-14 21:18:00: case.run starting 
+ ---------------------------------------------------
+2022-11-14 21:18:01: model execution starting 
+ ---------------------------------------------------
+2022-11-14 21:18:02: model execution success 
+ ---------------------------------------------------
+2022-11-14 21:18:02: case.run error 
+ERROR: RUN FAIL: Command 'bsub -K -o cesm.log.$LID -q q_x86_share -n 1 /GFPS8p/fanyc/cesm_out/exeroot/1x1pt_Jambi-oilpalm_clm-palm-ctsm1.0.dev040/bld/cesm.exe  >> cesm.log.$LID 2>&1 ' failed
+See log file for details: /GFPS8p/fanyc/cesm_out/exeroot/1x1pt_Jambi-oilpalm_clm-palm-ctsm1.0.dev040/run/cesm.log.221114-211800
+ ---------------------------------------------------
+2022-11-14 21:20:03: build.clean starting 
+ ---------------------------------------------------
+2022-11-14 21:20:04: build.clean success 
+ ---------------------------------------------------
+2022-11-14 21:20:10: setup.clean starting 
+ ---------------------------------------------------
+2022-11-14 21:20:10: setup.clean success 
+ ---------------------------------------------------
+2022-11-14 21:20:13: case.setup starting 
+ ---------------------------------------------------
+2022-11-14 21:20:14: case.setup success 
+ ---------------------------------------------------
+2022-11-14 21:20:18: case.build starting 
+ ---------------------------------------------------
+CESM version is ctsm1.0.dev040-32-g72f323f
+Processing externals description file : Externals.cfg
+Processing externals description file : Externals_CLM.cfg
+Processing externals description file : Externals_CISM.cfg
+Processing externals description file : Externals_CDEPS.cfg
+Checking status of externals: clm, fates, cism, source_cism, rtm, mosart, mizuroute, ccs_config, cime, cmeps, cdeps, fox, genf90, cpl7, share, mct, parallelio, doc-builder, 
+e-  ./ccs_config
+        -, not checked out --> ccs_config_cesm0.0.38
+sM  ./cime
+        modified sandbox, ctsm/ctsm1.0/cime5.7.9/n05 --> cime6.0.45
+    ./components/cdeps
+        clean sandbox, on cdeps0.12.65
+e-  ./components/cdeps/fox
+        -, not checked out --> 4.1.2.1
+e-  ./components/cdeps/share/genf90
+        -, not checked out --> 4816965
+    ./components/cism
+        clean sandbox, on cismwrap_2_1_95
+e-  ./components/cism/source_cism
+        -, not checked out --> cism_main_2.01.011
+    ./components/cmeps
+        clean sandbox, on cmeps0.13.71
+e-  ./components/cpl7
+        -, not checked out --> cpl7.0.14
+    ./components/mizuRoute
+        clean sandbox, on 34723c2e4df7caa16812770f8d53ebc83fa22360
+s   ./components/mosart
+        clean sandbox, release-cesm2.0.04 --> mosart1_0_45
+    ./components/rtm
+        clean sandbox, on rtm1_0_78
+e-o ./doc/doc-builder
+        -, not checked out --> v1.0.8
+e-  ./libraries/mct
+        -, not checked out --> MCT_2.11.0
+e-  ./libraries/parallelio
+        -, not checked out --> pio2_5_7
+e-  ./share
+        -, not checked out --> share1.0.13
+s   ./src/fates
+        clean sandbox, sci.1.8.1_api.3.0.0 --> sci.1.59.7_api.24.1.0
+2022-11-14 21:20:36: case.build success 
+ ---------------------------------------------------
+2022-11-14 21:34:34: case.run starting 
+ ---------------------------------------------------
+2022-11-14 21:34:37: model execution starting 
+ ---------------------------------------------------
+2022-11-14 21:34:38: model execution success 
+ ---------------------------------------------------
+2022-11-14 21:34:38: case.run error 
+ERROR: Model did not complete - see /GFPS8p/fanyc/cesm_out/exeroot/1x1pt_Jambi-oilpalm_clm-palm-ctsm1.0.dev040/run/cpl.log.221114-213434 
+ 
+ ---------------------------------------------------
+2022-11-14 21:42:22: case.run starting 
+ ---------------------------------------------------
+2022-11-14 21:42:25: model execution starting 
+ ---------------------------------------------------
+2022-11-14 21:42:26: model execution success 
+ ---------------------------------------------------
+2022-11-14 21:42:26: case.run error 
+ERROR: Model did not complete - see /GFPS8p/fanyc/cesm_out/exeroot/1x1pt_Jambi-oilpalm_clm-palm-ctsm1.0.dev040/run/cpl.log.221114-214222 
+ 
+ ---------------------------------------------------
+2022-11-14 21:43:54: case.run starting 
+ ---------------------------------------------------
+2022-11-14 21:43:55: model execution starting 
+ ---------------------------------------------------
+2022-11-14 21:43:55: model execution success 
+ ---------------------------------------------------
+2022-11-14 21:43:55: case.run error 
+ERROR: Model did not complete - see /GFPS8p/fanyc/cesm_out/exeroot/1x1pt_Jambi-oilpalm_clm-palm-ctsm1.0.dev040/run/cpl.log.221114-214354 
+ 
+ ---------------------------------------------------
+2022-11-14 21:46:17: case.run starting 
+ ---------------------------------------------------
+2022-11-14 21:46:18: model execution starting 
+ ---------------------------------------------------
+2022-11-14 21:46:18: model execution success 
+ ---------------------------------------------------
+2022-11-14 21:46:18: case.run error 
+ERROR: Model did not complete - see /GFPS8p/fanyc/cesm_out/exeroot/1x1pt_Jambi-oilpalm_clm-palm-ctsm1.0.dev040/run/cpl.log.221114-214617 
+ 
+ ---------------------------------------------------
+2022-11-14 21:50:11: case.submit starting 
+ ---------------------------------------------------
+2022-11-14 21:50:12: case.submit error 
+ERROR: Command: 'bsub  < .case.run --resubmit' failed with error 'b'wrong prog name --resubmit'' from dir '/GFPS8p/fanyc/clm_efforts_palm/cases/1x1pt_Jambi-oilpalm_clm-palm-ctsm1.0.dev040'
+ ---------------------------------------------------
+2022-11-14 22:02:18: case.run starting 
+ ---------------------------------------------------
+2022-11-14 22:02:20: model execution starting 
+ ---------------------------------------------------
+2022-11-14 22:02:20: model execution success 
+ ---------------------------------------------------
+2022-11-14 22:02:20: case.run error 
+ERROR: Model did not complete - see /GFPS8p/fanyc/cesm_out/exeroot/1x1pt_Jambi-oilpalm_clm-palm-ctsm1.0.dev040/run/cpl.log.221114-220218 
+ 
+ ---------------------------------------------------
+2022-11-14 22:59:26: case.run starting 
+ ---------------------------------------------------
+2022-11-14 22:59:31: model execution starting 
+ ---------------------------------------------------
+2022-11-14 22:59:31: model execution success 
+ ---------------------------------------------------
+2022-11-14 22:59:31: case.run error 
+ERROR: RUN FAIL: Command 'bsub -K -o cesm.log.$LID -q q_x86_expr -n 1 /GFPS8p/fanyc/cesm_out/exeroot/1x1pt_Jambi-oilpalm_clm-palm-ctsm1.0.dev040/bld/cesm.exe  >> cesm.log.$LID 2>&1 ' failed
+See log file for details: /GFPS8p/fanyc/cesm_out/exeroot/1x1pt_Jambi-oilpalm_clm-palm-ctsm1.0.dev040/run/cesm.log.54233491.221114-225926
+ ---------------------------------------------------
+2022-11-14 23:03:23: case.run starting 
+ ---------------------------------------------------
+2022-11-14 23:03:24: model execution starting 
+ ---------------------------------------------------
+2022-11-14 23:03:24: model execution success 
+ ---------------------------------------------------
+2022-11-14 23:03:24: case.run error 
+ERROR: RUN FAIL: Command 'bsub -K -o cesm.log.$LID -q q_x86_expr -n 1 /GFPS8p/fanyc/cesm_out/exeroot/1x1pt_Jambi-oilpalm_clm-palm-ctsm1.0.dev040/bld/cesm.exe  >> cesm.log.$LID 2>&1 ' failed
+See log file for details: /GFPS8p/fanyc/cesm_out/exeroot/1x1pt_Jambi-oilpalm_clm-palm-ctsm1.0.dev040/run/cesm.log.54233497.221114-230323
+ ---------------------------------------------------
+2022-11-14 23:29:48: case.run starting 
+ ---------------------------------------------------
+2022-11-14 23:29:49: case.run error 
+
+ ---------------------------------------------------
+2022-11-14 23:31:49: case.submit starting 
+ ---------------------------------------------------
+2022-11-14 23:31:51: case.submit error 
+ERROR: Command: 'bsub  < .case.run --resubmit' failed with error 'b'wrong prog name --resubmit'' from dir '/GFPS8p/fanyc/clm_efforts_palm/cases/1x1pt_Jambi-oilpalm_clm-palm-ctsm1.0.dev040'
+ ---------------------------------------------------
+2022-11-14 23:41:48: case.run starting 
+ ---------------------------------------------------
+2022-11-14 23:41:50: model execution starting 
+ ---------------------------------------------------
+2022-11-14 23:41:50: model execution success 
+ ---------------------------------------------------
+2022-11-14 23:41:50: case.run error 
+ERROR: RUN FAIL: Command 'bsub -K -o cesm.log.$LID -q q_x86_expr -n 1 /GFPS8p/fanyc/cesm_out/exeroot/1x1pt_Jambi-oilpalm_clm-palm-ctsm1.0.dev040/bld/cesm.exe  >> cesm.log.$LID 2>&1 ' failed
+See log file for details: /GFPS8p/fanyc/cesm_out/exeroot/1x1pt_Jambi-oilpalm_clm-palm-ctsm1.0.dev040/run/cesm.log.54233537.221114-234148
+ ---------------------------------------------------
+2022-11-15 00:12:48: setup.clean starting 
+ ---------------------------------------------------
+2022-11-15 00:12:48: setup.clean success 
+ ---------------------------------------------------
+2022-11-15 00:13:45: case.setup starting 
+ ---------------------------------------------------
+2022-11-15 00:13:46: case.setup success 
+ ---------------------------------------------------
+2022-11-15 00:21:57: setup.clean starting 
+ ---------------------------------------------------
+2022-11-15 00:21:57: setup.clean success 
+ ---------------------------------------------------
+2022-11-15 00:22:01: case.setup starting 
+ ---------------------------------------------------
+2022-11-15 00:22:01: case.setup success 
+ ---------------------------------------------------
+2022-11-15 00:22:06: build.clean starting 
+ ---------------------------------------------------
+2022-11-15 00:22:06: build.clean success 
+ ---------------------------------------------------
+2022-11-15 00:22:09: case.build starting 
+ ---------------------------------------------------
+CESM version is ctsm1.0.dev040-32-g72f323f
+Processing externals description file : Externals.cfg
+Processing externals description file : Externals_CLM.cfg
+Processing externals description file : Externals_CISM.cfg
+Processing externals description file : Externals_CDEPS.cfg
+Checking status of externals: clm, fates, cism, source_cism, rtm, mosart, mizuroute, ccs_config, cime, cmeps, cdeps, fox, genf90, cpl7, share, mct, parallelio, doc-builder, 
+e-  ./ccs_config
+        -, not checked out --> ccs_config_cesm0.0.38
+sM  ./cime
+        modified sandbox, ctsm/ctsm1.0/cime5.7.9/n05 --> cime6.0.45
+    ./components/cdeps
+        clean sandbox, on cdeps0.12.65
+e-  ./components/cdeps/fox
+        -, not checked out --> 4.1.2.1
+e-  ./components/cdeps/share/genf90
+        -, not checked out --> 4816965
+    ./components/cism
+        clean sandbox, on cismwrap_2_1_95
+e-  ./components/cism/source_cism
+        -, not checked out --> cism_main_2.01.011
+    ./components/cmeps
+        clean sandbox, on cmeps0.13.71
+e-  ./components/cpl7
+        -, not checked out --> cpl7.0.14
+    ./components/mizuRoute
+        clean sandbox, on 34723c2e4df7caa16812770f8d53ebc83fa22360
+s   ./components/mosart
+        clean sandbox, release-cesm2.0.04 --> mosart1_0_45
+    ./components/rtm
+        clean sandbox, on rtm1_0_78
+e-o ./doc/doc-builder
+        -, not checked out --> v1.0.8
+e-  ./libraries/mct
+        -, not checked out --> MCT_2.11.0
+e-  ./libraries/parallelio
+        -, not checked out --> pio2_5_7
+e-  ./share
+        -, not checked out --> share1.0.13
+s   ./src/fates
+        clean sandbox, sci.1.8.1_api.3.0.0 --> sci.1.59.7_api.24.1.0
+2022-11-15 00:22:26: case.build success 
+ ---------------------------------------------------
+2022-11-15 00:22:35: case.submit starting 
+ ---------------------------------------------------
+2022-11-15 00:22:37: case.submit error 
+ERROR: Command: 'bsub  < .case.run --resubmit' failed with error 'b'wrong prog name --resubmit'' from dir '/GFPS8p/fanyc/clm_efforts_palm/cases/1x1pt_Jambi-oilpalm_clm-palm-ctsm1.0.dev040'
+ ---------------------------------------------------
+2022-11-15 00:23:23: case.run starting 
+ ---------------------------------------------------
+2022-11-15 00:23:24: model execution starting 
+ ---------------------------------------------------
+2022-11-15 00:23:24: model execution success 
+ ---------------------------------------------------
+2022-11-15 00:23:24: case.run error 
+ERROR: RUN FAIL: Command 'bsub -K -o cesm.log.$LID -q q_x86_expr -n 1 /GFPS8p/fanyc/cesm_out/exeroot/1x1pt_Jambi-oilpalm_clm-palm-ctsm1.0.dev040/bld/cesm.exe  >> cesm.log.$LID 2>&1 ' failed
+See log file for details: /GFPS8p/fanyc/cesm_out/exeroot/1x1pt_Jambi-oilpalm_clm-palm-ctsm1.0.dev040/run/cesm.log.54233609.221115-002323
+ ---------------------------------------------------
+2022-11-15 08:28:53: setup.clean starting 
+ ---------------------------------------------------
+2022-11-15 08:28:53: setup.clean success 
+ ---------------------------------------------------
+2022-11-15 08:28:57: case.setup starting 
+ ---------------------------------------------------
+2022-11-15 08:28:57: case.setup success 
+ ---------------------------------------------------
+2022-11-15 08:33:14: xmlchange success <command> ./xmlchange --subgroup=case.run BATCH_COMMAND_FLAGS=--resubmit --other-flag  </command>
+ ---------------------------------------------------
+2022-11-15 08:45:02: case.setup starting 
+ ---------------------------------------------------
+2022-11-15 08:45:02: case.setup success 
+ ---------------------------------------------------
+2022-11-15 08:45:12: case.submit starting 
+ ---------------------------------------------------
+2022-11-15 08:45:14: case.submit error 
+ERROR: Build complete is not True please rebuild the model by calling case.build
+ ---------------------------------------------------
+2022-11-15 08:45:44: setup.clean starting 
+ ---------------------------------------------------
+2022-11-15 08:45:44: setup.clean success 
+ ---------------------------------------------------
+2022-11-15 08:45:48: case.setup starting 
+ ---------------------------------------------------
+2022-11-15 08:45:48: case.setup success 
+ ---------------------------------------------------
+2022-11-15 08:46:00: build.clean starting 
+ ---------------------------------------------------
+2022-11-15 08:46:00: build.clean success 
+ ---------------------------------------------------
+2022-11-15 08:46:04: case.build starting 
+ ---------------------------------------------------
+CESM version is ctsm1.0.dev040-32-g72f323f
+Processing externals description file : Externals.cfg
+Processing externals description file : Externals_CLM.cfg
+Processing externals description file : Externals_CISM.cfg
+Processing externals description file : Externals_CDEPS.cfg
+Checking status of externals: clm, fates, cism, source_cism, rtm, mosart, mizuroute, ccs_config, cime, cmeps, cdeps, fox, genf90, cpl7, share, mct, parallelio, doc-builder, 
+e-  ./ccs_config
+        -, not checked out --> ccs_config_cesm0.0.38
+sM  ./cime
+        modified sandbox, ctsm/ctsm1.0/cime5.7.9/n05 --> cime6.0.45
+    ./components/cdeps
+        clean sandbox, on cdeps0.12.65
+e-  ./components/cdeps/fox
+        -, not checked out --> 4.1.2.1
+e-  ./components/cdeps/share/genf90
+        -, not checked out --> 4816965
+    ./components/cism
+        clean sandbox, on cismwrap_2_1_95
+e-  ./components/cism/source_cism
+        -, not checked out --> cism_main_2.01.011
+    ./components/cmeps
+        clean sandbox, on cmeps0.13.71
+e-  ./components/cpl7
+        -, not checked out --> cpl7.0.14
+    ./components/mizuRoute
+        clean sandbox, on 34723c2e4df7caa16812770f8d53ebc83fa22360
+s   ./components/mosart
+        clean sandbox, release-cesm2.0.04 --> mosart1_0_45
+    ./components/rtm
+        clean sandbox, on rtm1_0_78
+e-o ./doc/doc-builder
+        -, not checked out --> v1.0.8
+e-  ./libraries/mct
+        -, not checked out --> MCT_2.11.0
+e-  ./libraries/parallelio
+        -, not checked out --> pio2_5_7
+e-  ./share
+        -, not checked out --> share1.0.13
+s   ./src/fates
+        clean sandbox, sci.1.8.1_api.3.0.0 --> sci.1.59.7_api.24.1.0
+2022-11-15 08:46:20: case.build success 
+ ---------------------------------------------------
+2022-11-15 08:46:28: case.submit starting 
+ ---------------------------------------------------
+2022-11-15 08:46:29: case.run starting 
+ ---------------------------------------------------
+2022-11-15 08:46:30: model execution starting 
+ ---------------------------------------------------
+2022-11-15 08:46:31: model execution success 
+ ---------------------------------------------------
+2022-11-15 08:46:31: case.run error 
+ERROR: Model did not complete - see /GFPS8p/fanyc/cesm_out/exeroot/1x1pt_Jambi-oilpalm_clm-palm-ctsm1.0.dev040/run/cpl.log.221115-084629 
+ 
+ ---------------------------------------------------
+2022-11-15 08:46:31: st_archive starting 
+ ---------------------------------------------------
+2022-11-15 08:46:31: st_archive success 
+ ---------------------------------------------------
+2022-11-15 08:46:31: case.submit success 
+ ---------------------------------------------------
+2022-11-15 09:26:57: xmlchange success <command> ./xmlchange --subgroup=case.run BATCH_COMMAND_FLAGS=--resubmit  </command>
+ ---------------------------------------------------
+2022-11-15 09:27:24: setup.clean starting 
+ ---------------------------------------------------
+2022-11-15 09:27:24: setup.clean success 
+ ---------------------------------------------------
+2022-11-15 09:27:31: case.setup starting 
+ ---------------------------------------------------
+2022-11-15 09:27:31: case.setup success 
+ ---------------------------------------------------
+2022-11-15 09:29:46: case.setup starting 
+ ---------------------------------------------------
+2022-11-15 09:29:46: case.setup success 
+ ---------------------------------------------------
+2022-11-15 09:31:35: build.clean starting 
+ ---------------------------------------------------
+2022-11-15 09:31:35: build.clean success 
+ ---------------------------------------------------
+2022-11-15 09:31:48: setup.clean starting 
+ ---------------------------------------------------
+2022-11-15 09:31:48: setup.clean success 
+ ---------------------------------------------------
+2022-11-15 09:31:51: case.setup starting 
+ ---------------------------------------------------
+2022-11-15 09:31:51: case.setup success 
+ ---------------------------------------------------
+2022-11-15 09:31:55: case.build starting 
+ ---------------------------------------------------
+CESM version is ctsm1.0.dev040-32-g72f323f
+Processing externals description file : Externals.cfg
+Processing externals description file : Externals_CLM.cfg
+Processing externals description file : Externals_CISM.cfg
+Processing externals description file : Externals_CDEPS.cfg
+Checking status of externals: clm, fates, cism, source_cism, rtm, mosart, mizuroute, ccs_config, cime, cmeps, cdeps, fox, genf90, cpl7, share, mct, parallelio, doc-builder, 
+e-  ./ccs_config
+        -, not checked out --> ccs_config_cesm0.0.38
+sM  ./cime
+        modified sandbox, ctsm/ctsm1.0/cime5.7.9/n05 --> cime6.0.45
+    ./components/cdeps
+        clean sandbox, on cdeps0.12.65
+e-  ./components/cdeps/fox
+        -, not checked out --> 4.1.2.1
+e-  ./components/cdeps/share/genf90
+        -, not checked out --> 4816965
+    ./components/cism
+        clean sandbox, on cismwrap_2_1_95
+e-  ./components/cism/source_cism
+        -, not checked out --> cism_main_2.01.011
+    ./components/cmeps
+        clean sandbox, on cmeps0.13.71
+e-  ./components/cpl7
+        -, not checked out --> cpl7.0.14
+    ./components/mizuRoute
+        clean sandbox, on 34723c2e4df7caa16812770f8d53ebc83fa22360
+s   ./components/mosart
+        clean sandbox, release-cesm2.0.04 --> mosart1_0_45
+    ./components/rtm
+        clean sandbox, on rtm1_0_78
+e-o ./doc/doc-builder
+        -, not checked out --> v1.0.8
+e-  ./libraries/mct
+        -, not checked out --> MCT_2.11.0
+e-  ./libraries/parallelio
+        -, not checked out --> pio2_5_7
+e-  ./share
+        -, not checked out --> share1.0.13
+s   ./src/fates
+        clean sandbox, sci.1.8.1_api.3.0.0 --> sci.1.59.7_api.24.1.0
+2022-11-15 09:32:16: case.build success 
+ ---------------------------------------------------
+2022-11-15 09:51:20: case.run starting 
+ ---------------------------------------------------
+2022-11-15 09:51:24: model execution starting 
+ ---------------------------------------------------
+2022-11-15 09:51:26: model execution success 
+ ---------------------------------------------------
+2022-11-15 09:51:26: case.run error 
+ERROR: Model did not complete - see /GFPS8p/fanyc/cesm_out/exeroot/1x1pt_Jambi-oilpalm_clm-palm-ctsm1.0.dev040/run/cpl.log.221115-095120 
+ 
+ ---------------------------------------------------
+2022-11-15 09:52:18: case.run starting 
+ ---------------------------------------------------
+2022-11-15 09:52:19: model execution starting 
+ ---------------------------------------------------
+2022-11-15 09:52:20: model execution success 
+ ---------------------------------------------------
+2022-11-15 09:52:20: case.run error 
+ERROR: Model did not complete - see /GFPS8p/fanyc/cesm_out/exeroot/1x1pt_Jambi-oilpalm_clm-palm-ctsm1.0.dev040/run/cpl.log.221115-095218 
+ 
+ ---------------------------------------------------
+2022-11-17 13:32:36: build.clean starting 
+ ---------------------------------------------------
+2022-11-17 13:32:36: build.clean success 
+ ---------------------------------------------------
+2022-11-17 13:32:39: case.build starting 
+ ---------------------------------------------------
+2022-11-17 13:33:03: case.build error 
+ERROR: BUILD FAIL: clm.buildlib failed, cat /GFPS8p/fanyc/cesm_out/exeroot/1x1pt_Jambi-oilpalm_clm-palm-ctsm1.0.dev040/bld/lnd.bldlog.221117-133239
+ ---------------------------------------------------
+2022-11-17 14:24:55: case.build starting 
+ ---------------------------------------------------
+2022-11-17 14:25:09: case.build error 
+ERROR: BUILD FAIL: clm.buildlib failed, cat /GFPS8p/fanyc/cesm_out/exeroot/1x1pt_Jambi-oilpalm_clm-palm-ctsm1.0.dev040/bld/lnd.bldlog.221117-142455
+ ---------------------------------------------------
+2022-11-17 14:29:52: case.build starting 
+ ---------------------------------------------------
+2022-11-17 14:30:50: case.build error 
+ERROR: BUILD FAIL: buildexe failed, cat /GFPS8p/fanyc/cesm_out/exeroot/1x1pt_Jambi-oilpalm_clm-palm-ctsm1.0.dev040/bld/cesm.bldlog.221117-142952
+ ---------------------------------------------------
+2022-11-17 14:32:41: case.build starting 
+ ---------------------------------------------------
+CESM version is ctsm1.0.dev040-32-g72f323f
+Processing externals description file : Externals.cfg
+Processing externals description file : Externals_CLM.cfg
+Processing externals description file : Externals_CISM.cfg
+Processing externals description file : Externals_CDEPS.cfg
+Checking status of externals: clm, fates, cism, source_cism, rtm, mosart, mizuroute, ccs_config, cime, cmeps, cdeps, fox, genf90, cpl7, share, mct, parallelio, doc-builder, 
+e-  ./ccs_config
+        -, not checked out --> ccs_config_cesm0.0.38
+sM  ./cime
+        modified sandbox, ctsm/ctsm1.0/cime5.7.9/n05 --> cime6.0.45
+    ./components/cdeps
+        clean sandbox, on cdeps0.12.65
+e-  ./components/cdeps/fox
+        -, not checked out --> 4.1.2.1
+e-  ./components/cdeps/share/genf90
+        -, not checked out --> 4816965
+    ./components/cism
+        clean sandbox, on cismwrap_2_1_95
+e-  ./components/cism/source_cism
+        -, not checked out --> cism_main_2.01.011
+    ./components/cmeps
+        clean sandbox, on cmeps0.13.71
+e-  ./components/cpl7
+        -, not checked out --> cpl7.0.14
+    ./components/mizuRoute
+        clean sandbox, on 34723c2e4df7caa16812770f8d53ebc83fa22360
+s   ./components/mosart
+        clean sandbox, release-cesm2.0.04 --> mosart1_0_45
+    ./components/rtm
+        clean sandbox, on rtm1_0_78
+e-o ./doc/doc-builder
+        -, not checked out --> v1.0.8
+e-  ./libraries/mct
+        -, not checked out --> MCT_2.11.0
+e-  ./libraries/parallelio
+        -, not checked out --> pio2_5_7
+e-  ./share
+        -, not checked out --> share1.0.13
+s   ./src/fates
+        clean sandbox, sci.1.8.1_api.3.0.0 --> sci.1.59.7_api.24.1.0
+2022-11-17 14:33:42: case.build success 
+ ---------------------------------------------------
+2022-11-17 14:33:50: case.submit starting 
+ ---------------------------------------------------
+2022-11-17 14:33:52: case.submit error 
+ERROR: Command: 'bsub --resubmit < .case.run --resubmit' failed with error 'b'wrong prog name --resubmit'' from dir '/GFPS8p/fanyc/clm_efforts_palm/cases/1x1pt_Jambi-oilpalm_clm-palm-ctsm1.0.dev040'
+ ---------------------------------------------------
+2022-11-17 14:34:03: case.run starting 
+ ---------------------------------------------------
+2022-11-17 14:34:04: model execution starting 
+ ---------------------------------------------------
+2022-11-17 14:34:04: model execution success 
+ ---------------------------------------------------
+2022-11-17 14:34:04: case.run error 
+ERROR: Model did not complete - see /GFPS8p/fanyc/cesm_out/exeroot/1x1pt_Jambi-oilpalm_clm-palm-ctsm1.0.dev040/run/cpl.log.221117-143403 
+ 
+ ---------------------------------------------------
+2022-11-18 10:07:32: setup.clean starting 
+ ---------------------------------------------------
+2022-11-18 10:07:32: setup.clean success 
+ ---------------------------------------------------

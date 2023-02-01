@@ -1,0 +1,42 @@
+2022-11-18 18:25:52: ./create_newcase --case ../../cases/1x1pt_Jambi-oilpalm_ctsm1.0.dev040 --res CLM_USRDAT --compset I1PtClm50SpGs --mach taihu --run-unsupported
+ ---------------------------------------------------
+2022-11-18 18:25:52: Compset longname is 2000_DATM%1PT_CLM50%SP_SICE_SOCN_MOSART_SGLC_SWAV
+ ---------------------------------------------------
+2022-11-18 18:25:52: Compset specification file is /GFPS8p/fanyc/clm_efforts_palm/cime_config/config_compsets.xml
+ ---------------------------------------------------
+2022-11-18 18:25:52: Pes     specification file is /GFPS8p/fanyc/clm_efforts_palm/cime_config/config_pes.xml
+ ---------------------------------------------------
+2022-11-18 18:25:52: Forcing is 1972-2004
+ ---------------------------------------------------
+2022-11-18 18:25:52: Using None coupler instances
+ ---------------------------------------------------
+2022-11-18 18:25:52: Component ATM is  Data driven ATM single point tower site data set 
+ ---------------------------------------------------
+2022-11-18 18:25:52: ATM_GRID is CLM_USRDAT
+ ---------------------------------------------------
+2022-11-18 18:25:52: Component LND is clm5.0:Satellite phenology:
+ ---------------------------------------------------
+2022-11-18 18:25:52: LND_GRID is CLM_USRDAT
+ ---------------------------------------------------
+2022-11-18 18:25:52: Component ICE is Stub ice component
+ ---------------------------------------------------
+2022-11-18 18:25:52: ICE_GRID is null
+ ---------------------------------------------------
+2022-11-18 18:25:52: Component OCN is Stub ocn component
+ ---------------------------------------------------
+2022-11-18 18:25:52: OCN_GRID is null
+ ---------------------------------------------------
+2022-11-18 18:25:52: Component ROF is MOSART: MOdel for Scale Adaptive River Transport
+ ---------------------------------------------------
+2022-11-18 18:25:52: ROF_GRID is null
+ ---------------------------------------------------
+2022-11-18 18:25:52: Component GLC is Stub glacier (land ice) component
+ ---------------------------------------------------
+2022-11-18 18:25:52: GLC_GRID is null
+ ---------------------------------------------------
+2022-11-18 18:25:52: Component WAV is Stub wave component
+ ---------------------------------------------------
+2022-11-18 18:25:52: WAV_GRID is null
+ ---------------------------------------------------
+2022-11-18 18:25:52: ESP_GRID is None
+ ---------------------------------------------------

@@ -1,0 +1,11 @@
+2020-06-23
+Because time specifier not recognized at create case, changed line from to:
+    <walltime_format>%d-%H:%M:%S</walltime_format>
+    <walltime_format>%H:%M:%S</walltime_format>
+
+2020-08-18
+Changes in GWDG started creating memory problems. Solved by adding directive in config_batch.xml:
+<directive> --mem-per-cpu=30G</directive>
+
+Removed the -W option, which started giving errors. Job dependencies now specified with the case.submit option --prereq 
+

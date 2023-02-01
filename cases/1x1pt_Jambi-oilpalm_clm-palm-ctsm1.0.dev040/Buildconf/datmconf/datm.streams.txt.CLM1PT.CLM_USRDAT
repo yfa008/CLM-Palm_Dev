@@ -1,0 +1,51 @@
+      <dataSource>
+         GENERIC
+      </dataSource>
+      <domainInfo>
+         <variableNames>
+            time    time
+            xc      lon
+            yc      lat
+            area    area
+            mask    mask
+         </variableNames>
+         <filePath>
+            /usr/users/model4bk/CESM/INPUT/atm/datm7/domain.clm
+         </filePath>
+         <fileNames>
+            domain.lnd.1x1pt_Jambi_navy.nc
+         </fileNames>
+      </domainInfo>
+      <fieldInfo>
+         <variableNames>
+	    ZBOT     z
+            TBOT     tbot
+            RH       rh
+            WIND     wind
+            PRECTmms precn
+            FSDS     swdn
+            FSDSdif  swdndf
+            FSDSdir  swdndr
+            PSRF     pbot
+         </variableNames>
+         <filePath>
+            /usr/users/model4bk/CESM/INPUT/atm/datm7/CLM1PT_data/1x1pt_Jambi-site/All
+         </filePath>
+         <fileNames>
+            2014-01.nc
+            2014-02.nc
+            2014-03.nc
+            2014-04.nc
+            2014-05.nc
+            2014-06.nc
+            2014-07.nc
+            2014-08.nc
+            2014-09.nc
+            2014-10.nc
+            2014-11.nc
+            2014-12.nc
+         </fileNames>
+         <offset>
+            0
+         </offset>
+      </fieldInfo>

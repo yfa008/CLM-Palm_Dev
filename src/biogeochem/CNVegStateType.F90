@@ -221,7 +221,7 @@ contains
     allocate(this%aleaf0_patch        (begp:endp))                   ; this%aleaf0_patch        (:)   = spval
     allocate(this%gddmaturity2_patch  (begp:endp))                   ; this%gddmaturity2_patch  (:)   = spval
     allocate(this%huigrain2_patch     (begp:endp))                   ; this%huigrain2_patch     (:)   = spval
-    allocate(this%harvest_flag_patch  (begp:endp))                   ; this%harvest_flag_patch  (:)   = nan
+    !allocate(this%harvest_flag_patch  (begp:endp))                   ; this%harvest_flag_patch  (:)   = nan
 
     allocate(this%gdp_lf_col          (begc:endc))                   ;
     allocate(this%peatf_lf_col        (begc:endc))                   ; 
@@ -472,11 +472,6 @@ contains
     call hist_addfld1d (fname='LEAFCN_OFFSET', units='unitless', &
          avgflag='A', long_name='Leaf C:N used by FUN', &
          ptr_patch=this%leafcn_offset_patch, default='inactive')
-	 
-    this%harvest_flag_patch(begp:endp) = spval
-    call hist_addfld1d (fname='HARVEST_FLAG', units='none', &
-            avgflag='A', long_name='harvest flag', &
-            ptr_patch=this%harvest_flag_patch, default='inactive')
 
     this%plantCN_patch(begp:endp)       = spval
     call hist_addfld1d (fname='PLANTCN', units='unitless', &
@@ -634,7 +629,7 @@ contains
           this%bgtr_patch(p)                  = spval
           this%c_allometry_patch(p)           = spval
           this%n_allometry_patch(p)           = spval
-	  this%harvest_flag_patch(p)          = spval
+          !this%harvest_flag_patch(p)          = spval
           this%tempsum_potential_gpp_patch(p) = spval
           this%annsum_potential_gpp_patch(p)  = spval
           this%tempmax_retransn_patch(p)      = spval
@@ -976,7 +971,7 @@ contains
           this%annavg_t2m_patch(p)     = 280._r8
           this%tempavg_t2m_patch(p)    = 0._r8
           this%grain_flag_patch(p)     = 0._r8
-	  this%harvest_flag_patch(p)   = 0._r8
+          !this%harvest_flag_patch(p)   = 0._r8
 
           this%c_allometry_patch(p)           = 0._r8
           this%n_allometry_patch(p)           = 0._r8

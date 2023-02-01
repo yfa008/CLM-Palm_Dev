@@ -151,35 +151,6 @@ contains
 
   end subroutine ComputeMinDaylength
 
-  !-----------------------------------------------------------------------
-   subroutine ComputeMinDaylength(bounds, lat, obliquity, min_daylength)
-    !
-    ! !DESCRIPTION:
-    ! Compute min daylength for each grid cell
-    !
-    ! !ARGUMENTS:
-    type(bounds_type), intent(in) :: bounds
-    real(r8), intent(in)  :: obliquity           ! earth's obliquity (radians)
-    real(r8), intent(in)  :: lat(bounds%begg: )  ! latitude (radians)
-    real(r8), intent(out) :: min_daylength(bounds%begg: ) ! minimum daylength for each gridcell (s)
-    !
-    ! !LOCAL VARIABLES:
-    integer  :: g
-    real(r8) :: min_decl  ! min declination angle
-
-    character(len=*), parameter :: subname = 'ComputeMinDaylength'
-    !-----------------------------------------------------------------------
-
-    SHR_ASSERT_ALL((ubound(lat) == (/bounds%endg/)), errMsg(sourcefile, __LINE__))
-    SHR_ASSERT_ALL((ubound(min_daylength) == (/bounds%endg/)), errMsg(sourcefile, __LINE__))
-
-    do g = bounds%begg,bounds%endg
-       min_decl = obliquity * -1._r8       
-       if (lat(g) < 0._r8) min_decl = -min_decl
-       min_daylength(g) = daylength(lat(g), min_decl)
-    end do
-
-  end subroutine ComputeMinDaylength
 
   !-----------------------------------------------------------------------
   subroutine InitDaylength(bounds, declin, declinm1, obliquity)

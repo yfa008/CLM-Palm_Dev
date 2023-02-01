@@ -1,0 +1,13 @@
+&modelio
+  diri = "/GFPS8p/fanyc/cesm_out/exeroot/1x1pt_Jambi-oilpalm_ctsm1.0.dev040/bld/esp"
+  diro = "/GFPS8p/fanyc/cesm_out/exeroot/1x1pt_Jambi-oilpalm_ctsm1.0.dev040/run"
+  logfile = "esp.log.54432233.230201-135257"
+/
+&pio_inparm
+  pio_netcdf_format = ""
+  pio_numiotasks = -99
+  pio_rearranger = -99
+  pio_root = -99
+  pio_stride = -99
+  pio_typename = "nothing"
+/

@@ -360,7 +360,7 @@ contains
        ! gather all patch-level litterfall fluxes to the column for litter C and N inputs
 
        call CNLitterToColumn(bounds, num_soilc, filter_soilc, &
-            cnveg_state_inst, cnveg_carbonflux_inst, cnveg_nitrogenflux_inst, soilbiogeochem_state_inst, &
+            cnveg_state_inst, cnveg_carbonflux_inst, cnveg_nitrogenflux_inst, & ! soilbiogeochem_state_inst, &
             crop_inst,cnveg_carbonstate_inst,cnveg_nitrogenstate_inst, &
             leaf_prof_patch(bounds%begp:bounds%endp,1:nlevdecomp_full), & 
             froot_prof_patch(bounds%begp:bounds%endp,1:nlevdecomp_full))
@@ -1715,8 +1715,8 @@ contains
                 if (pftcon%woody(ivt(p)) == 1._r8) then 
                    deadstemc_xfer(p) = 0.1_r8 * leafc_xfer(p)
                    deadstemn_xfer(p) = deadstemc_xfer(p) / deadwdcn(ivt(p))
-                   crop_seedc_to_deadstem(c) = deadstemc_xfer(p)/dt
-                   crop_seedn_to_deadstem(c) = deadstemn_xfer(p)/dt
+                   crop_seedc_to_deadstem(p) = deadstemc_xfer(p)/dt
+                   crop_seedn_to_deadstem(p) = deadstemn_xfer(p)/dt
                 end if
   
              end if
@@ -1877,12 +1877,12 @@ contains
 
              else    ! plant never emerged from the ground
                 croplive(p) = .false.
-                crop_seedc_to_leaf(c) = crop_seedc_to_leaf(c) - leafc_xfer(p)/dt
-                crop_seedn_to_leaf(c) = crop_seedn_to_leaf(c) - leafn_xfer(p)/dt
+                crop_seedc_to_leaf(p) = crop_seedc_to_leaf(p) - leafc_xfer(p)/dt
+                crop_seedn_to_leaf(p) = crop_seedn_to_leaf(p) - leafn_xfer(p)/dt
                 leafc_xfer(p) = 0._r8  ! revert planting transfers
                 leafn_xfer(p) = 0._r8
-                crop_seedc_to_deadstem(c) = crop_seedc_to_deadstem(c) - deadstemc_xfer(p)/dt
-                crop_seedn_to_deadstem(c) = crop_seedn_to_deadstem(c) - deadstemn_xfer(p)/dt
+                crop_seedc_to_deadstem(p) = crop_seedc_to_deadstem(p) - deadstemc_xfer(p)/dt
+                crop_seedn_to_deadstem(p) = crop_seedn_to_deadstem(p) - deadstemn_xfer(p)/dt
                 deadstemc_xfer(p) = 0._r8  ! revert planting transfers
                 deadstemn_xfer(p) = 0._r8
              end if
@@ -2033,12 +2033,12 @@ contains
                      offset_flag(p) = 1._r8
                      offset_counter(p) = dt
                  else                      ! plant never emerged from the ground
-                     crop_seedc_to_leaf(c) = crop_seedc_to_leaf(c) - leafc_xfer(p)/dt
-                     crop_seedn_to_leaf(c) = crop_seedn_to_leaf(c) - leafn_xfer(p)/dt
+                     crop_seedc_to_leaf(p) = crop_seedc_to_leaf(p) - leafc_xfer(p)/dt
+                     crop_seedn_to_leaf(p) = crop_seedn_to_leaf(p) - leafn_xfer(p)/dt
                      leafc_xfer(p) = 0._r8  ! revert planting transfers
                      leafn_xfer(p) = 0._r8
-                     crop_seedc_to_deadstem(c) = crop_seedc_to_deadstem(c) - deadstemc_xfer(p)/dt
-                     crop_seedn_to_deadstem(c) = crop_seedn_to_deadstem(c) - deadstemn_xfer(p)/dt
+                     crop_seedc_to_deadstem(p) = crop_seedc_to_deadstem(p) - deadstemc_xfer(p)/dt
+                     crop_seedn_to_deadstem(p) = crop_seedn_to_deadstem(p) - deadstemn_xfer(p)/dt
                      deadstemc_xfer(p) = 0._r8  ! revert planting transfers
                      deadstemn_xfer(p) = 0._r8
                  end if
@@ -2090,8 +2090,8 @@ contains
             endif
 
             ! revert transplanting transfers for juvenile plants
-            crop_seedc_to_deadstem(c) = crop_seedc_to_deadstem(c) - deadstemc_xfer(p)/dt
-            crop_seedn_to_deadstem(c) = crop_seedn_to_deadstem(c) - deadstemn_xfer(p)/dt
+            crop_seedc_to_deadstem(p) = crop_seedc_to_deadstem(p) - deadstemc_xfer(p)/dt
+            crop_seedn_to_deadstem(p) = crop_seedn_to_deadstem(p) - deadstemn_xfer(p)/dt
             deadstemc_xfer(p) = 0._r8  ! revert planting transfers
             deadstemn_xfer(p) = 0._r8
          end if ! croplive
@@ -2762,899 +2762,465 @@ contains
                   idpp(p) = int(dayspyr) + jday - idop(p)
                end if
             end if
-	    
-	    ! Ashehad Ali added codes from stress_deciduous phenology here
-			   
-		    if (semi_decid(ivt(p)) == 1._r8) then
-				soilt = t_soisno(c,3)
-				psi = soilpsi(c,3)
+    
+            ! Ashehad Ali added codes from stress_deciduous phenology here
+   
+            if (semi_decid(ivt(p)) == 1._r8) then
+               soilt = t_soisno(c,3)
+               psi = soilpsi(c,3)
+               
+               ! onset gdd sum from Biome-BGC, v4.1.2
+               crit_onset_gdd = exp(4.8_r8 + 0.13_r8*(annavg_t2m(p) - SHR_CONST_TKFRZ))
+               
+                  
+               ! update offset_counter and test for the end of the offset period
+               if (offset_flag(p) == 1._r8) then
+                  ! decrement counter for offset period
+                  offset_counter(p) = offset_counter(p) - dt
+               
+                  ! if this is the end of the offset_period, reset phenology
+                  ! flags and indices				   
+                  if (offset_counter(p) == dt) then
+               	  ! this code block was originally handled by call cn_offset_cleanup(p)
+               	  ! inlined during vectorization
+               	  offset_flag(p) = 0._r8
+               	  offset_counter(p) = 0._r8
+               	  dormant_flag(p) = 1._r8
+               	  days_active(p) = 0._r8
+               	  
+               	  ! reset the previous timestep litterfall flux memory
+               	  prev_leafc_to_litter(p) = 0._r8
+               	  prev_frootc_to_litter(p) = 0._r8
+                  end if
+               end if
+               
+               ! update onset_counter and test for the end of the onset period
+               if (onset_flag(p) == 1.0_r8) then
+                  ! decrement counter for onset period
+                  onset_counter(p) = onset_counter(p) - dt
+               
+                  ! if this is the end of the onset period, reset phenology
+                  ! flags and indices				   
+                  if (onset_counter(p) == dt) then
+               	  ! this code block was originally handled by call cn_onset_cleanup(p)
+               	  ! inlined during vectorization
+               	  onset_flag(p) = 0._r8
+               	  onset_counter(p) = 0._r8
+               	  ! set all transfer growth rates to 0.0
+               	  leafc_xfer_to_leafc(p)   = 0._r8
+               	  frootc_xfer_to_frootc(p) = 0._r8
+               	  leafn_xfer_to_leafn(p)   = 0._r8
+               	  frootn_xfer_to_frootn(p) = 0._r8
+                 if (woody(ivt(p)) == 1.0_r8) then
+               		 livestemc_xfer_to_livestemc(p)   = 0._r8
+               		 deadstemc_xfer_to_deadstemc(p)   = 0._r8
+               		 livecrootc_xfer_to_livecrootc(p) = 0._r8
+               		 deadcrootc_xfer_to_deadcrootc(p) = 0._r8
+               		 livestemn_xfer_to_livestemn(p)   = 0._r8
+               		 deadstemn_xfer_to_deadstemn(p)   = 0._r8
+               		 livecrootn_xfer_to_livecrootn(p) = 0._r8
+               		 deadcrootn_xfer_to_deadcrootn(p) = 0._r8
+               	  end if                  
+               	  ! set transfer pools to 0.0
+               	  leafc_xfer(p) = 0._r8
+               	  leafn_xfer(p) = 0._r8
+               	  frootc_xfer(p) = 0._r8
+               	  frootn_xfer(p) = 0._r8
+                 if (woody(ivt(p)) == 1.0_r8) then
+               		 livestemc_xfer(p) = 0._r8
+               		 livestemn_xfer(p) = 0._r8
+               		 deadstemc_xfer(p) = 0._r8
+               		 deadstemn_xfer(p) = 0._r8
+               		 livecrootc_xfer(p) = 0._r8
+               		 livecrootn_xfer(p) = 0._r8
+               		 deadcrootc_xfer(p) = 0._r8
+               		 deadcrootn_xfer(p) = 0._r8
+               	  end if
+               	  
+                  end if
+               end if		
+               
+               ! test for switching from dormant period to growth period
+               if (dormant_flag(p) == 1._r8) then
+               
+                  ! keep track of the number of freezing degree days in this
+                  ! dormancy period (only if the freeze flag has not previously been set
+                  ! for this dormancy period
+               
+                  if (onset_gddflag(p) == 0._r8 .and. soilt < SHR_CONST_TKFRZ) onset_fdd(p) = onset_fdd(p) + fracday
+               
+                  ! if the number of freezing degree days exceeds a critical value,
+                  ! then onset will require both wet soils and a critical soil
+                  ! temperature sum.  If this case is triggered, reset any previously
+                  ! accumulated value in onset_swi, so that onset now depends on
+                  ! the accumulated soil water index following the freeze trigger
+               
+                  if (onset_fdd(p) > crit_onset_fdd) then
+               	  onset_gddflag(p) = 1._r8
+               	  onset_fdd(p) = 0._r8
+               	  onset_swi(p) = 0._r8
+                  end if
+               
+                  ! if the freeze flag is set, and if the soil is above freezing
+                  ! then accumulate growing degree days for onset trigger
+               
+                  if (onset_gddflag(p) == 1._r8 .and. soilt > SHR_CONST_TKFRZ) then
+               	  onset_gdd(p) = onset_gdd(p) + (soilt-SHR_CONST_TKFRZ)*fracday
+                  end if
+               
+                 ! if soils are wet, accumulate soil water index for onset trigger
+                  additional_onset_condition = .true.
+                  if(CNParamsShareInst%constrain_stress_deciduous_onset) then
+               	   !if additional constraint condition not met,  set to false
+               	  if ((prec10(p) * (3600.0_r8*10.0_r8*24.0_r8)) < rain_threshold) then
+               		 additional_onset_condition = .false.
+               	  endif
+                  endif
+               
+                  if (psi >= soilpsi_on) then
+               	  onset_swi(p) = onset_swi(p) + fracday
+                  endif
+               
+                  ! if critical soil water index is exceeded, set onset_flag, and
+                  ! then test for soil temperature criteria
+               
+                  ! Adding in Kyla's rainfall trigger when fun on. RF. prec10 (mm/s) needs to be higher than 8mm over 10 days. 
+               
+                  if (onset_swi(p) > crit_onset_swi .and. additional_onset_condition)  then
+               	  onset_flag(p) = 1._r8
+                 
+               	  ! only check soil temperature criteria if freeze flag set since
+               	  ! beginning of last dormancy.  If freeze flag set and growing
+               	  ! degree day sum (since freeze trigger) is lower than critical
+               	  ! value, then override the onset_flag set from soil water.
+               
+               	  if (onset_gddflag(p) == 1._r8 .and. onset_gdd(p) < crit_onset_gdd) onset_flag(p) = 0._r8
+                  end if
+               
+                  ! only allow onset if dayl > 6hrs
+                  if (onset_flag(p) == 1._r8 .and. dayl(g) <= secspqtrday) then
+               	  onset_flag(p) = 0._r8
+                  end if
+               
+                  ! if this is the beginning of the onset period
+                  ! then reset the phenology flags and indices
+               
+                   if (onset_flag(p) == 1._r8) then
+               	  dormant_flag(p) = 0._r8
+               	  days_active(p) = 0._r8
+               	  onset_gddflag(p) = 0._r8
+               	  onset_fdd(p) = 0._r8
+               	  onset_gdd(p) = 0._r8
+               	  onset_swi(p) = 0._r8
+               	  onset_counter(p) = ndays_on * secspday
+               	  cphase(p) = 2.0_r8
+               	  
+               	  fert_counter(p)  = ndays_on * secspday
+                             if (ndays_on .gt. 0) then
+                                fert(p) = (manunitro(ivt(p)) * 1000._r8 + fertnitro(p))/ fert_counter(p)
+                             else
+                                fert(p) = 0._r8
+                             end if				  
+               	  
+               	  ! call subroutine to move all the storage pools into transfer pools,
+               	  ! where they will be transfered to displayed growth over the onset period.
+               	  ! this code was originally handled with call cn_storage_to_xfer(p)
+               	  ! inlined during vectorization
+               
+               	  ! set carbon fluxes for shifting storage pools to transfer pools					  
+               	  					  
+               	  leafc_storage_to_xfer(p)  = fstor2tran * leafc_storage(p)/dt 
+               	  frootc_storage_to_xfer(p) = fstor2tran * frootc_storage(p)/dt
+                 if (woody(ivt(p)) == 1.0_r8) then
+               		 livestemc_storage_to_xfer(p)  = fstor2tran * livestemc_storage(p)/dt 
+               		 deadstemc_storage_to_xfer(p)  = fstor2tran * deadstemc_storage(p)/dt 
+               		 livecrootc_storage_to_xfer(p) = fstor2tran * livecrootc_storage(p)/dt 
+               		 deadcrootc_storage_to_xfer(p) = fstor2tran * deadcrootc_storage(p)/dt 
+               		 gresp_storage_to_xfer(p)      = fstor2tran * gresp_storage(p)/dt  
+               	  end if                  
+               
+               	  ! set nitrogen fluxes for shifting storage pools to transfer pools
+               	  leafn_storage_to_xfer(p)  = fstor2tran * leafn_storage(p)/dt 
+               	  frootn_storage_to_xfer(p) = fstor2tran * frootn_storage(p)/dt
+                 if (woody(ivt(p)) == 1.0_r8) then
+               		 livestemn_storage_to_xfer(p)  = fstor2tran * livestemn_storage(p)/dt
+               		 deadstemn_storage_to_xfer(p)  = fstor2tran * deadstemn_storage(p)/dt
+               		 livecrootn_storage_to_xfer(p) = fstor2tran * livecrootn_storage(p)/dt
+               		 deadcrootn_storage_to_xfer(p) = fstor2tran * deadcrootn_storage(p)/dt
+               	  end if                  
+                   end if
+               
+                  ! test for switching from growth period to offset period
+               else if (offset_flag(p) == 0._r8) then
+               
+                  ! if soil water potential lower than critical value, accumulate
+                  ! as stress in offset soil water index
+                  
+                  if (psi <= -4._r8) then
+               	  offset_swi(p) = offset_swi(p) + fracday
+               
+               	  ! if the offset soil water index exceeds critical value, and
+               	  ! if this is not the middle of a previously initiated onset period,
+               	  ! then set flag to start the offset period and reset index variables
+               
+               	  if (offset_swi(p) >= crit_offset_swi .and. onset_flag(p) == 0._r8) offset_flag(p) = 1._r8
+               
+               	  ! if soil water potential higher than critical value, reduce the
+               	  ! offset water stress index.  By this mechanism, there must be a
+               	  ! sustained period of water stress to initiate offset.
+               
+                  else if (psi >= soilpsi_on) then
+               	  offset_swi(p) = offset_swi(p) - fracday
+               	  offset_swi(p) = max(offset_swi(p),0._r8)
+                  end if
+               
+                  ! decrease freezing day accumulator for warm soil
+                  if (offset_fdd(p) > 0._r8 .and. soilt > SHR_CONST_TKFRZ) then
+               	  offset_fdd(p) = offset_fdd(p) - fracday
+               	  offset_fdd(p) = max(0._r8, offset_fdd(p))
+                  end if
+               
+                  ! increase freezing day accumulator for cold soil
+                  if (soilt <= SHR_CONST_TKFRZ) then
+               	  offset_fdd(p) = offset_fdd(p) + fracday
+               
+               	  ! if freezing degree day sum is greater than critical value, initiate offset
+               	  if (offset_fdd(p) > crit_offset_fdd .and. onset_flag(p) == 0._r8) offset_flag(p) = 1._r8
+                  end if
+               
+                  ! force offset if daylength is < 6 hrs
+                  if (dayl(g) <= secspqtrday) then
+               	  offset_flag(p) = 1._r8
+                  end if
+                  
+                  call get_curr_date(kyr, kmo, kda, mcsec)
+                  
+                 ! force offset if dayl condition is met  
+                  
+                  if (kyr >= clearcut_yr(ivt(p)) + 4) then				   
+               	   if (max_dayl(g) <= 12.5_r8 * 3600._r8 .and. &
+               	       dayl(g) >= min_dayl(g) + 0.028_r8 * 3600._r8 .and. & 
+                              dayl(g) >= prev_dayl(g) .and. &
+                              dayl(g) <= min_dayl(g) + 0.028_r8 * 3600._r8 * 1.1_r8) then
+               		   offset_flag(p) = 1._r8		   
+               	   end if					   
+               	   if (max_dayl(g) > 12.5_r8 * 3600._r8 .and. &					    
+                              dayl(g) >= prev_dayl(g) .and. &
+                              dayl(g) <= min_dayl(g) + 0.02_r8 * 3600._r8) then
+               	       offset_flag(p) = 1._r8		   
+               	   end if
+                  end if			   
+                   
+                  write(12,*) kyr, max_dayl(g), dayl(g), min_dayl(g), prev_dayl(g)		
+                  
+                  if (leafout(p) >= huileaf(p) .and. hui(p) < huigrain(p) .and. idpp(p) < mxmat(ivt(p))) then
+                      cphase(p) = 2._r8	   
+                    else if (hui(p) >= gddmaturity(p) .and. idpp(p) < mxmat(ivt(p)) .and. &
+                      perennial(ivt(p)) == 1) then
+                      gddmaturity2(p) = huigrain2(p) + (1._r8 - grnfill(ivt(p))) * gddmaturity(p)/12._r8 !add a new parameter grnfill2 (Y.Fan 2022.09.13)		
+                     ! part of leaves are pruned off at each harvest (at one-time step)
+                      if (hui(p) >= gddmaturity2(p)) then
+                        !the following ensures monthly harvests for perennial crops
+                        !Assume a percentage 0.5 of the initial grnfill=around 1 year period between subsequent grnfills
+                        huigrain2(p) = huigrain2(p) + 0.5_r8 * grnfill(ivt(p)) * gddmaturity(p)/12._r8 !to add a new parameter grnfill2 (Y.Fan 2022.09.13)		   
+                        !apply fertilizer after each grainfill stage before next grainfill (Y.Fan)
+                        !fert continue until the end of ndays_on because this loop is entered one time step only
+                        !and fert_counter(p) = fert_counter(p) - dt (see later)
+                        fert_counter(p)  = ndays_on * secspday
+                        fert(p) = manunitro(ivt(p)) * 1000._r8 / fert_counter(p)
+                        if (tlai(p) <= 0._r8) then ! plant never emerged or died
+                           croplive(p) = .false.
+                           if (harvdate(p) >= NOT_Harvested) harvdate(p) = jday
+                              crop_seedc_to_leaf(p) = crop_seedc_to_leaf(p) - leafc_xfer(p)/dt
+                              crop_seedn_to_leaf(p) = crop_seedn_to_leaf(p) - leafn_xfer(p)/dt
+                              leafc_xfer(p) = 0._r8  ! revert planting transfers
+                              leafn_xfer(p) = leafc_xfer(p) / leafcn(ivt(p))     
 
-				! onset gdd sum from Biome-BGC, v4.1.2
-				crit_onset_gdd = exp(4.8_r8 + 0.13_r8*(annavg_t2m(p) - SHR_CONST_TKFRZ))
+                              !Ashehad added this (not needed when
+                              !crop_seedc_to_deadstemc is not set at
+                              !the time of planting, YFan 2023)
+                              !  if (woody(ivt(p)) == 1._r8) then
+                              !    deadstemc_xfer(p) = 0._r8
+                              !    deadstemn_xfer(p) = deadstemc_xfer(p) / deadwdcn(ivt(p))
+                              !  end if
+                        
+                         else if (grainc(p) > 0._r8) then !only harvest when there is positive grainc accumulated during grainfill
+                            harvest_flag(p) = 1._r8                                             
+                         end if
+                 
+                      else
+                           harvest_flag(p) = 0._r8
+                           ! continue background litterfall year around because perennials keeps alive after harvest (Y.Fan)
+                           bglfr(p) = 1._r8/(leaf_long(ivt(p))*dayspyr*secspday)
+                      end if
+                      
+                   ! ashehad added this for high latitudes
+                   else if (hui(p) >= gddmaturity(p) .and. idpp(p) < mxmat(ivt(p)) .and. &
+                      perennial(ivt(p)) == 1 .and. max_dayl(g) > 12.5_r8 * 3600._r8 .and. & 
+                      kmo > 4 .and. kmo < 12) then
+                      gddmaturity2(p) = huigrain2(p) + (1._r8 - grnfill(ivt(p))) * gddmaturity(p)/12._r8 !add a new parameter grnfill2 (Y.Fan 2022.09.13)		
+                     ! part of leaves are pruned off at each harvest (at one-time step)
+                      if (hui(p) >= gddmaturity2(p)) then
+                        !the following ensures monthly harvests for perennial crops
+                        !Assume a percentage 0.5 of the initial grnfill=around 1 year period between subsequent grnfills
+                        huigrain2(p) = huigrain2(p) + 0.5_r8 * grnfill(ivt(p)) * gddmaturity(p)/12._r8 !add a new parameter grnfill2 (Y.Fan 2022.09.13)		   
+                        !apply fertilizer after each grainfill stage before next grainfill (Y.Fan)
+                        !fert continue until the end of ndays_on because this loop is entered one time step only
+                        !and fert_counter(p) = fert_counter(p) - dt (see later)
+                        fert_counter(p)  = ndays_on * secspday
+                        fert(p) = manunitro(ivt(p)) * 1000._r8 / fert_counter(p)
+                        if (tlai(p) <= 0._r8) then ! plant never emerged or died
+                           croplive(p) = .false.
+                           if (harvdate(p) >= NOT_Harvested) harvdate(p) = jday
+                              crop_seedc_to_leaf(p) = crop_seedc_to_leaf(p) - leafc_xfer(p)/dt
+                              crop_seedn_to_leaf(p) = crop_seedn_to_leaf(p) - leafn_xfer(p)/dt
+                              leafc_xfer(p) = 0._r8  ! revert planting transfers
+                              leafn_xfer(p) = leafc_xfer(p) / leafcn(ivt(p))    
+                  
+                              !Ashehad added this (not needed when
+                              !crop_seedc_to_deadstemc is not set at
+                              !the time of planting, YFan 2023)
+                              !  if (woody(ivt(p)) == 1._r8) then
+                              !    deadstemc_xfer(p) = 0._r8
+                              !    deadstemn_xfer(p) = deadstemc_xfer(p) / deadwdcn(ivt(p))
+                              !  end if
+                        
+                        else if (grainc(p) > 0._r8) then !only harvest when there is positive grainc accumulated during grainfill
+                           harvest_flag(p) = 1._r8                                             
+                        end if
+                 
+                      else
+                              harvest_flag(p) = 0._r8
+                              ! continue background litterfall year around because perennials keeps alive after harvest (Y.Fan)
+                              bglfr(p) = 1._r8/(leaf_long(ivt(p))*dayspyr*secspday)
+                      end if 
+                   ! end high latitudes
+               
+                  else if (hui(p) >= gddmaturity(p) .or. idpp(p) >= mxmat(ivt(p))) then
+                      if (harvdate(p) >= NOT_Harvested) harvdate(p) = jday
+                         croplive(p) = .false.     ! no re-entry in greater if-block
+                         cphase(p) = 4._r8
+                         if (tlai(p) > 0._r8) then ! plant had emerged before harvest
+                            offset_flag(p) = 1._r8
+                            offset_counter(p) = dt
+                         else                      ! plant never emerged from the ground
+                        ! Revert planting transfers; this will replenish the crop seed deficit.
+                        ! We subtract from any existing value in crop_seedc_to_leaf /
+                        ! crop_seedn_to_leaf in the unlikely event that we enter this block of
+                        ! code in the same time step where the planting transfer originally
+                        ! occurred.
+                        crop_seedc_to_leaf(p) = crop_seedc_to_leaf(p) - leafc_xfer(p)/dt
+                        crop_seedn_to_leaf(p) = crop_seedn_to_leaf(p) - leafn_xfer(p)/dt
+                        leafc_xfer(p) = 0._r8
+                        leafn_xfer(p) = leafc_xfer(p) / leafcn(ivt(p))
+                        !Ashehad added this (not needed when
+                        !crop_seedc_to_deadstemc is not set at
+                        !the time of planting, YFan 2023) 
+                        !  if (woody(ivt(p)) == 1._r8) then
+                        !     deadstemc_xfer(p) = 0._r8
+                        !     deadstemn_xfer(p) = deadstemc_xfer(p) / deadwdcn(ivt(p))
+                        !  end if
+                       end if
+                     
+                  else if (hui(p) >= huigrain(p)) then
+                          cphase(p) = 3._r8
+                          bglfr(p) = 1._r8/(leaf_long(ivt(p))*dayspyr*secspday)
+                  end if
+               
+                 ! continue fertilizer application while in phase 2;
+                 ! assumes that onset of phase 2 took one time step only
+               
+                 if (fert_counter(p) <= 0._r8) then
+                    fert(p) = 0._r8
+                 else ! continue same fert application every timestep
+                    fert_counter(p) = fert_counter(p) - dtrad
+                 end if
+               
+               ! if this is the beginning of the offset period
+                  ! then reset flags and indices
+                  if (offset_flag(p) == 1._r8) then
+               	  offset_fdd(p) = 0._r8
+               	  offset_swi(p) = 0._r8
+               	  offset_counter(p) = ndays_off * secspday * 1.0_r8  
+               	  prev_leafc_to_litter(p) = 0._r8
+               	  prev_frootc_to_litter(p) = 0._r8
+                  end if
+               end if
+               
+               ! keep track of number of days since last dormancy for control on
+               ! fraction of new growth to send to storage for next growing season
+               
+               if (dormant_flag(p) == 0.0_r8) then
+                  days_active(p) = days_active(p) + fracday
+               end if
+               
+               ! calculate long growing season factor (lgsf)
+               ! only begin to calculate a lgsf greater than 0.0 once the number
+               ! of days active exceeds days/year.
+               lgsf(p) = max(min(3.0_r8*(days_active(p)-leaf_long(ivt(p))*dayspyr )/dayspyr, 1._r8),0._r8)
+               ! RosieF. 5 Nov 2015.  Changed this such that the increase in leaf turnover is faster after
+               ! trees enter the 'fake evergreen' state. Otherwise, they have a whole year of 
+               ! cheating, with less litterfall than they should have, resulting in very high LAI. 
+               ! Further, the 'fake evergreen' state (where lgsf>0) is entered at the end of a single leaf lifespan
+               ! and not a whole year. The '3' is arbitrary, given that this entire system is quite abstract. 
+               
+               
+               ! set background litterfall rate, when not in the phenological offset period
+               ! 1.5_r8 and 0.5_r8 as in Land paper			
+               
+               call get_curr_date(kyr, kmo, kda, mcsec)
+               
+               if (offset_flag(p) == 1._r8) then
+                  bglfr(p) = 0._r8 
+               else
+                  bglfr(p) = 1._r8/(leaf_long(ivt(p)) * dayspyr * secspday)   
+               end if
+               
+               ! set background transfer rate when active but not in the phenological onset period
+               if (onset_flag(p) == 1._r8) then
+                  bgtr(p) = 0._r8
+               else
+                  ! the background transfer rate is calculated as the rate that would result
+                  ! in complete turnover of the storage pools in one year at steady state,
+                  ! once lgsf has reached 1.0 (after 730 days active).
+               
+                  bgtr(p) = (1._r8/(dayspyr*secspday))*lgsf(p)
+               
+                  ! set carbon fluxes for shifting storage pools to transfer pools
+               
+                  ! reduced the amount of stored carbon flowing to display pool by only counting the delta
+                  ! between leafc and leafc_store in the flux. RosieF, Nov5 2015. 
+                  leafc_storage_to_xfer(p)  = max(0.0_r8,(leafc_storage(p)-leafc(p))) * bgtr(p)
+                  frootc_storage_to_xfer(p) = max(0.0_r8,(frootc_storage(p)-frootc(p))) * bgtr(p)
+                  if (woody(ivt(p)) == 1.0_r8) then
+               	  livestemc_storage_to_xfer(p)  = livestemc_storage(p) * bgtr(p)
+               	  deadstemc_storage_to_xfer(p)  = deadstemc_storage(p) * bgtr(p)
+               	  livecrootc_storage_to_xfer(p) = livecrootc_storage(p) * bgtr(p)
+               	  deadcrootc_storage_to_xfer(p) = deadcrootc_storage(p) * bgtr(p)
+               	  gresp_storage_to_xfer(p)      = gresp_storage(p) * bgtr(p)
+                  end if
+               
+                  ! set nitrogen fluxes for shifting storage pools to transfer pools
+                  leafn_storage_to_xfer(p)  = leafn_storage(p) * bgtr(p)
+                  frootn_storage_to_xfer(p) = frootn_storage(p) * bgtr(p)
+                  if (woody(ivt(p)) == 1.0_r8) then
+               	  livestemn_storage_to_xfer(p)  = livestemn_storage(p) * bgtr(p)
+               	  deadstemn_storage_to_xfer(p)  = deadstemn_storage(p) * bgtr(p)
+               	  livecrootn_storage_to_xfer(p) = livecrootn_storage(p) * bgtr(p)
+               	  deadcrootn_storage_to_xfer(p) = deadcrootn_storage(p) * bgtr(p)
+                  end if               
+               end if
 
-				   
-				! update offset_counter and test for the end of the offset period
-				if (offset_flag(p) == 1._r8) then
-				   ! decrement counter for offset period
-				   offset_counter(p) = offset_counter(p) - dt
-
-				   ! if this is the end of the offset_period, reset phenology
-				   ! flags and indices				   
-				   if (offset_counter(p) == dt) then
-					  ! this code block was originally handled by call cn_offset_cleanup(p)
-					  ! inlined during vectorization
-					  offset_flag(p) = 0._r8
-					  offset_counter(p) = 0._r8
-					  dormant_flag(p) = 1._r8
-					  days_active(p) = 0._r8
-					  
-					  ! reset the previous timestep litterfall flux memory
-					  prev_leafc_to_litter(p) = 0._r8
-					  prev_frootc_to_litter(p) = 0._r8
-				   end if
-				end if
-
-				! update onset_counter and test for the end of the onset period
-				if (onset_flag(p) == 1.0_r8) then
-				   ! decrement counter for onset period
-				   onset_counter(p) = onset_counter(p) - dt
-
-				   ! if this is the end of the onset period, reset phenology
-				   ! flags and indices				   
-				   if (onset_counter(p) == dt) then
-					  ! this code block was originally handled by call cn_onset_cleanup(p)
-					  ! inlined during vectorization
-					  onset_flag(p) = 0._r8
-					  onset_counter(p) = 0._r8
-					  ! set all transfer growth rates to 0.0
-					  leafc_xfer_to_leafc(p)   = 0._r8
-					  frootc_xfer_to_frootc(p) = 0._r8
-					  leafn_xfer_to_leafn(p)   = 0._r8
-					  frootn_xfer_to_frootn(p) = 0._r8
-			          if (woody(ivt(p)) == 1.0_r8) then
-						 livestemc_xfer_to_livestemc(p)   = 0._r8
-						 deadstemc_xfer_to_deadstemc(p)   = 0._r8
-						 livecrootc_xfer_to_livecrootc(p) = 0._r8
-						 deadcrootc_xfer_to_deadcrootc(p) = 0._r8
-						 livestemn_xfer_to_livestemn(p)   = 0._r8
-						 deadstemn_xfer_to_deadstemn(p)   = 0._r8
-						 livecrootn_xfer_to_livecrootn(p) = 0._r8
-						 deadcrootn_xfer_to_deadcrootn(p) = 0._r8
-					  end if                  
-					  ! set transfer pools to 0.0
-					  leafc_xfer(p) = 0._r8
-					  leafn_xfer(p) = 0._r8
-					  frootc_xfer(p) = 0._r8
-					  frootn_xfer(p) = 0._r8
-			          if (woody(ivt(p)) == 1.0_r8) then
-						 livestemc_xfer(p) = 0._r8
-						 livestemn_xfer(p) = 0._r8
-						 deadstemc_xfer(p) = 0._r8
-						 deadstemn_xfer(p) = 0._r8
-						 livecrootc_xfer(p) = 0._r8
-						 livecrootn_xfer(p) = 0._r8
-						 deadcrootc_xfer(p) = 0._r8
-						 deadcrootn_xfer(p) = 0._r8
-					  end if
-					  
-				   end if
-				end if		
-			    
-				! test for switching from dormant period to growth period
-				if (dormant_flag(p) == 1._r8) then
-
-				   ! keep track of the number of freezing degree days in this
-				   ! dormancy period (only if the freeze flag has not previously been set
-				   ! for this dormancy period
-
-				   if (onset_gddflag(p) == 0._r8 .and. soilt < SHR_CONST_TKFRZ) onset_fdd(p) = onset_fdd(p) + fracday
-
-				   ! if the number of freezing degree days exceeds a critical value,
-				   ! then onset will require both wet soils and a critical soil
-				   ! temperature sum.  If this case is triggered, reset any previously
-				   ! accumulated value in onset_swi, so that onset now depends on
-				   ! the accumulated soil water index following the freeze trigger
-
-				   if (onset_fdd(p) > crit_onset_fdd) then
-					  onset_gddflag(p) = 1._r8
-					  onset_fdd(p) = 0._r8
-					  onset_swi(p) = 0._r8
-				   end if
-
-				   ! if the freeze flag is set, and if the soil is above freezing
-				   ! then accumulate growing degree days for onset trigger
-
-				   if (onset_gddflag(p) == 1._r8 .and. soilt > SHR_CONST_TKFRZ) then
-					  onset_gdd(p) = onset_gdd(p) + (soilt-SHR_CONST_TKFRZ)*fracday
-				   end if
-
-				  ! if soils are wet, accumulate soil water index for onset trigger
-				   additional_onset_condition = .true.
-				   if(CNParamsShareInst%constrain_stress_deciduous_onset) then
-					   !if additional constraint condition not met,  set to false
-					  if ((prec10(p) * (3600.0_r8*10.0_r8*24.0_r8)) < rain_threshold) then
-						 additional_onset_condition = .false.
-					  endif
-				   endif
-
-				   if (psi >= soilpsi_on) then
-					  onset_swi(p) = onset_swi(p) + fracday
-				   endif
-
-				   ! if critical soil water index is exceeded, set onset_flag, and
-				   ! then test for soil temperature criteria
-
-				   ! Adding in Kyla's rainfall trigger when fun on. RF. prec10 (mm/s) needs to be higher than 8mm over 10 days. 
-
-				   if (onset_swi(p) > crit_onset_swi .and. additional_onset_condition)  then
-					  onset_flag(p) = 1._r8
-				  
-					  ! only check soil temperature criteria if freeze flag set since
-					  ! beginning of last dormancy.  If freeze flag set and growing
-					  ! degree day sum (since freeze trigger) is lower than critical
-					  ! value, then override the onset_flag set from soil water.
-
-					  if (onset_gddflag(p) == 1._r8 .and. onset_gdd(p) < crit_onset_gdd) onset_flag(p) = 0._r8
-				   end if
-
-				   ! only allow onset if dayl > 6hrs
-				   if (onset_flag(p) == 1._r8 .and. dayl(g) <= secspqtrday) then
-					  onset_flag(p) = 0._r8
-				   end if
-
-				   ! if this is the beginning of the onset period
-				   ! then reset the phenology flags and indices
-
-				    if (onset_flag(p) == 1._r8) then
-					  dormant_flag(p) = 0._r8
-					  days_active(p) = 0._r8
-					  onset_gddflag(p) = 0._r8
-					  onset_fdd(p) = 0._r8
-					  onset_gdd(p) = 0._r8
-					  onset_swi(p) = 0._r8
-					  onset_counter(p) = ndays_on * secspday
-					  cphase(p) = 2.0_r8
-					  
-					  fert_counter(p)  = ndays_on * secspday
-                                              if (ndays_on .gt. 0) then
-                                                 fert(p) = (manunitro(ivt(p)) * 1000._r8 + fertnitro(p))/ fert_counter(p)
-                                              else
-                                                 fert(p) = 0._r8
-                                              end if				  
-					  
-					  ! call subroutine to move all the storage pools into transfer pools,
-					  ! where they will be transfered to displayed growth over the onset period.
-					  ! this code was originally handled with call cn_storage_to_xfer(p)
-					  ! inlined during vectorization
-
-					  ! set carbon fluxes for shifting storage pools to transfer pools					  
-					  					  
-					  leafc_storage_to_xfer(p)  = fstor2tran * leafc_storage(p)/dt 
-					  frootc_storage_to_xfer(p) = fstor2tran * frootc_storage(p)/dt
-			          if (woody(ivt(p)) == 1.0_r8) then
-						 livestemc_storage_to_xfer(p)  = fstor2tran * livestemc_storage(p)/dt 
-						 deadstemc_storage_to_xfer(p)  = fstor2tran * deadstemc_storage(p)/dt 
-						 livecrootc_storage_to_xfer(p) = fstor2tran * livecrootc_storage(p)/dt 
-						 deadcrootc_storage_to_xfer(p) = fstor2tran * deadcrootc_storage(p)/dt 
-						 gresp_storage_to_xfer(p)      = fstor2tran * gresp_storage(p)/dt  
-					  end if                  
-
-					  ! set nitrogen fluxes for shifting storage pools to transfer pools
-					  leafn_storage_to_xfer(p)  = fstor2tran * leafn_storage(p)/dt 
-					  frootn_storage_to_xfer(p) = fstor2tran * frootn_storage(p)/dt
-			          if (woody(ivt(p)) == 1.0_r8) then
-						 livestemn_storage_to_xfer(p)  = fstor2tran * livestemn_storage(p)/dt
-						 deadstemn_storage_to_xfer(p)  = fstor2tran * deadstemn_storage(p)/dt
-						 livecrootn_storage_to_xfer(p) = fstor2tran * livecrootn_storage(p)/dt
-						 deadcrootn_storage_to_xfer(p) = fstor2tran * deadcrootn_storage(p)/dt
-					  end if                  
-				    end if
-
-				   ! test for switching from growth period to offset period
-				else if (offset_flag(p) == 0._r8) then
-
-				   ! if soil water potential lower than critical value, accumulate
-				   ! as stress in offset soil water index
-				   
-				   if (psi <= -4._r8) then
-					  offset_swi(p) = offset_swi(p) + fracday
-
-					  ! if the offset soil water index exceeds critical value, and
-					  ! if this is not the middle of a previously initiated onset period,
-					  ! then set flag to start the offset period and reset index variables
-
-					  if (offset_swi(p) >= crit_offset_swi .and. onset_flag(p) == 0._r8) offset_flag(p) = 1._r8
-
-					  ! if soil water potential higher than critical value, reduce the
-					  ! offset water stress index.  By this mechanism, there must be a
-					  ! sustained period of water stress to initiate offset.
-
-				   else if (psi >= soilpsi_on) then
-					  offset_swi(p) = offset_swi(p) - fracday
-					  offset_swi(p) = max(offset_swi(p),0._r8)
-				   end if
-
-				   ! decrease freezing day accumulator for warm soil
-				   if (offset_fdd(p) > 0._r8 .and. soilt > SHR_CONST_TKFRZ) then
-					  offset_fdd(p) = offset_fdd(p) - fracday
-					  offset_fdd(p) = max(0._r8, offset_fdd(p))
-				   end if
-
-				   ! increase freezing day accumulator for cold soil
-				   if (soilt <= SHR_CONST_TKFRZ) then
-					  offset_fdd(p) = offset_fdd(p) + fracday
-
-					  ! if freezing degree day sum is greater than critical value, initiate offset
-					  if (offset_fdd(p) > crit_offset_fdd .and. onset_flag(p) == 0._r8) offset_flag(p) = 1._r8
-				   end if
-
-				   ! force offset if daylength is < 6 hrs
-				   if (dayl(g) <= secspqtrday) then
-					  offset_flag(p) = 1._r8
-				   end if
-				   
-				   call get_curr_date(kyr, kmo, kda, mcsec)
-				   
-			          ! force offset if dayl condition is met  
-				   
-				   if (kyr >= clearcut_yr(ivt(p)) + 4) then				   
-					   if (max_dayl(g) <= 12.5_r8 * 3600._r8 .and. &
-					       dayl(g) >= min_dayl(g) + 0.028_r8 * 3600._r8 .and. & 
-				               dayl(g) >= prev_dayl(g) .and. &
-				               dayl(g) <= min_dayl(g) + 0.028_r8 * 3600._r8 * 1.1_r8) then
-						   offset_flag(p) = 1._r8		   
-					   end if					   
-					   if (max_dayl(g) > 12.5_r8 * 3600._r8 .and. &					    
-				               dayl(g) >= prev_dayl(g) .and. &
-				               dayl(g) <= min_dayl(g) + 0.02_r8 * 3600._r8) then
-					       offset_flag(p) = 1._r8		   
-					   end if
-				   end if			   
-				    
-				   write(12,*) kyr, max_dayl(g), dayl(g), min_dayl(g), prev_dayl(g)		
-				   
-				   if (leafout(p) >= huileaf(p) .and. hui(p) < huigrain(p) .and. idpp(p) < mxmat(ivt(p))) then
-                                       cphase(p) = 2._r8				   
-				     else if (hui(p) >= gddmaturity(p) .and. idpp(p) < mxmat(ivt(p)) .and. &
-                                       perennial(ivt(p)) == 1) then
-                                       gddmaturity2(p) = huigrain2(p) + (1._r8 - grnfill(ivt(p))) * gddmaturity(p)/12._r8 !add a new parameter grnfill2 (Y.Fan 2022.09.13)		
-                                      ! part of leaves are pruned off at each harvest (at one-time step)
-                                       if (hui(p) >= gddmaturity2(p)) then
-                                         !the following ensures monthly harvests for perennial crops
-                                         !Assume a percentage 0.5 of the initial grnfill=around 1 year period between subsequent grnfills
-	                                 huigrain2(p) = huigrain2(p) + 0.5_r8 * grnfill(ivt(p)) * gddmaturity(p)/12._r8 !add a new parameter grnfill2 (Y.Fan 2022.09.13)		   
-                                         !apply fertilizer after each grainfill stage before next grainfill (Y.Fan)
-                                         !fert continue until the end of ndays_on because this loop is entered one time step only
-                                         !and fert_counter(p) = fert_counter(p) - dt (see later)
-                                         fert_counter(p)  = ndays_on * secspday
-                                         fert(p) = manunitro(ivt(p)) * 1000._r8 / fert_counter(p)
-                                          if (tlai(p) <= 0._r8) then ! plant never emerged or died
-                                            croplive(p) = .false.
-                                            if (harvdate(p) >= NOT_Harvested) harvdate(p) = jday
-                                               crop_seedc_to_leaf(c) = crop_seedc_to_leaf(c) - leafc_xfer(p)/dt
-                                               crop_seedn_to_leaf(c) = crop_seedn_to_leaf(c) - leafn_xfer(p)/dt
-                                               leafc_xfer(p) = 0._r8  ! revert planting transfers
-                                               leafn_xfer(p) = leafc_xfer(p) / leafcn(ivt(p))		     
-		                                 if (woody(ivt(p)) == 1._r8) then
-                                                   deadstemc_xfer(p) = 0._r8
-                                                   deadstemn_xfer(p) = deadstemc_xfer(p) / deadwdcn(ivt(p))
-                                                 end if
-						 					  				         
-                                          else if (grainc(p) > 0._r8) then !only harvest when there is positive grainc accumulated during grainfill
-                                                    harvest_flag(p) = 1._r8						                                             
-                                          end if
-					  
-					else
-                                               harvest_flag(p) = 0._r8
-                                               ! continue background litterfall year around because perennials keeps alive after harvest (Y.Fan)
-                                               bglfr(p) = 1._r8/(leaf_long(ivt(p))*dayspyr*secspday)
-                                       end if	
-				       
-				    ! ashehad added this for high latitudes
-				    else if (hui(p) >= gddmaturity(p) .and. idpp(p) < mxmat(ivt(p)) .and. &
-                                       perennial(ivt(p)) == 1 .and. max_dayl(g) > 12.5_r8 * 3600._r8 .and. & 
-				       kmo > 4 .and. kmo < 12) then
-                                       gddmaturity2(p) = huigrain2(p) + (1._r8 - grnfill(ivt(p))) * gddmaturity(p)/12._r8 !add a new parameter grnfill2 (Y.Fan 2022.09.13)		
-                                      ! part of leaves are pruned off at each harvest (at one-time step)
-                                       if (hui(p) >= gddmaturity2(p)) then
-                                         !the following ensures monthly harvests for perennial crops
-                                         !Assume a percentage 0.5 of the initial grnfill=around 1 year period between subsequent grnfills
-	                                 huigrain2(p) = huigrain2(p) + 0.5_r8 * grnfill(ivt(p)) * gddmaturity(p)/12._r8 !add a new parameter grnfill2 (Y.Fan 2022.09.13)		   
-                                         !apply fertilizer after each grainfill stage before next grainfill (Y.Fan)
-                                         !fert continue until the end of ndays_on because this loop is entered one time step only
-                                         !and fert_counter(p) = fert_counter(p) - dt (see later)
-                                         fert_counter(p)  = ndays_on * secspday
-                                         fert(p) = manunitro(ivt(p)) * 1000._r8 / fert_counter(p)
-                                          if (tlai(p) <= 0._r8) then ! plant never emerged or died
-                                            croplive(p) = .false.
-                                            if (harvdate(p) >= NOT_Harvested) harvdate(p) = jday
-                                               crop_seedc_to_leaf(c) = crop_seedc_to_leaf(c) - leafc_xfer(p)/dt
-                                               crop_seedn_to_leaf(c) = crop_seedn_to_leaf(c) - leafn_xfer(p)/dt
-                                               leafc_xfer(p) = 0._r8  ! revert planting transfers
-                                               leafn_xfer(p) = leafc_xfer(p) / leafcn(ivt(p))		     
-		                                 if (woody(ivt(p)) == 1._r8) then
-                                                   deadstemc_xfer(p) = 0._r8
-                                                   deadstemn_xfer(p) = deadstemc_xfer(p) / deadwdcn(ivt(p))
-                                                 end if
-						 					  				         
-                                          else if (grainc(p) > 0._r8) then !only harvest when there is positive grainc accumulated during grainfill
-                                                    harvest_flag(p) = 1._r8						                                             
-                                          end if
-					  
-					else
-                                               harvest_flag(p) = 0._r8
-                                               ! continue background litterfall year around because perennials keeps alive after harvest (Y.Fan)
-                                               bglfr(p) = 1._r8/(leaf_long(ivt(p))*dayspyr*secspday)
-                                       end if				 
-			            ! end high latitudes
-			    
-				   else if (hui(p) >= gddmaturity(p) .or. idpp(p) >= mxmat(ivt(p))) then
-                                       if (harvdate(p) >= NOT_Harvested) harvdate(p) = jday
-                                          croplive(p) = .false.     ! no re-entry in greater if-block
-                                          cphase(p) = 4._r8
-                                          if (tlai(p) > 0._r8) then ! plant had emerged before harvest
-                                             offset_flag(p) = 1._r8
-                                             offset_counter(p) = dt
-                                          else                      ! plant never emerged from the ground
-                                         ! Revert planting transfers; this will replenish the crop seed deficit.
-                                         ! We subtract from any existing value in crop_seedc_to_leaf /
-                                         ! crop_seedn_to_leaf in the unlikely event that we enter this block of
-                                         ! code in the same time step where the planting transfer originally
-                                         ! occurred.
-                                         crop_seedc_to_leaf(p) = crop_seedc_to_leaf(p) - leafc_xfer(p)/dt
-                                         crop_seedn_to_leaf(p) = crop_seedn_to_leaf(p) - leafn_xfer(p)/dt
-                                         leafc_xfer(p) = 0._r8
-                                         leafn_xfer(p) = leafc_xfer(p) / leafcn(ivt(p))
-		  
-                                           if (woody(ivt(p)) == 1._r8) then
-                                              deadstemc_xfer(p) = 0._r8
-                                              deadstemn_xfer(p) = deadstemc_xfer(p) / deadwdcn(ivt(p))
-                                           end if
-					end if
-                                   				   
-				   else if (hui(p) >= huigrain(p)) then
-                                           cphase(p) = 3._r8
-                                           bglfr(p) = 1._r8/(leaf_long(ivt(p))*dayspyr*secspday)
-                                  end if
- 
-                                  ! continue fertilizer application while in phase 2;
-                                  ! assumes that onset of phase 2 took one time step only
-
-                                  if (fert_counter(p) <= 0._r8) then
-                                     fert(p) = 0._r8
-                                  else ! continue same fert application every timestep
-                                     fert_counter(p) = fert_counter(p) - dtrad
-                                 end if
-			   
-			       ! if this is the beginning of the offset period
-				   ! then reset flags and indices
-				   if (offset_flag(p) == 1._r8) then
-					  offset_fdd(p) = 0._r8
-					  offset_swi(p) = 0._r8
-					  offset_counter(p) = ndays_off * secspday * 1.0_r8					  					  					  
-					  prev_leafc_to_litter(p) = 0._r8
-					  prev_frootc_to_litter(p) = 0._r8
-				   end if
-				end if
-
-				! keep track of number of days since last dormancy for control on
-				! fraction of new growth to send to storage for next growing season
-
-				if (dormant_flag(p) == 0.0_r8) then
-				   days_active(p) = days_active(p) + fracday
-				end if
-
-				! calculate long growing season factor (lgsf)
-				! only begin to calculate a lgsf greater than 0.0 once the number
-				! of days active exceeds days/year.
-				lgsf(p) = max(min(3.0_r8*(days_active(p)-leaf_long(ivt(p))*dayspyr )/dayspyr, 1._r8),0._r8)
-				! RosieF. 5 Nov 2015.  Changed this such that the increase in leaf turnover is faster after
-				! trees enter the 'fake evergreen' state. Otherwise, they have a whole year of 
-				! cheating, with less litterfall than they should have, resulting in very high LAI. 
-				! Further, the 'fake evergreen' state (where lgsf>0) is entered at the end of a single leaf lifespan
-				! and not a whole year. The '3' is arbitrary, given that this entire system is quite abstract. 
-
-
-				! set background litterfall rate, when not in the phenological offset period
-				! 1.5_r8 and 0.5_r8 as in Land paper			
-				
-				call get_curr_date(kyr, kmo, kda, mcsec)
-				
-				if (offset_flag(p) == 1._r8) then
-				   bglfr(p) = 0._r8							 
-				else
-			           bglfr(p) = 1._r8/(leaf_long(ivt(p)) * dayspyr * secspday)   	 
-				end if
-
-				! set background transfer rate when active but not in the phenological onset period
-				if (onset_flag(p) == 1._r8) then
-				   bgtr(p) = 0._r8
-				else
-				   ! the background transfer rate is calculated as the rate that would result
-				   ! in complete turnover of the storage pools in one year at steady state,
-				   ! once lgsf has reached 1.0 (after 730 days active).
-
-				   bgtr(p) = (1._r8/(dayspyr*secspday))*lgsf(p)
-
-				   ! set carbon fluxes for shifting storage pools to transfer pools
-
-				   ! reduced the amount of stored carbon flowing to display pool by only counting the delta
-				   ! between leafc and leafc_store in the flux. RosieF, Nov5 2015. 
-				   leafc_storage_to_xfer(p)  = max(0.0_r8,(leafc_storage(p)-leafc(p))) * bgtr(p)
-				   frootc_storage_to_xfer(p) = max(0.0_r8,(frootc_storage(p)-frootc(p))) * bgtr(p)
-			       if (woody(ivt(p)) == 1.0_r8) then
-					  livestemc_storage_to_xfer(p)  = livestemc_storage(p) * bgtr(p)
-					  deadstemc_storage_to_xfer(p)  = deadstemc_storage(p) * bgtr(p)
-					  livecrootc_storage_to_xfer(p) = livecrootc_storage(p) * bgtr(p)
-					  deadcrootc_storage_to_xfer(p) = deadcrootc_storage(p) * bgtr(p)
-					  gresp_storage_to_xfer(p)      = gresp_storage(p) * bgtr(p)
-				   end if
-			   
-				   ! set nitrogen fluxes for shifting storage pools to transfer pools
-				   leafn_storage_to_xfer(p)  = leafn_storage(p) * bgtr(p)
-				   frootn_storage_to_xfer(p) = frootn_storage(p) * bgtr(p)
-			       if (woody(ivt(p)) == 1.0_r8) then
-					  livestemn_storage_to_xfer(p)  = livestemn_storage(p) * bgtr(p)
-					  deadstemn_storage_to_xfer(p)  = deadstemn_storage(p) * bgtr(p)
-					  livecrootn_storage_to_xfer(p) = livecrootn_storage(p) * bgtr(p)
-					  deadcrootn_storage_to_xfer(p) = deadcrootn_storage(p) * bgtr(p)
-				   end if               
-				end if
-
-			end if ! end if semi deciduous		
-				   
-	     ! continue with other non semi-decid plants
-	     if (semi_decid(ivt(p)) /= 1._r8)  then
-	    
-	    
+           end if ! end if semi deciduous		
+   
+           ! continue with other non semi-decid plants
+           if (semi_decid(ivt(p)) /= 1._r8)  then
+    
+    
             ! onset_counter initialized to zero when .not. croplive
             ! offset_counter relevant only at time step of harvest
-            ! Ashehad Ali added codes from stress_deciduous phenology here
-			   
-		    if (semi_decid(ivt(p)) == 1._r8) then
-				soilt = t_soisno(c,3)
-				psi = soilpsi(c,3)
 
-				! onset gdd sum from Biome-BGC, v4.1.2
-				crit_onset_gdd = exp(4.8_r8 + 0.13_r8*(annavg_t2m(p) - SHR_CONST_TKFRZ))
-
-				   
-				! update offset_counter and test for the end of the offset period
-				if (offset_flag(p) == 1._r8) then
-				   ! decrement counter for offset period
-				   offset_counter(p) = offset_counter(p) - dt
-
-				   ! if this is the end of the offset_period, reset phenology
-				   ! flags and indices				   
-				   if (offset_counter(p) == dt) then
-					  ! this code block was originally handled by call cn_offset_cleanup(p)
-					  ! inlined during vectorization
-					  offset_flag(p) = 0._r8
-					  offset_counter(p) = 0._r8
-					  dormant_flag(p) = 1._r8
-					  days_active(p) = 0._r8
-					  
-					  ! reset the previous timestep litterfall flux memory
-					  prev_leafc_to_litter(p) = 0._r8
-					  prev_frootc_to_litter(p) = 0._r8
-				   end if
-				end if
-
-				! update onset_counter and test for the end of the onset period
-				if (onset_flag(p) == 1.0_r8) then
-				   ! decrement counter for onset period
-				   onset_counter(p) = onset_counter(p) - dt
-
-				   ! if this is the end of the onset period, reset phenology
-				   ! flags and indices				   
-				   if (onset_counter(p) == dt) then
-					  ! this code block was originally handled by call cn_onset_cleanup(p)
-					  ! inlined during vectorization
-					  onset_flag(p) = 0._r8
-					  onset_counter(p) = 0._r8
-					  ! set all transfer growth rates to 0.0
-					  leafc_xfer_to_leafc(p)   = 0._r8
-					  frootc_xfer_to_frootc(p) = 0._r8
-					  leafn_xfer_to_leafn(p)   = 0._r8
-					  frootn_xfer_to_frootn(p) = 0._r8
-			          if (woody(ivt(p)) == 1.0_r8) then
-						 livestemc_xfer_to_livestemc(p)   = 0._r8
-						 deadstemc_xfer_to_deadstemc(p)   = 0._r8
-						 livecrootc_xfer_to_livecrootc(p) = 0._r8
-						 deadcrootc_xfer_to_deadcrootc(p) = 0._r8
-						 livestemn_xfer_to_livestemn(p)   = 0._r8
-						 deadstemn_xfer_to_deadstemn(p)   = 0._r8
-						 livecrootn_xfer_to_livecrootn(p) = 0._r8
-						 deadcrootn_xfer_to_deadcrootn(p) = 0._r8
-					  end if                  
-					  ! set transfer pools to 0.0
-					  leafc_xfer(p) = 0._r8
-					  leafn_xfer(p) = 0._r8
-					  frootc_xfer(p) = 0._r8
-					  frootn_xfer(p) = 0._r8
-			          if (woody(ivt(p)) == 1.0_r8) then
-						 livestemc_xfer(p) = 0._r8
-						 livestemn_xfer(p) = 0._r8
-						 deadstemc_xfer(p) = 0._r8
-						 deadstemn_xfer(p) = 0._r8
-						 livecrootc_xfer(p) = 0._r8
-						 livecrootn_xfer(p) = 0._r8
-						 deadcrootc_xfer(p) = 0._r8
-						 deadcrootn_xfer(p) = 0._r8
-					  end if
-					  
-				   end if
-				end if
-			
-			    write(9,*) dormant_flag(p)
-
-				! test for switching from dormant period to growth period
-				if (dormant_flag(p) == 1._r8) then
-
-				   ! keep track of the number of freezing degree days in this
-				   ! dormancy period (only if the freeze flag has not previously been set
-				   ! for this dormancy period
-
-				   if (onset_gddflag(p) == 0._r8 .and. soilt < SHR_CONST_TKFRZ) onset_fdd(p) = onset_fdd(p) + fracday
-
-				   ! if the number of freezing degree days exceeds a critical value,
-				   ! then onset will require both wet soils and a critical soil
-				   ! temperature sum.  If this case is triggered, reset any previously
-				   ! accumulated value in onset_swi, so that onset now depends on
-				   ! the accumulated soil water index following the freeze trigger
-
-				   if (onset_fdd(p) > crit_onset_fdd) then
-					  onset_gddflag(p) = 1._r8
-					  onset_fdd(p) = 0._r8
-					  onset_swi(p) = 0._r8
-				   end if
-
-				   ! if the freeze flag is set, and if the soil is above freezing
-				   ! then accumulate growing degree days for onset trigger
-
-				   if (onset_gddflag(p) == 1._r8 .and. soilt > SHR_CONST_TKFRZ) then
-					  onset_gdd(p) = onset_gdd(p) + (soilt-SHR_CONST_TKFRZ)*fracday
-				   end if
-
-				  ! if soils are wet, accumulate soil water index for onset trigger
-				   additional_onset_condition = .true.
-				   if(CNParamsShareInst%constrain_stress_deciduous_onset) then
-					   !if additional constraint condition not met,  set to false
-					  if ((prec10(p) * (3600.0_r8*10.0_r8*24.0_r8)) < rain_threshold) then
-						 additional_onset_condition = .false.
-					  endif
-				   endif
-
-				   if (psi >= soilpsi_on) then
-					  onset_swi(p) = onset_swi(p) + fracday
-				   endif
-
-				   ! if critical soil water index is exceeded, set onset_flag, and
-				   ! then test for soil temperature criteria
-
-				   ! Adding in Kyla's rainfall trigger when fun on. RF. prec10 (mm/s) needs to be higher than 8mm over 10 days. 
-
-				   if (onset_swi(p) > crit_onset_swi .and. additional_onset_condition)  then
-					  onset_flag(p) = 1._r8
-				  
-					  ! only check soil temperature criteria if freeze flag set since
-					  ! beginning of last dormancy.  If freeze flag set and growing
-					  ! degree day sum (since freeze trigger) is lower than critical
-					  ! value, then override the onset_flag set from soil water.
-
-					  if (onset_gddflag(p) == 1._r8 .and. onset_gdd(p) < crit_onset_gdd) onset_flag(p) = 0._r8
-				   end if
-
-				   ! only allow onset if dayl > 6hrs
-				   if (onset_flag(p) == 1._r8 .and. dayl(g) <= secspqtrday) then
-					  onset_flag(p) = 0._r8
-				   end if
-
-				   ! if this is the beginning of the onset period
-				   ! then reset the phenology flags and indices
-
-				    if (onset_flag(p) == 1._r8) then
-					  dormant_flag(p) = 0._r8
-					  days_active(p) = 0._r8
-					  onset_gddflag(p) = 0._r8
-					  onset_fdd(p) = 0._r8
-					  onset_gdd(p) = 0._r8
-					  onset_swi(p) = 0._r8
-					  onset_counter(p) = ndays_on * secspday
-					  cphase(p) = 2.0_r8
-					  
-					  fert_counter(p)  = ndays_on * secspday
-                                              if (ndays_on .gt. 0) then
-                                                 fert(p) = (manunitro(ivt(p)) * 1000._r8 + fertnitro(p))/ fert_counter(p)
-                                              else
-                                                 fert(p) = 0._r8
-                                              end if				  
-					  
-					  ! call subroutine to move all the storage pools into transfer pools,
-					  ! where they will be transfered to displayed growth over the onset period.
-					  ! this code was originally handled with call cn_storage_to_xfer(p)
-					  ! inlined during vectorization
-
-					  ! set carbon fluxes for shifting storage pools to transfer pools					  
-					  					  
-					  leafc_storage_to_xfer(p)  = fstor2tran * leafc_storage(p)/dt 
-					  frootc_storage_to_xfer(p) = fstor2tran * frootc_storage(p)/dt
-			          if (woody(ivt(p)) == 1.0_r8) then
-						 livestemc_storage_to_xfer(p)  = fstor2tran * livestemc_storage(p)/dt 
-						 deadstemc_storage_to_xfer(p)  = fstor2tran * deadstemc_storage(p)/dt 
-						 livecrootc_storage_to_xfer(p) = fstor2tran * livecrootc_storage(p)/dt 
-						 deadcrootc_storage_to_xfer(p) = fstor2tran * deadcrootc_storage(p)/dt 
-						 gresp_storage_to_xfer(p)      = fstor2tran * gresp_storage(p)/dt  
-					  end if                  
-
-					  ! set nitrogen fluxes for shifting storage pools to transfer pools
-					  leafn_storage_to_xfer(p)  = fstor2tran * leafn_storage(p)/dt 
-					  frootn_storage_to_xfer(p) = fstor2tran * frootn_storage(p)/dt
-			          if (woody(ivt(p)) == 1.0_r8) then
-						 livestemn_storage_to_xfer(p)  = fstor2tran * livestemn_storage(p)/dt
-						 deadstemn_storage_to_xfer(p)  = fstor2tran * deadstemn_storage(p)/dt
-						 livecrootn_storage_to_xfer(p) = fstor2tran * livecrootn_storage(p)/dt
-						 deadcrootn_storage_to_xfer(p) = fstor2tran * deadcrootn_storage(p)/dt
-					  end if                  
-				    end if
-
-				   ! test for switching from growth period to offset period
-				else if (offset_flag(p) == 0._r8) then
-
-				   ! if soil water potential lower than critical value, accumulate
-				   ! as stress in offset soil water index
-				   
-				   if (psi <= -4._r8) then
-					  offset_swi(p) = offset_swi(p) + fracday
-
-					  ! if the offset soil water index exceeds critical value, and
-					  ! if this is not the middle of a previously initiated onset period,
-					  ! then set flag to start the offset period and reset index variables
-
-					  if (offset_swi(p) >= crit_offset_swi .and. onset_flag(p) == 0._r8) offset_flag(p) = 1._r8
-
-					  ! if soil water potential higher than critical value, reduce the
-					  ! offset water stress index.  By this mechanism, there must be a
-					  ! sustained period of water stress to initiate offset.
-
-				   else if (psi >= soilpsi_on) then
-					  offset_swi(p) = offset_swi(p) - fracday
-					  offset_swi(p) = max(offset_swi(p),0._r8)
-				   end if
-
-				   ! decrease freezing day accumulator for warm soil
-				   if (offset_fdd(p) > 0._r8 .and. soilt > SHR_CONST_TKFRZ) then
-					  offset_fdd(p) = offset_fdd(p) - fracday
-					  offset_fdd(p) = max(0._r8, offset_fdd(p))
-				   end if
-
-				   ! increase freezing day accumulator for cold soil
-				   if (soilt <= SHR_CONST_TKFRZ) then
-					  offset_fdd(p) = offset_fdd(p) + fracday
-
-					  ! if freezing degree day sum is greater than critical value, initiate offset
-					  if (offset_fdd(p) > crit_offset_fdd .and. onset_flag(p) == 0._r8) offset_flag(p) = 1._r8
-				   end if
-
-				   ! force offset if daylength is < 6 hrs
-				   if (dayl(g) <= secspqtrday) then
-					  offset_flag(p) = 1._r8
-				   end if
-				   
-				   call get_curr_date(kyr, kmo, kda, mcsec)
-				   
-			          ! force offset if dayl condition is met  
-				   
-				   if (kyr >= clearcut_yr(ivt(p)) + 4) then				   
-					   if (max_dayl(g) <= 12.5_r8 * 3600._r8 .and. &
-					       dayl(g) >= min_dayl(g) + 0.028_r8 * 3600._r8 .and. & 
-				               dayl(g) >= prev_dayl(g) .and. &
-				               dayl(g) <= min_dayl(g) + 0.028_r8 * 3600._r8 * 1.1_r8) then
-						   offset_flag(p) = 1._r8		   
-					   end if					   
-					   if (max_dayl(g) > 12.5_r8 * 3600._r8 .and. &					    
-				               dayl(g) >= prev_dayl(g) .and. &
-				               dayl(g) <= min_dayl(g) + 0.02_r8 * 3600._r8) then
-					       offset_flag(p) = 1._r8		   
-					   end if
-				   end if			   
-				    
-				   write(12,*) kyr, max_dayl(g), dayl(g), min_dayl(g), prev_dayl(g)		
-				   
-				   if (leafout(p) >= huileaf(p) .and. hui(p) < huigrain(p) .and. idpp(p) < mxmat(ivt(p))) then
-                                       cphase(p) = 2._r8				   
-				     else if (hui(p) >= gddmaturity(p) .and. idpp(p) < mxmat(ivt(p)) .and. &
-                                       perennial(ivt(p)) == 1) then
-                                       gddmaturity2(p) = huigrain2(p) + (1._r8 - grnfill(ivt(p))) * gddmaturity(p)/12._r8 !add a new parameter grnfill2 (Y.Fan 2022.09.13)		
-                                      ! part of leaves are pruned off at each harvest (at one-time step)
-                                       if (hui(p) >= gddmaturity2(p)) then
-                                         !the following ensures monthly harvests for perennial crops
-                                         !Assume a percentage 0.5 of the initial grnfill=around 1 year period between subsequent grnfills
-	                                 huigrain2(p) = huigrain2(p) + 0.5_r8 * grnfill(ivt(p)) * gddmaturity(p)/12._r8 !add a new parameter grnfill2 (Y.Fan 2022.09.13)		   
-                                         !apply fertilizer after each grainfill stage before next grainfill (Y.Fan)
-                                         !fert continue until the end of ndays_on because this loop is entered one time step only
-                                         !and fert_counter(p) = fert_counter(p) - dt (see later)
-                                         fert_counter(p)  = ndays_on * secspday
-                                         fert(p) = manunitro(ivt(p)) * 1000._r8 / fert_counter(p)
-                                          if (tlai(p) <= 0._r8) then ! plant never emerged or died
-                                            croplive(p) = .false.
-                                            if (harvdate(p) >= NOT_Harvested) harvdate(p) = jday
-                                               crop_seedc_to_leaf(c) = crop_seedc_to_leaf(c) - leafc_xfer(p)/dt
-                                               crop_seedn_to_leaf(c) = crop_seedn_to_leaf(c) - leafn_xfer(p)/dt
-                                               leafc_xfer(p) = 0._r8  ! revert planting transfers
-                                               leafn_xfer(p) = leafc_xfer(p) / leafcn(ivt(p))		     
-		                                 if (woody(ivt(p)) == 1._r8) then
-                                                   deadstemc_xfer(p) = 0._r8
-                                                   deadstemn_xfer(p) = deadstemc_xfer(p) / deadwdcn(ivt(p))
-                                                 end if
-						 					  				         
-                                          else if (grainc(p) > 0._r8) then !only harvest when there is positive grainc accumulated during grainfill
-                                                    harvest_flag(p) = 1._r8						                                             
-                                          end if
-					  
-					else
-                                               harvest_flag(p) = 0._r8
-                                               ! continue background litterfall year around because perennials keeps alive after harvest (Y.Fan)
-                                               bglfr(p) = 1._r8/(leaf_long(ivt(p))*dayspyr*secspday)
-                                       end if	
-				       
-				    ! ashehad added this for high latitudes
-				    else if (hui(p) >= gddmaturity(p) .and. idpp(p) < mxmat(ivt(p)) .and. &
-                                       perennial(ivt(p)) == 1 .and. max_dayl(g) > 12.5_r8 * 3600._r8 .and. & 
-				       kmo > 4 .and. kmo < 12) then
-                                       gddmaturity2(p) = huigrain2(p) + (1._r8 - grnfill(ivt(p))) * gddmaturity(p)/12._r8 !add a new parameter grnfill2 (Y.Fan 2022.09.13)		
-                                      ! part of leaves are pruned off at each harvest (at one-time step)
-                                       if (hui(p) >= gddmaturity2(p)) then
-                                         !the following ensures monthly harvests for perennial crops
-                                         !Assume a percentage 0.5 of the initial grnfill=around 1 year period between subsequent grnfills
-	                                 huigrain2(p) = huigrain2(p) + 0.5_r8 * grnfill(ivt(p)) * gddmaturity(p)/12._r8 !add a new parameter grnfill2 (Y.Fan 2022.09.13)		   
-                                         !apply fertilizer after each grainfill stage before next grainfill (Y.Fan)
-                                         !fert continue until the end of ndays_on because this loop is entered one time step only
-                                         !and fert_counter(p) = fert_counter(p) - dt (see later)
-                                         fert_counter(p)  = ndays_on * secspday
-                                         fert(p) = manunitro(ivt(p)) * 1000._r8 / fert_counter(p)
-                                          if (tlai(p) <= 0._r8) then ! plant never emerged or died
-                                            croplive(p) = .false.
-                                            if (harvdate(p) >= NOT_Harvested) harvdate(p) = jday
-                                               crop_seedc_to_leaf(c) = crop_seedc_to_leaf(c) - leafc_xfer(p)/dt
-                                               crop_seedn_to_leaf(c) = crop_seedn_to_leaf(c) - leafn_xfer(p)/dt
-                                               leafc_xfer(p) = 0._r8  ! revert planting transfers
-                                               leafn_xfer(p) = leafc_xfer(p) / leafcn(ivt(p))		     
-		                                 if (woody(ivt(p)) == 1._r8) then
-                                                   deadstemc_xfer(p) = 0._r8
-                                                   deadstemn_xfer(p) = deadstemc_xfer(p) / deadwdcn(ivt(p))
-                                                 end if
-						 					  				         
-                                          else if (grainc(p) > 0._r8) then !only harvest when there is positive grainc accumulated during grainfill
-                                                    harvest_flag(p) = 1._r8						                                             
-                                          end if
-					  
-					else
-                                               harvest_flag(p) = 0._r8
-                                               ! continue background litterfall year around because perennials keeps alive after harvest (Y.Fan)
-                                               bglfr(p) = 1._r8/(leaf_long(ivt(p))*dayspyr*secspday)
-                                       end if				 
-			            ! end high latitudes
-			    
-				   else if (hui(p) >= gddmaturity(p) .or. idpp(p) >= mxmat(ivt(p))) then
-                                       if (harvdate(p) >= NOT_Harvested) harvdate(p) = jday
-                                          croplive(p) = .false.     ! no re-entry in greater if-block
-                                          cphase(p) = 4._r8
-                                          if (tlai(p) > 0._r8) then ! plant had emerged before harvest
-                                             offset_flag(p) = 1._r8
-                                             offset_counter(p) = dt
-                                          else                      ! plant never emerged from the ground
-                                         ! Revert planting transfers; this will replenish the crop seed deficit.
-                                         ! We subtract from any existing value in crop_seedc_to_leaf /
-                                         ! crop_seedn_to_leaf in the unlikely event that we enter this block of
-                                         ! code in the same time step where the planting transfer originally
-                                         ! occurred.
-                                         crop_seedc_to_leaf(p) = crop_seedc_to_leaf(p) - leafc_xfer(p)/dt
-                                         crop_seedn_to_leaf(p) = crop_seedn_to_leaf(p) - leafn_xfer(p)/dt
-                                         leafc_xfer(p) = 0._r8
-                                         leafn_xfer(p) = leafc_xfer(p) / leafcn(ivt(p))
-		  
-                                           if (woody(ivt(p)) == 1._r8) then
-                                              deadstemc_xfer(p) = 0._r8
-                                              deadstemn_xfer(p) = deadstemc_xfer(p) / deadwdcn(ivt(p))
-                                           end if
-					end if
-                                   				   
-				   else if (hui(p) >= huigrain(p)) then
-                                           cphase(p) = 3._r8
-                                           bglfr(p) = 1._r8/(leaf_long(ivt(p))*dayspyr*secspday)
-                                  end if
- 
-                                  ! continue fertilizer application while in phase 2;
-                                  ! assumes that onset of phase 2 took one time step only
-
-                                  if (fert_counter(p) <= 0._r8) then
-                                     fert(p) = 0._r8
-                                  else ! continue same fert application every timestep
-                                     fert_counter(p) = fert_counter(p) - dtrad
-                                 end if
-			   
-			       ! if this is the beginning of the offset period
-				   ! then reset flags and indices
-				   if (offset_flag(p) == 1._r8) then
-					  offset_fdd(p) = 0._r8
-					  offset_swi(p) = 0._r8
-					  offset_counter(p) = ndays_off * secspday * 1.0_r8					  					  					  
-					  prev_leafc_to_litter(p) = 0._r8
-					  prev_frootc_to_litter(p) = 0._r8
-				   end if
-				end if
-
-				! keep track of number of days since last dormancy for control on
-				! fraction of new growth to send to storage for next growing season
-
-				if (dormant_flag(p) == 0.0_r8) then
-				   days_active(p) = days_active(p) + fracday
-				end if
-
-				! calculate long growing season factor (lgsf)
-				! only begin to calculate a lgsf greater than 0.0 once the number
-				! of days active exceeds days/year.
-				lgsf(p) = max(min(3.0_r8*(days_active(p)-leaf_long(ivt(p))*dayspyr )/dayspyr, 1._r8),0._r8)
-				! RosieF. 5 Nov 2015.  Changed this such that the increase in leaf turnover is faster after
-				! trees enter the 'fake evergreen' state. Otherwise, they have a whole year of 
-				! cheating, with less litterfall than they should have, resulting in very high LAI. 
-				! Further, the 'fake evergreen' state (where lgsf>0) is entered at the end of a single leaf lifespan
-				! and not a whole year. The '3' is arbitrary, given that this entire system is quite abstract. 
-
-
-				! set background litterfall rate, when not in the phenological offset period
-				! 1.5_r8 and 0.5_r8 as in Land paper			
-				
-				call get_curr_date(kyr, kmo, kda, mcsec)
-				
-				if (offset_flag(p) == 1._r8) then
-				   bglfr(p) = 0._r8							 
-				else
-			           bglfr(p) = 1._r8/(leaf_long(ivt(p)) * dayspyr * secspday)   	 
-				end if
-
-				! set background transfer rate when active but not in the phenological onset period
-				if (onset_flag(p) == 1._r8) then
-				   bgtr(p) = 0._r8
-				else
-				   ! the background transfer rate is calculated as the rate that would result
-				   ! in complete turnover of the storage pools in one year at steady state,
-				   ! once lgsf has reached 1.0 (after 730 days active).
-
-				   bgtr(p) = (1._r8/(dayspyr*secspday))*lgsf(p)
-
-				   ! set carbon fluxes for shifting storage pools to transfer pools
-
-				   ! reduced the amount of stored carbon flowing to display pool by only counting the delta
-				   ! between leafc and leafc_store in the flux. RosieF, Nov5 2015. 
-				   leafc_storage_to_xfer(p)  = max(0.0_r8,(leafc_storage(p)-leafc(p))) * bgtr(p)
-				   frootc_storage_to_xfer(p) = max(0.0_r8,(frootc_storage(p)-frootc(p))) * bgtr(p)
-			       if (woody(ivt(p)) == 1.0_r8) then
-					  livestemc_storage_to_xfer(p)  = livestemc_storage(p) * bgtr(p)
-					  deadstemc_storage_to_xfer(p)  = deadstemc_storage(p) * bgtr(p)
-					  livecrootc_storage_to_xfer(p) = livecrootc_storage(p) * bgtr(p)
-					  deadcrootc_storage_to_xfer(p) = deadcrootc_storage(p) * bgtr(p)
-					  gresp_storage_to_xfer(p)      = gresp_storage(p) * bgtr(p)
-				   end if
-			   
-				   ! set nitrogen fluxes for shifting storage pools to transfer pools
-				   leafn_storage_to_xfer(p)  = leafn_storage(p) * bgtr(p)
-				   frootn_storage_to_xfer(p) = frootn_storage(p) * bgtr(p)
-			       if (woody(ivt(p)) == 1.0_r8) then
-					  livestemn_storage_to_xfer(p)  = livestemn_storage(p) * bgtr(p)
-					  deadstemn_storage_to_xfer(p)  = deadstemn_storage(p) * bgtr(p)
-					  livecrootn_storage_to_xfer(p) = livecrootn_storage(p) * bgtr(p)
-					  deadcrootn_storage_to_xfer(p) = deadcrootn_storage(p) * bgtr(p)
-				   end if               
-				end if
-
-			end if ! end if semi deciduous		
-				   
-	     ! continue with other non semi-decid plants
-	     if (semi_decid(ivt(p)) /= 1._r8)  then
-			
-	        onset_counter(p) = onset_counter(p) - dt
+            onset_counter(p) = onset_counter(p) - dt
 
             ! enter phase 2 onset for one time step:
             ! transfer seed carbon to leaf emergence
@@ -3713,16 +3279,10 @@ contains
                   if (tlai(p) <= 0._r8) then ! plant never emerged or died
                      croplive(p) = .false.
                      if (harvdate(p) >= NOT_Harvested) harvdate(p) = jday
-                     crop_seedc_to_leaf(c) = crop_seedc_to_leaf(c) - leafc_xfer(p)/dt
-                     crop_seedn_to_leaf(c) = crop_seedn_to_leaf(c) - leafn_xfer(p)/dt
+                     crop_seedc_to_leaf(p) = crop_seedc_to_leaf(p) - leafc_xfer(p)/dt
+                     crop_seedn_to_leaf(p) = crop_seedn_to_leaf(p) - leafn_xfer(p)/dt
                      leafc_xfer(p) = 0._r8  ! revert planting transfers
                      leafn_xfer(p) = leafc_xfer(p) / leafcn(ivt(p))
-		     
-		     if (woody(ivt(p)) == 1._r8) then
-                         deadstemc_xfer(p) = 0._r8
-                         deadstemn_xfer(p) = deadstemc_xfer(p) / deadwdcn(ivt(p))
-                     end if
-			       
                   else if (grainc(p) > 0._r8) then !only harvest when there is positive grainc accumulated during grainfill
                      harvest_flag(p) = 1._r8
                   end if
@@ -3730,8 +3290,8 @@ contains
                   harvest_flag(p) = 0._r8
                  ! continue background litterfall year around because perennials keeps alive after harvest (Y.Fan)
                   bglfr(p) = 1._r8/(leaf_long(ivt(p))*dayspyr*secspday)
-               end if	
-			   
+               end if
+   
             ! trigger full litterfall (offset) when maximum age is reached and start rotation (added by Y.Fan)
             else if (hui(p) >= gddmaturity(p) .and. idpp(p) >= mxmat(ivt(p)) .and. &
                      perennial(ivt(p)) == 1) then
@@ -3764,12 +3324,6 @@ contains
                   crop_seedn_to_leaf(p) = crop_seedn_to_leaf(p) - leafn_xfer(p)/dt
                   leafc_xfer(p) = 0._r8
                   leafn_xfer(p) = leafc_xfer(p) / leafcn(ivt(p))
-		  
-		  if (woody(ivt(p)) == 1._r8) then
-                     deadstemc_xfer(p) = 0._r8
-                     deadstemn_xfer(p) = deadstemc_xfer(p) / deadwdcn(ivt(p))
-                  end if
-			       
                   if (use_c13) then
                      c13_cnveg_carbonstate_inst%leafc_xfer_patch(p) = 0._r8
                   endif
@@ -3798,6 +3352,7 @@ contains
               else ! continue same fert application every timestep
                  fert_counter(p) = fert_counter(p) - dtrad
               end if
+
 	   end if ! end other non-semi decid plants
 
          else   ! crop not live
@@ -3806,18 +3361,19 @@ contains
             ! crop_seedn_to_leaf in the unlikely event that we enter this block of
             ! code in the same time step where the planting transfer originally
             ! occurred.
-	    
+    
             crop_seedc_to_leaf(p) = crop_seedc_to_leaf(p) - leafc_xfer(p)/dt
             crop_seedn_to_leaf(p) = crop_seedn_to_leaf(p) - leafn_xfer(p)/dt
             onset_counter(p) = 0._r8
             leafc_xfer(p) = 0._r8
             leafn_xfer(p) = leafc_xfer(p) / leafcn(ivt(p))
-	    
-	    if (woody(ivt(p)) == 1._r8) then
+   
+            !Ashehad added this (double check if it is needed, YFan) 
+            if (woody(ivt(p)) == 1._r8) then
                deadstemc_xfer(p) = 0._r8
                deadstemn_xfer(p) = deadstemc_xfer(p) / deadwdcn(ivt(p))
             end if
-		    
+    
             if (use_c13) then
                c13_cnveg_carbonstate_inst%leafc_xfer_patch(p) = 0._r8
             endif

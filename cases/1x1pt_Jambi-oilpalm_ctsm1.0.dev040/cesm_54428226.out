@@ -1,0 +1,74 @@
+Creating component namelists
+  2023-01-30 18:44:27 atm
+   Calling /GFPS8p/fanyc/clm_efforts_palm/cime/src/components/data_comps/datm/cime_config/buildnml
+  2023-01-30 18:44:27 lnd
+   Calling /GFPS8p/fanyc/clm_efforts_palm/cime_config/buildnml
+  2023-01-30 18:44:28 ice
+   Calling /GFPS8p/fanyc/clm_efforts_palm/cime/src/components/stub_comps/sice/cime_config/buildnml
+  2023-01-30 18:44:28 ocn
+   Calling /GFPS8p/fanyc/clm_efforts_palm/cime/src/components/stub_comps/socn/cime_config/buildnml
+  2023-01-30 18:44:28 rof
+   Calling /GFPS8p/fanyc/clm_efforts_palm/components/mosart//cime_config/buildnml
+  2023-01-30 18:44:28 glc
+   Calling /GFPS8p/fanyc/clm_efforts_palm/cime/src/components/stub_comps/sglc/cime_config/buildnml
+  2023-01-30 18:44:28 wav
+   Calling /GFPS8p/fanyc/clm_efforts_palm/cime/src/components/stub_comps/swav/cime_config/buildnml
+  2023-01-30 18:44:28 esp
+   Calling /GFPS8p/fanyc/clm_efforts_palm/cime/src/components/stub_comps/sesp/cime_config/buildnml
+  2023-01-30 18:44:28 cpl
+   Calling /GFPS8p/fanyc/clm_efforts_palm/cime/src/drivers/mct/cime_config/buildnml
+Finished creating component namelists
+Checking that inputdata is available as part of case submission
+Loading input file list: 'Buildconf/clm.input_data_list'
+Loading input file list: 'Buildconf/cpl.input_data_list'
+Loading input file list: 'Buildconf/datm.input_data_list'
+Loading input file list: 'Buildconf/mosart.input_data_list'
+Check case OK
+submit_jobs case.run
+Submit job case.run
+Starting job script case.run
+Generating namelists for /GFPS8p/fanyc/clm_efforts_palm/cases/1x1pt_Jambi-oilpalm_ctsm1.0.dev040
+Creating component namelists
+  2023-01-30 18:44:28 atm
+   Calling /GFPS8p/fanyc/clm_efforts_palm/cime/src/components/data_comps/datm/cime_config/buildnml
+  2023-01-30 18:44:29 lnd
+   Calling /GFPS8p/fanyc/clm_efforts_palm/cime_config/buildnml
+  2023-01-30 18:44:29 ice
+   Calling /GFPS8p/fanyc/clm_efforts_palm/cime/src/components/stub_comps/sice/cime_config/buildnml
+  2023-01-30 18:44:29 ocn
+   Calling /GFPS8p/fanyc/clm_efforts_palm/cime/src/components/stub_comps/socn/cime_config/buildnml
+  2023-01-30 18:44:29 rof
+   Calling /GFPS8p/fanyc/clm_efforts_palm/components/mosart//cime_config/buildnml
+  2023-01-30 18:44:29 glc
+   Calling /GFPS8p/fanyc/clm_efforts_palm/cime/src/components/stub_comps/sglc/cime_config/buildnml
+  2023-01-30 18:44:29 wav
+   Calling /GFPS8p/fanyc/clm_efforts_palm/cime/src/components/stub_comps/swav/cime_config/buildnml
+  2023-01-30 18:44:29 esp
+   Calling /GFPS8p/fanyc/clm_efforts_palm/cime/src/components/stub_comps/sesp/cime_config/buildnml
+  2023-01-30 18:44:29 cpl
+   Calling /GFPS8p/fanyc/clm_efforts_palm/cime/src/drivers/mct/cime_config/buildnml
+Finished creating component namelists
+-------------------------------------------------------------------------
+ - Prestage required restarts into /GFPS8p/fanyc/cesm_out/exeroot/1x1pt_Jambi-oilpalm_ctsm1.0.dev040/run
+ - Case input data directory (DIN_LOC_ROOT) is /GFPS8p/fanyc/cesm_input 
+ - Checking for required input datasets in DIN_LOC_ROOT
+-------------------------------------------------------------------------
+run command is mpirun -n 1 -machinefile /GFPS8p/fanyc/clm_efforts_palm/cases/1x1pt_Jambi-oilpalm_ctsm1.0.dev040/mpd.hosts /GFPS8p/fanyc/cesm_out/exeroot/1x1pt_Jambi-oilpalm_ctsm1.0.dev040/bld/cesm.exe  >> cesm.log.$LID 2>&1  
+Exception from case_run: ERROR: RUN FAIL: Command 'mpirun -n 1 -machinefile /GFPS8p/fanyc/clm_efforts_palm/cases/1x1pt_Jambi-oilpalm_ctsm1.0.dev040/mpd.hosts /GFPS8p/fanyc/cesm_out/exeroot/1x1pt_Jambi-oilpalm_ctsm1.0.dev040/bld/cesm.exe  >> cesm.log.$LID 2>&1 ' failed
+See log file for details: /GFPS8p/fanyc/cesm_out/exeroot/1x1pt_Jambi-oilpalm_ctsm1.0.dev040/run/cesm.log.54428226.230130-184428
+Submit job case.st_archive
+Starting job script case.st_archive
+st_archive starting
+moving /GFPS8p/fanyc/cesm_out/exeroot/1x1pt_Jambi-oilpalm_ctsm1.0.dev040/run/cesm.log.54428226.230130-184428 to /GFPS8p/fanyc/cesm_out/archive/1x1pt_Jambi-oilpalm_ctsm1.0.dev040/logs/cesm.log.54428226.230130-184428
+moving /GFPS8p/fanyc/cesm_out/exeroot/1x1pt_Jambi-oilpalm_ctsm1.0.dev040/run/atm.log.54428226.230130-184428 to /GFPS8p/fanyc/cesm_out/archive/1x1pt_Jambi-oilpalm_ctsm1.0.dev040/logs/atm.log.54428226.230130-184428
+moving /GFPS8p/fanyc/cesm_out/exeroot/1x1pt_Jambi-oilpalm_ctsm1.0.dev040/run/lnd.log.54428226.230130-184428 to /GFPS8p/fanyc/cesm_out/archive/1x1pt_Jambi-oilpalm_ctsm1.0.dev040/logs/lnd.log.54428226.230130-184428
+moving /GFPS8p/fanyc/cesm_out/exeroot/1x1pt_Jambi-oilpalm_ctsm1.0.dev040/run/cpl.log.54428226.230130-184428 to /GFPS8p/fanyc/cesm_out/archive/1x1pt_Jambi-oilpalm_ctsm1.0.dev040/logs/cpl.log.54428226.230130-184428
+Cannot find a 1x1pt_Jambi-oilpalm_ctsm1.0.dev040.cpl*.r.*.nc file in directory /GFPS8p/fanyc/cesm_out/exeroot/1x1pt_Jambi-oilpalm_ctsm1.0.dev040/run 
+Archiving history files for datm (atm)
+Archiving history files for clm (lnd)
+Archiving history files for mosart (rof)
+Archiving history files for drv (cpl)
+Archiving history files for dart (esp)
+st_archive completed
+Submitted job case.run with id None
+Submitted job case.st_archive with id None

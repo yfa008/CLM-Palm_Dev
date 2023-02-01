@@ -1,0 +1,21 @@
+&comp_inparm 
+
+fsurdat = '/GFPS8p/fanyc/cesm_input//lnd/clm2/surfdata_map/surfdata_1x1pt_Jambi_oilpalm_78pfts_CMIP6_simyr1850_c171214.nc'
+
+paramfile = '/GFPS8p/fanyc/cesm_input//lnd/clm2/pftdata/clm5_params.c190502_OPadd_cocoa_SD_calib.nc'
+
+use_flexiblecn = .false.
+
+use_fun = .false.
+
+irrigate = .false.
+
+hist_fincl2 = 'TOTECOSYSC', 'TOTECOSYSN', 'TOTSOMC', 'TOTSOMN', 'TOTVEGC', 'TOTVEGN', 'CWDC', 'CWDN', 'TOTLITC', 'TOTLITN', 'SMINN', 'TLAI', 'GPP', 'CPOOL', 'NPP', 'SEEDC','CROPSEEDC_DEFICIT', 'LEAFC', 'FROOTC', 'LIVESTEMC', 'DEADSTEMC', 'LIVECROOTC', 'DEADCROOTC', 'GRAINC', 'GRAINC_TO_FOOD', 'CROPPROD1C'
+
+hist_mfilt = 1, 365
+
+hist_nhtfrq = 0, -24
+
+ fire_method = 'nofire'
+
+/ 

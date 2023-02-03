@@ -43,7 +43,7 @@ contains
     use pftconMod        , only : nsugarcane, nirrig_sugarcane
     use pftconMod        , only : pftcon
     use pftconMod        , only : noilpalm, nirrig_oilpalm !(Y.Fan)
-    use pftconMod        , only : ncocoa, nirrig_cocoa !(A.Ali)
+    use pftconMod        , only : ncocoa, nirrig_cocoa !(Ashehad added)
     use clm_varpar       , only : nlevcan ! N canopy layers: nlevcan =1 big leaf; nlevcan >1 multilayer canopy (Y.Fan)
     use clm_varctl       , only : spinup_state
     use clm_time_manager , only : get_rad_step_size, get_days_per_year ! added get_days (Y.Fan)

@@ -26,7 +26,7 @@ module DaylengthMod
   ! called from outside this module.
   public :: daylength            ! function to compute daylength
   public :: ComputeMaxDaylength  ! compute max daylength for each grid cell
-  public :: ComputeMinDaylength  ! compute min daylength for each grid cell
+  public :: ComputeMinDaylength  ! compute min daylength for each grid cell (Ashehad added)
   !
   !-----------------------------------------------------------------------
 

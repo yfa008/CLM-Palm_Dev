@@ -1901,7 +1901,7 @@ contains
 		    end if		     
 		     		 
                      astem(p) = 1._r8 - arepr(p) - aleaf(p) - aroot(p)
-		     ! Ashehad added this  
+		     ! Ashehad added the following  
 	             if (semi_decid(ivt(p)) /= 1._r8) then
 		         aleaf(p) = aleaff(ivt(p)) * exp(-0.15_r8)    
 		         aroot(p) = arootf(ivt(p)) * exp(-0.2_r8)     
@@ -1957,7 +1957,7 @@ contains
 			  end if
 			  arepr(p) = 1._r8 - aroot(p) - astem(p) - aleaf(p)
 			  
-			  ! Ashehad added this  
+			  ! Ashehad added the following  
 	                  if (semi_decid(ivt(p)) == 1._r8) then
 			      arepr(p) = aleaf(p) * 1.15_r8
 			      aroot(p) = 1._r8 - aleaf(p) - astem(p) - arepr(p)			      			  

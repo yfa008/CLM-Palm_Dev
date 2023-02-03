@@ -1922,8 +1922,7 @@ contains
                   ! Phase 2 completed:
                   ! ==================
                   ! shift allocation either when enough gdd are accumulated or maximum number
-                  ! of days has elapsed since planting
-             write(9,*) hui(p), huigrain(p), huigrain2(p),gddmaturity2(p)   
+                  ! of days has elapsed since planting  
 	       !for perennial crops add a continuous phenological cycle at annual time step (Y.Fan)
 	       else if (hui(p) >= huigrain(p) .and. perennial(ivt(p)) == 1) then
 		    if (hui(p) >= huigrain2(p) .and. hui(p) < gddmaturity2(p)) then

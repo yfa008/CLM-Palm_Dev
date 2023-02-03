@@ -35,7 +35,7 @@ module GridcellType
      real(r8) , pointer :: max_dayl        (:) ! maximum daylength for this grid cell (s)
      real(r8) , pointer :: dayl            (:) ! daylength (seconds)
      real(r8) , pointer :: prev_dayl       (:) ! daylength from previous timestep (seconds)
-     real(r8) , pointer :: min_dayl        (:) ! minimum daylength for this grid cell (s)
+     real(r8) , pointer :: min_dayl        (:) ! Ashehad added minimum daylength for this grid cell (s)
 
      ! indices into landunit-level arrays for landunits in this grid cell (ispval implies
      ! this landunit doesn't exist on this grid cell) [1:max_lunit, begg:endg]

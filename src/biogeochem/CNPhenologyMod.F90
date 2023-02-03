@@ -2336,15 +2336,7 @@ contains
          p = filter_pcropp(fp)
          c = patch%column(p)
          g = patch%gridcell(p)
-         h = inhemi(p)
-	 
-	 ! threshold value of soilpsi off
-	 !if (prec10(p) * (3600.0_r8*10.0_r8*24.0_r8) == 0._r8 .and. &
-	     !prec60(p) * (3600.0_r8*60.0_r8*24.0_r8) < 30._r8) then
-            !soilpsi_off = -2.0_r8  	   
-	 !else 
-	    !soilpsi_off = -2.5_r8  !-0.8_r8	    
-         !end if	
+         h = inhemi(p)	 
 
          ! background litterfall and transfer rates; long growing season factor
 
@@ -2995,9 +2987,11 @@ contains
                   
                   call get_curr_date(kyr, kmo, kda, mcsec)
                   
-                 ! force offset if dayl condition is met  
+                 ! force offset if dayl condition is met
+                 ! Ashehad added the following
+                 ! similar to Ali et al. Implementing Rubber PFT in CLM5 Land (2022) 11(2):183  
                   
-                  if (kyr >= clearcut_yr(ivt(p)) + 4) then				   
+                  if (kyr >= clearcut_yr(ivt(p)) + 4 .or. nyrs_crop_active(p) >= 5) then				   
                	   if (max_dayl(g) <= 12.5_r8 * 3600._r8 .and. &
                	       dayl(g) >= min_dayl(g) + 0.028_r8 * 3600._r8 .and. & 
                               dayl(g) >= prev_dayl(g) .and. &
@@ -3009,9 +3003,8 @@ contains
                               dayl(g) <= min_dayl(g) + 0.02_r8 * 3600._r8) then
                	       offset_flag(p) = 1._r8		   
                	   end if
-                  end if			   
-                   
-                  write(12,*) kyr, max_dayl(g), dayl(g), min_dayl(g), prev_dayl(g)		
+                  end if
+                  		
                   
                   if (leafout(p) >= huileaf(p) .and. hui(p) < huigrain(p) .and. idpp(p) < mxmat(ivt(p))) then
                       cphase(p) = 2._r8	   
@@ -3055,6 +3048,7 @@ contains
                       end if
                       
                    ! ashehad added this for high latitudes
+                   ! similar to Ali et al. Implementing Rubber PFT in CLM5. Land (2022) 11(2):183
                    else if (hui(p) >= gddmaturity(p) .and. idpp(p) < mxmat(ivt(p)) .and. &
                       perennial(ivt(p)) == 1 .and. max_dayl(g) > 12.5_r8 * 3600._r8 .and. & 
                       kmo > 4 .and. kmo < 12) then

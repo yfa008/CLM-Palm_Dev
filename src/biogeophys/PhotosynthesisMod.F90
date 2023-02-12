@@ -3015,7 +3015,10 @@ contains
          else if (vcmax_opt == 3) then
             vcmax25top = ( i_vcad(patch%itype(p)) + s_vcad(patch%itype(p)) * lnc(p) ) * dayl_factor(p)
 	    
-	    ! Ashehad added this    
+	    ! Ashehad added this
+       ! the saturating function that relates Vcmax to LAI is analogous
+       ! to figure 5 from Kositsup et al. Photosynthetica 2010 48 (1): 67-78
+       ! that shows similar relationship between stomatal conductance and light-saturated CO2 assimilation rate     
 	    if (semi_decid(ivt(p)) == 1._r8) then
 	       if (tlai(p) > 1.5_r8 .and. max_dayl(g_d) <= 12.5_r8 * 3600._r8) then
 	          vcmax25top = 100.0_r8 * dayl_factor(p) * (1._r8 - exp(-0.6_r8 * tlai(p)))
@@ -3363,6 +3366,9 @@ contains
                   gs_slope_sha = medlynslope(patch%itype(p))
 		  
 		  ! Ashehad Ali added this
+        ! We do not have clones or different species represented in CLM5 yet
+        ! We increased stomatal slopes for mainland Aisia where there mainly RRIM 600 clones
+        ! The increased value is similar to Kumagai et al. 2013 Ecological Modelling 265: 124– 135
 		  if (semi_decid(ivt(p)) == 1._r8 .and. max_dayl(g) > 12.5_r8 * 3600._r8) then
 	             gs_slope_sun = medlynslope(patch%itype(p)) * 1.35_r8
                      gs_slope_sha = medlynslope(patch%itype(p)) * 1.35_r8

@@ -201,8 +201,8 @@ module pftconMod
      real(r8), allocatable :: leaf_long     (:)   ! leaf longevity (yrs)
      real(r8), allocatable :: evergreen     (:)   ! binary flag for evergreen leaf habit (0 or 1)
      real(r8), allocatable :: stress_decid  (:)   ! binary flag for stress-deciduous leaf habit (0 or 1)
-     real(r8), allocatable :: semi_decid    (:)   ! binary flag for semi-deciduous leaf habit (0 or 1)
-     integer,  allocatable :: clearcut_yr   (:)   ! clear cut year for semi-deciduous PFT
+     real(r8), allocatable :: semi_decid    (:)   ! binary flag for semi-deciduous leaf habit (0 or 1) (Ashehad added)
+     integer,  allocatable :: clearcut_yr   (:)   ! clear cut year for semi-deciduous PFT (Ashehad added)
      real(r8), allocatable :: season_decid  (:)   ! binary flag for seasonal-deciduous leaf habit (0 or 1)
      real(r8), allocatable :: pconv         (:)   ! proportion of deadstem to conversion flux
      real(r8), allocatable :: pprod10       (:)   ! proportion of deadstem to 10-yr product pool

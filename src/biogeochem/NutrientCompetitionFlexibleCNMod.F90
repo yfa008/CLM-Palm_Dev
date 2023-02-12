@@ -1901,7 +1901,7 @@ contains
 		    end if		     
 		     		 
                      astem(p) = 1._r8 - arepr(p) - aleaf(p) - aroot(p)
-		     ! Ashehad added this  
+		     ! Ashehad added the following  
 	             if (semi_decid(ivt(p)) /= 1._r8) then
 		         aleaf(p) = aleaff(ivt(p)) * exp(-0.15_r8)    
 		         aroot(p) = arootf(ivt(p)) * exp(-0.2_r8)     
@@ -1922,8 +1922,7 @@ contains
                   ! Phase 2 completed:
                   ! ==================
                   ! shift allocation either when enough gdd are accumulated or maximum number
-                  ! of days has elapsed since planting
-             write(9,*) hui(p), huigrain(p), huigrain2(p),gddmaturity2(p)   
+                  ! of days has elapsed since planting  
 	       !for perennial crops add a continuous phenological cycle at annual time step (Y.Fan)
 	       else if (hui(p) >= huigrain(p) .and. perennial(ivt(p)) == 1) then
 		    if (hui(p) >= huigrain2(p) .and. hui(p) < gddmaturity2(p)) then
@@ -1957,7 +1956,7 @@ contains
 			  end if
 			  arepr(p) = 1._r8 - aroot(p) - astem(p) - aleaf(p)
 			  
-			  ! Ashehad added this  
+			  ! Ashehad added the following  
 	                  if (semi_decid(ivt(p)) == 1._r8) then
 			      arepr(p) = aleaf(p) * 1.15_r8
 			      aroot(p) = 1._r8 - aleaf(p) - astem(p) - arepr(p)			      			  

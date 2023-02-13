@@ -880,6 +880,11 @@ contains
           tsai_z(p,1) = esai(p)
 
         !--for the oil palm PFT use dynamic multilayer structure (Y.Fan)--!
+        !reference: Fan, Y. et al. A sub-canopy structure for
+        !simulating oil palm in the Community Land Model (CLM-Palm):
+        !phenology, allocation and yield. Geoscientific Model Development
+        !8, 3785–3800 (2015). doi:10.5194/gmd-8-3785-2015
+
         else if (phytomer(ivt(p)) > 0) then
             if (use_cn) then
                 !use pack function to gather indices of phytomers (range 1:mxnp) with positive LAI
@@ -1821,14 +1826,19 @@ contains
    subroutine Multilayer (bounds, filter_vegsol, num_vegsol, coszen, rho, tau, &
               atm2lnd_inst, temperature_inst, waterdiagnosticbulk_inst, surfalb_inst)
      !
-     ! !DESCRIPTION: (Y.Fan 01.12.2014)
-     ! Multilayer canopy radiative transfer
-     ! based on the scheme of Norman.
+     ! !DESCRIPTION: (added by Yuanchao Fan 01.12.2014)
+     ! Multilayer canopy radiative transfer based on the scheme of Norman.
      ! Norman, J.M. 1979. Modeling the complete crop canopy.
-	 ! in Modification of the Aerial Environment of Crops.
+     ! in Modification of the Aerial Environment of Crops.
      ! B. Barfield and J. Gerber, Eds. American Society of Agricultural Engineers, 249-280.
-	 ! Translated and modified from CANOAK model from C to Fortran (DENNIS BALDOCCHI 2008)
+     ! Translated and modified from CANOAK model from C to Fortran (DENNIS BALDOCCHI 2008)
 
+     ! This subroutine is developed by Y.Fan and is unpublished. Please cite:
+     ! Fan, Y. Modeling oil palm monoculture and its associated impacts on
+     ! land-atmosphere carbon, water and energy fluxes in Indonesia. PhD Thesis.(University of
+     ! Göttingen, 2016). 
+     ! Please contact Y.Fan before using this code (yfansunny@gmail.com)
+   
 
      !
      ! !USES:
@@ -1836,7 +1846,7 @@ contains
      use atm2lndType, only : atm2lnd_type
      use clm_varpar, only : numrad, nlevcan
      use clm_varcon, only : omegas, tfrz, betads, betais
-     use pftconMod , only : pftcon !use pointer for clumping,phytomer !Y.Fan
+     use pftconMod , only : pftcon !use pointer for clumping,phytomer !Y.Fa n
      !
      ! !ARGUMENTS:
      type(bounds_type), intent(in) :: bounds           ! bounds
@@ -1877,8 +1887,8 @@ contains
      real(r8) :: abso_beam(bounds%begp:bounds%endp,1:numrad,1:nlevcan)	 !
      !real(r8) :: gfunc_solar(1:nlevcan)
      !real(r8) :: gfunc_sky(1:nlevcan,1:9)
-	!!the following will cause error "forrtl: severe (151): allocatable array is already allocated"
-	!should allocate and initiate in initSurfAlbMod.F90
+    !!the following will cause error "forrtl: severe (151): allocatable array is already allocated"
+    !!should allocate and initiate in initSurfAlbMod.F90
     !   allocate(gfunc_solar(1:nlevcan))
     !   allocate(gfunc_sky(1:nlevcan,1:9))
     !   allocate(lad(1:9))
@@ -1945,25 +1955,25 @@ contains
           d_lai  = tlai_z(p,iv)+tsai_z(p,iv)
           laisum = laisum + d_lai
 
-        !!Diffuse
-	      !Calculate probability of penetration of diffuse radiation for an isotropic sky
+        !!Diffuse radiation
+          !Calculate probability of penetration of diffuse radiation for an isotropic sky
           PEN_dif(p,iv) = 0._r8
-	      do iz=1, 9 !9 zenith angles: 5 to 85 degree
+          do iz=1, 9 !9 zenith angles: 5 to 85 degree
             zen = ((iz - 1) * 10._r8 + 5._r8) * PI180
-            d_zen =	10._r8 * PI180	!delta radian
+            d_zen = 10._r8 * PI180 !delta radian
 
             !probability of diffuse photon transfer through a single layer within a single sky sector
             ext_dif(p,iv) = exp(-d_lai*clumping(ivt(p))*gfunc_sky(p,iv,iz)/cos(zen))
-			!Integrated probability of diffuse sky radiation penetration through the hemisphere for each layer
+            !Integrated probability of diffuse sky radiation penetration through the hemisphere for each layer
             PEN_dif(p,iv) = PEN_dif(p,iv) + 2._r8*ext_dif(p,iv)*sin(zen)*cos(zen)*d_zen
             PEN_dif(p,iv) = min(1._r8, max(0._r8, PEN_dif(p,iv)))
             !negative PEN_dif values may occur at bottom layers with small d_lai when sun elevation is low (2015.11)
-	      end do
+          end do
 
         !!Direct beam
           !probability of direct beam penetration through a layer
           ext_beam(p,iv) = exp(-d_lai*clumping(ivt(p))*gfunc_solar(p,iv)/cosz)
-		  !Integrated probability of beam penetration (unintercepted) from top layer to iv
+          !Integrated probability of beam penetration (unintercepted) from top layer to iv
           !PEN_beam(p,iv) = exp(-laisum*clumping(ivt(p))*gfunc_solar(p,iv)/cosz) !Canoak method: wrong
           !gfunc_solar is only per layer, have to integrate ext_beam from canoopy top to the current layer
           PEN_beam(p,iv) = PEN_beam(p,iv-1)*ext_beam(p,iv) !PEN_beam decreases with increasing depth
@@ -2013,9 +2023,9 @@ contains
 
 
        !Adjust direct/diffuse reflectance and transmittance for intercepted snow on the canopy
-	   !snow adjustment not needed for tropical PFTs
-	   !currently use snow omegas and betads(=betais=0.5) to estimate snow reflectance and transmittance
-	   !in the future parametrize rho_s and tau_s values for snow
+       !snow adjustment not needed for tropical PFTs
+       !currently use snow omegas and betads(=betais=0.5) to estimate snow reflectance and transmittance
+       !in the future parametrize rho_s and tau_s values for snow
 
        if (t_veg(p) > tfrz) then                             !no snow
           rho1 = rho(p,ib)
@@ -2026,12 +2036,12 @@ contains
        end if
 
 
-    if (nrad(p) >= 1) then	!when there is canopy
+    if (nrad(p) >= 1) then !when there is canopy
 
     ! initiate scattering using the technique of NORMAN (1979).
     ! scattering is computed using an iterative technique.
 
-	   !top boundary: downward diffuse radiation from above canopy
+       !top boundary: downward diffuse radiation from above canopy
        down_dif(p,ib,1) = 1._r8 - fraction_beam  !per unit incoming total radiation
 !       down_dif(p,ib,1) = max(mpe,forc_solai(g,ib))
 
@@ -2041,34 +2051,34 @@ contains
           beam(p,ib,1) = fraction_beam !incident beam, top of canopy (per unit incoming total)
 !          beam(p,ib,1) = max(mpe,forc_solad(g,ib))
           beam(p,ib,iv+1) = beam(p,ib,iv) * ext_beam(p,iv)
-		  !or!
+        !or!
         !  beam(p,iv+1) = PEN_beam(p,iv)*beam(p,1)
 
-	    !!Contribute of direct beam to scattered diffuse fluxes
-		  !Direct beam reflectance of a canopy layer
-		  !intercepted and reflected still within the same layer iv
+          !!Contribute of direct beam to scattered diffuse fluxes
+          !Direct beam reflectance of a canopy layer
+          !intercepted and reflected still within the same layer iv
           refl_beam(p,ib,iv) = (1._r8 - ext_beam(p,iv)) * rho1
           !beam reflectance of soil/snow ground: refl_beam(nrad(p)+1) = albgrd(c,ib)
 
           !Direct beam transmittance of a canopy layer
-		  !intercepted by layer iv but transmitted downward to lower layer iv+1
+          !intercepted by layer iv but transmitted downward to lower layer iv+1
           tran_beam(p,ib,iv) = (1._r8 - ext_beam(p,iv)) * tau1
           !no transmittance below soil/snow ground: tran_beam(nrad(p)+1) = 0._r8
 
-		  !Direct beam absorptance of a canopy layer (the portion of intercepted beam after refl and trans)
+          !Direct beam absorptance of a canopy layer (the portion of intercepted beam after refl and trans)
           abso_beam(p,ib,iv) = (1._r8 - ext_beam(p,iv)) *(1._r8 - tau1 - rho1)
                                !* & gfunc_solar(p,iv)/cosz
-		  !PSUN (for absorption) should be the radiation incident on the mean leaf normal (or leaf area projected in sun direction)? (no)
-		  !beam absorptance by soil/snow ground: abso_beam(nrad(p)+1) = (1._r8-albgrd(c,ib))
-
-	      !Diffuse radiation reflectance of a canopy layer, related to rho of vegetation elements
-		  !intercepted and reflected by layer iv
+          !PSUN (for absorption) should be the radiation incident on the mean leaf normal (or leaf area projected in sun direction)? (no)
+          !beam absorptance by soil/snow ground: abso_beam(nrad(p)+1) = (1._r8-albgrd(c,ib))
+        
+          !Diffuse radiation reflectance of a canopy layer, related to rho of vegetation elements
+          !intercepted and reflected by layer iv
           refl_dif(p,ib,iv) = (1._r8 - PEN_dif(p,iv)) * rho1
-	      !Diffuse radiation transmittance of a canopy layer, related to tau of vegetation elements
-		  !intercepted and transmitted by layer iv, plus the portion unintercepted
+          !Diffuse radiation transmittance of a canopy layer, related to tau of vegetation elements
+          !intercepted and transmitted by layer iv, plus the portion unintercepted
           tran_dif(p,ib,iv) = (1._r8 - PEN_dif(p,iv)) * tau1 + PEN_dif(p,iv)
-		  !Diffuse radiation absorptance of a canopy layer
-		  !intercepted and absorbed by layer iv
+          !Diffuse radiation absorptance of a canopy layer
+          !intercepted and absorbed by layer iv
           abso_dif(p,ib,iv) = (1._r8 - PEN_dif(p,iv)) * (1._r8 - tau1 - rho1)
           !the above three terms refl_dif, tran_dif, abso_dif sum to 1
 
@@ -2078,9 +2088,9 @@ contains
 
         !  down_dif(p,ib,iv+1) = up_dif(p,ib,iv+1)*refl_dif(p,ib,iv) + down_dif(p,ib,iv)*tran_dif(p,ib,iv) + beam(p,ib,iv)*tran_beam(p,ib,iv)    !Eq.2
 
-	    !!solve above Eq.1 & 2 for upward and downward diffuse, assuming beam(p,ib,iv)=0
-	    !Define UPDOWN(p,ib,iv)=up_dif(p,ib,iv)/down_dif(p,ib,iv), ratio of up/down diffuse radiation for layer iv
-		!divide Eq.1 by down_dif(p,ib,iv) and Eq.2 by down_dif(p,ib,iv+1), multiply the two equations, one gets:
+        !!solve above Eq.1 & 2 for upward and downward diffuse, assuming beam(p,ib,iv)=0
+        !Define UPDOWN(p,ib,iv)=up_dif(p,ib,iv)/down_dif(p,ib,iv), ratio of up/down diffuse radiation for layer iv
+        !divide Eq.1 by down_dif(p,ib,iv) and Eq.2 by down_dif(p,ib,iv+1), multiply the two equations, one gets:
         !  UPDOWN(p,ib,iv) = ((tran_dif(p,ib,iv)*tran_dif(p,ib,iv) - refl_dif(p,ib,iv)*refl_dif(p,ib,iv))*UPDOWN(p,ib,iv+1) + &               !Eq.3
         !               refl_dif(p,ib,iv)) / (1._r8 - refl_dif(p,ib,iv)*UPDOWN(p,ib,iv+1))
 
@@ -2090,54 +2100,54 @@ contains
        end do
 
        !Starting from soil layer, calculate UPDOWN successively using Eq.3
-       UPDOWN(p,ib,nrad(p)+1) = albgri(c,ib)	!diffuse reflectance of soil/snow ground
+       UPDOWN(p,ib,nrad(p)+1) = albgri(c,ib) !diffuse reflectance of soil/snow ground
        do iv = nrad(p), 1, -1 !from canopy bottom to  top
           UPDOWN(p,ib,iv) = UPDOWN(p,ib,iv+1) * tran_dif(p,ib,iv)*tran_dif(p,ib,iv) / &   !same as Eq.3
-		         max(mpe,(1._r8 - UPDOWN(p,ib,iv+1)*refl_dif(p,ib,iv))) + refl_dif(p,ib,iv)
+                            max(mpe,(1._r8 - UPDOWN(p,ib,iv+1)*refl_dif(p,ib,iv))) + refl_dif(p,ib,iv)
        end do
 
-	   !!Then solve downward fluxes with Eq.4 (when assuming no beam)
-	   !start with downward flux from the sky: down_dif(p,ib,1)
+       !!Then solve downward fluxes with Eq.4 (when assuming no beam)
+       !start with downward flux from the sky: down_dif(p,ib,1)
        do iv = 1, nrad(p)
           down_dif(p,ib,iv+1) = down_dif(p,ib,iv)*tran_dif(p,ib,iv)/max(mpe,(1._r8 - UPDOWN(p,ib,iv+1)*refl_dif(p,ib,iv)))      !based on Eq.4
-		                    ! + beam(p,ib,iv)*tran_beam(p,ib,iv)                  !based on Eq.2 and Eq.4
+                    ! + beam(p,ib,iv)*tran_beam(p,ib,iv)                  !based on Eq.2 and Eq.4
         !Then solve upward fluxes
           up_dif(p,ib,iv) = UPDOWN(p,ib,iv)*down_dif(p,ib,iv)     !based on Eq.3
-		                ! + beam(p,ib,iv)*refl_beam(p,ib,iv)     !based on Eq.1 and Eq.3
+                    ! + beam(p,ib,iv)*refl_beam(p,ib,iv)     !based on Eq.1 and Eq.3
        end do
 
        !lower boundary: upward radiation from soil/snow ground
        up_dif(p,ib,nrad(p)+1) = albgri(c,ib)*down_dif(p,ib,nrad(p)+1)
-	                        !  + albgrd(c,ib)*beam(p,ib,nrad(p)+1)
+                        !  + albgrd(c,ib)*beam(p,ib,nrad(p)+1)
        !soil albedo is set the same for direct and diffuse (see line 946)
 
     !!--------------------------------------------------------------------------
     !Now one has a first approximation for all the up and down fluxes using the assumed UPDOWN ratio
-	!substitute these fluxes to the right sides of Eq.1 and 2 to estimate left sides iteratively when direct beam is on
-	!finally get better estimates of up/down fluxes when the iteration converges
-
-	!!Iterative calculation of upward diffuse and downward beam + diffuse
+    !substitute these fluxes to the right sides of Eq.1 and 2 to estimate left sides iteratively when direct beam is on
+    !finally get better estimates of up/down fluxes when the iteration converges
+    
+    !!Iterative calculation of upward diffuse and downward beam + diffuse
        n_iter(p,ib) = 0._r8
        IREP =1
-       do while (IREP==1 .and. n_iter(p,ib)<=100._r8)	!maximum iteration 100
+       do while (IREP==1 .and. n_iter(p,ib)<=100._r8) !maximum iteration 100
           IREP = 0
           n_iter(p,ib) = n_iter(p,ib) + 1._r8
 
-	      !loop for downward diffuse
+          !loop for downward diffuse
           do iv = 1, nrad(p) !from canopy top to bottom
              DOWN = up_dif(p,ib,iv+1)*refl_dif(p,ib,iv) + down_dif(p,ib,iv)*tran_dif(p,ib,iv) + beam(p,ib,iv)*tran_beam(p,ib,iv)
-			 !even if only one layer does not converge, iteration continue
+             !even if only one layer does not converge, iteration continue
              if (abs(DOWN - down_dif(p,ib,iv+1)) > 0.001_r8) IREP = 1
              down_dif(p,ib,iv+1) = DOWN
              !down_dif(p,ib,iv+1) = min(1._r8, max(0._r8, DOWN)) !no negative values occur here
           end do
-	      !since down_dif all adjusted, up_dif at soil needs to adjust again
+          !since down_dif all adjusted, up_dif at soil needs to adjust again
           up_dif(p,ib,nrad(p)+1) = albgri(c,ib)*down_dif(p,ib,nrad(p)+1) + albgrd(c,ib)*beam(p,ib,nrad(p)+1)
 
-	      !loop for upward diffuse
+          !loop for upward diffuse
           do iv = nrad(p), 1, -1 !from canopy bottom to top
              UP = down_dif(p,ib,iv)*refl_dif(p,ib,iv) + up_dif(p,ib,iv+1)*tran_dif(p,ib,iv) + beam(p,ib,iv)*refl_beam(p,ib,iv)
-			 !even if only one layer does not converge, iteration continue
+             !even if only one layer does not converge, iteration continue
              if (abs(UP - up_dif(p,ib,iv)) > 0.001_r8) IREP = 1
              up_dif(p,ib,iv) = UP
              !up_dif(p,ib,iv) = min(1._r8, max(0._r8, UP)) !no negative values occur here
@@ -2145,28 +2155,28 @@ contains
        end do
 
        !since up_dif all adjusted, down_dif may need to be adjusted again
-	   !there might be remaining energy balance error in the above iteration
-	   !Check the error threshold later (line 1942-1952)
-	   !and Repeat the above two loops when necessary
+       !there might be remaining energy balance error in the above iteration
+       !Check the error threshold later (line 1942-1952)
+       !and Repeat the above two loops when necessary
 
-	   !to do: report iter in history file to check iteration times
+       !to do: report iter in history file to check iteration times
 
 
     !!--------------------------------------------------------------
-	!derive absorbed fluxes by each canopy layer and
-	!then derive canopy level fabd/fabi, ftdd/ftid/ftii, albd/albi
+      !derive absorbed fluxes by each canopy layer and
+      !then derive canopy level fabd/fabi, ftdd/ftid/ftii, albd/albi
 
       if (ib == 1) then !visible band
-		!only visible band is used to derive APAR per layer to drive photosynthesis and energy exchanges
+        !only visible band is used to derive APAR per layer to drive photosynthesis and energy exchanges
         fabd_sun(p,ib) = 0._r8
         fabd_sha(p,ib) = 0._r8
         fabi_sun(p,ib) = 0._r8
         fabi_sha(p,ib) = 0._r8
         do iv = 1, nrad(p)
-		!Sunlit fraction of each canopy layer
-		!Note: PEN_beam is similar to 's2' in two-stream but calculation of laisum at a layer is different
+        !Sunlit fraction of each canopy layer
+        !Note: PEN_beam is similar to 's2' in two-stream but calculation of laisum at a layer is different
         !for tree canopies, leaf elements are assumed a turbid medium, laisum is cumulative lai+sai at center of layer
-		!but for oil palm, a frond is assumed a thin layer, so laisum is for each whole layer
+        !but for oil palm, a frond is assumed a thin layer, so laisum is for each whole layer
         !  if (phytomer(ivt(p)) > 0) then !for oil palm, assume a very thin layer
         !     d_lai  = tlai_z(p,iv)+tsai_z(p,iv)
         !     laisum = laisum + d_lai
@@ -2178,7 +2188,7 @@ contains
         !        d_lai  = 0.5_r8 * (tlai_z(p,iv)+tsai_z(p,iv))
         !        laisum = d_lai
         !     else
-		!	    d_lai  = 0.5_r8 * ((tlai_z(p,iv-1)+tsai_z(p,iv-1))+(tlai_z(p,iv)+tsai_z(p,iv)))
+        !	    d_lai  = 0.5_r8 * ((tlai_z(p,iv-1)+tsai_z(p,iv-1))+(tlai_z(p,iv)+tsai_z(p,iv)))
         !        laisum = laisum + d_lai
         !     end if
         !     fsun_z(p,iv) = max(0._r8, min(1._r8, clumping(ivt(p))*PEN_beam(p,iv)))
@@ -2189,17 +2199,17 @@ contains
          !above fsun_z is the integrated probability of sun beam penetration at a layer, which is not umbral
           !Only if gfunc_solar is integrated value from canopy top, then divide the intercepted beam ratio (1-PEN_beam)
           !by the mean projection (G/cosz) will yield the cumulative sunlit leaf area from top to layer iv:
-		  !laisum_sun_z(p,iv) = cosz*(1._r8 - PEN_beam(p,iv))/(clumping(ivt(p))*gfunc_solar(p,iv))
-		  !since gfunc_solar is only per layer, the following equation is used to calculate fsun_z
+          !laisum_sun_z(p,iv) = cosz*(1._r8 - PEN_beam(p,iv))/(clumping(ivt(p))*gfunc_solar(p,iv))
+          !since gfunc_solar is only per layer, the following equation is used to calculate fsun_z
         !fsun_z calculated by the following equation (Wilson 1967) has a different meaning: the fraction of sunlit leaf area
         !this should be used to evaluate fluxes for each layer if the revised diffuse method is used (Y.Fan 2015.07)
           d_lai  = tlai_z(p,iv)+tsai_z(p,iv)
           fsun_z(p,iv) = cosz*(PEN_beam(p,iv-1)- PEN_beam(p,iv))/(clumping(ivt(p))*gfunc_solar(p,iv)) / d_lai
           fsun_z(p,iv) = min(1._r8-mpe, max(mpe, fsun_z(p,iv)))
 
-		  !!*****Direct*****
-		  !absorbed direct beam flux by sunlit leaves per layer (incident along the mean leaf normal)
-!		  if (cosz > 0.1_r8) then !avoid division by small cosz to give very high APAR at sunset
+         !!*****Direct*****
+           !absorbed direct beam flux by sunlit leaves per layer (incident along the mean leaf normal)
+!	   if (cosz > 0.1_r8) then !avoid division by small cosz to give very high APAR at sunset
 !             fabd_sun_z(p,iv) = (beam(p,ib,1)*gfunc_solar(p,iv)/cosz) *(1._r8 - tau1 - rho1) !Canoak method: element absorptance, per unit sunlit LAI
 !          !above already normalized per unit sunlit LAI in the sun direction (expected unit by other modules)
 !          !(beam(p,ib,1) already per unit sunlit area (W/m2), later fsun_z (=PEN_beam) will account for intercepted beam (by sunlit leaf area)
@@ -2209,14 +2219,14 @@ contains
           fabd_sun_z(p,iv) = beam(p,ib,iv) * abso_beam(p,ib,iv) !canopy absorption for the current sunlit LAI (need to normalize later)
           fabd_sha_z(p,iv) = 0._r8  !shaded leaves receive NO direct beam
 
-	      !need to normalize per unit sunlit(LAI+SAI) and per unit shaded(LAI+SAI)
-		  !for canopy layers (to be compatible with other modules)
+          !need to normalize per unit sunlit(LAI+SAI) and per unit shaded(LAI+SAI)
+          !for canopy layers (to be compatible with other modules)
           fabd_sun_z(p,iv) = fabd_sun_z(p,iv) / (fsun_z(p,iv)*d_lai)
           fabd_sha_z(p,iv) = fabd_sha_z(p,iv) / ((1._r8 - fsun_z(p,iv))*d_lai)
 
 
-		  !!*****Diffuse*****
-		  !absorbed diffuse radiation (received on top and bottom of a layer) by sunlit and shaded leaves
+         !!*****Diffuse*****
+           !absorbed diffuse radiation (received on top and bottom of a layer) by sunlit and shaded leaves
 !          fabi_sun_z(p,iv) = (down_dif(p,ib,iv) + up_dif(p,ib,iv+1)) *(1._r8 - tau1 - rho1)
 !		  !Canoak method use vegetation element absorptance, already per unit sunlit LAI (but the absorption may be wrong)
 !          fabi_sha_z(p,iv) = (down_dif(p,ib,iv) + up_dif(p,ib,iv+1)) *(1._r8 - tau1 - rho1)
@@ -2229,14 +2239,14 @@ contains
 
 
           !Above are absolute APARsun and APARsha per unit incoming total solar radiation
-		  !need to normalize per unit direct beam flux and per unit diffuse flux
+          !need to normalize per unit direct beam flux and per unit diffuse flux
           fabd_sun_z(p,iv) = fabd_sun_z(p,iv) / beam(p,ib,1) !fraction_beam
           fabd_sha_z(p,iv) = fabd_sha_z(p,iv) / beam(p,ib,1) !fraction_beam
           fabi_sun_z(p,iv) = fabi_sun_z(p,iv) / down_dif(p,ib,1) !(1._r8 - fraction_beam)
           fabi_sha_z(p,iv) = fabi_sha_z(p,iv) / down_dif(p,ib,1) !(1._r8 - fraction_beam)
 
 
-		  !absorbed by sunlit/shaded canopy: from unit LAI per layer to canopy
+          !absorbed by sunlit/shaded canopy: from unit LAI per layer to canopy
           fabd_sun(p,ib) = fabd_sun(p,ib) + fabd_sun_z(p,iv)*fsun_z(p,iv)*d_lai
           fabd_sha(p,ib) = 0._r8 !only sunlit leaf absorb direct beam
           fabi_sun(p,ib) = fabi_sun(p,ib) + fabi_sun_z(p,iv)*fsun_z(p,iv)*d_lai
@@ -2245,19 +2255,19 @@ contains
 
         end do
 
-	    !Direct beam flux absorbed by whole canopy (per unit direct beam flux)
+        !Direct beam flux absorbed by whole canopy (per unit direct beam flux)
         fabd(p,ib) = fabd_sun(p,ib) + fabd_sha(p,ib)
 
         !Diffuse flux absorbed by whole canopy (per unit diffuse flux)
         fabi(p,ib) = fabi_sun(p,ib) + fabi_sha(p,ib)
 
-		!Average sunlit/shaded fraction for the whole canopy
-		!or fsun_z(p,1) when nlevcan =1
+        !Average sunlit/shaded fraction for the whole canopy
+        !or fsun_z(p,1) when nlevcan =1
         !  fsun(p) = cosz*(1._r8 - PEN_beam(p,iv))/(laisum*clumping(ivt(p))*gfunc_solar(p,iv))
 
       else !NIR bands: drive energy exchanges
-	    !no need to differentiate sun/shade for NIR
-	    !fabd_sun/fabd_sha only used for visible bands
+        !no need to differentiate sun/shade for NIR
+        !fabd_sun/fabd_sha only used for visible bands
         fabd(p,ib) = 0._r8
         fabi(p,ib) = 0._r8
         do iv = 1, nrad(p)
@@ -2269,13 +2279,13 @@ contains
 !          fabi_nir_z = (down_dif(p,ib,iv) + up_dif(p,ib,iv+1)) *(1._r8 - tau1 - rho1) !Canoak may be wrong: diffuse has different penetration function
           fabd_nir_z = beam(p,ib,iv) * abso_beam(p,ib,iv)
           fabi_nir_z = (down_dif(p,ib,iv) + up_dif(p,ib,iv+1))* abso_dif(p,ib,iv) !no need to normalize by d_lai, only used to calculate fabi total
-		  !absorbed by whole canopy
+          !absorbed by whole canopy
           fabd(p,ib) = fabd(p,ib) + fabd_nir_z
           fabi(p,ib) = fabi(p,ib) + fabi_nir_z                     !layer to canopy (revised method)
 !          fabd(p,ib) = fabd(p,ib) + fabd_nir_z *fsun_z(p,iv)*d_lai !leaf to canopy (only sunlit leaf absorb direct beam)
 !          fabi(p,ib) = fabi(p,ib) + fabi_nir_z *d_lai			    !Canoak method
         end do
-		!normalize to get per unit direct beam flux and per unit diffuse flux
+        !normalize to get per unit direct beam flux and per unit diffuse flux
         fabd(p,ib) = fabd(p,ib) / beam(p,ib,1) !fraction_beam
         fabi(p,ib) = fabi(p,ib) / down_dif(p,ib,1) !(1._r8 - fraction_beam)
 
@@ -2283,45 +2293,45 @@ contains
 
 
     !!--------------------------------------------------------------
-	!derive canopy level albd/albi, ftdd/ftid/ftii to fit with other modules in the CLM structure
-	!cannot follow the two-stream equations because a portion of direct beam is converted to diffuse
+    !derive canopy level albd/albi, ftdd/ftid/ftii to fit with other modules in the CLM structure
+    !cannot follow the two-stream equations because a portion of direct beam is converted to diffuse
 
       !Direct
        !Unintercepted (so called Transmitted in two-stream) direct beam flux below canopy (per unit direct beam flux)
        ftdd(p,ib) = beam(p,ib,nrad(p)+1)/beam(p,ib,1) !=PEN_beam(p,nrad(p)), already normalized
 
-	   !Downward scattered beam flux below canopy (per unit direct beam flux)
-	   !beam(nrad(p))*tran_beam(nrad(p))/beam(1) is only from the bottom canopy layer
-	   !scattered beam flux from all layers are merged to diffuse flux up_dif/down_dif in this multilayer code
-	   !so set ftid to zero. this portion will be included in ftii ultimately
+       !Downward scattered beam flux below canopy (per unit direct beam flux)
+       !beam(nrad(p))*tran_beam(nrad(p))/beam(1) is only from the bottom canopy layer
+       !scattered beam flux from all layers are merged to diffuse flux up_dif/down_dif in this multilayer code
+       !so set ftid to zero. this portion will be included in ftii ultimately
        ftid(p,ib) = 0._r8
 
-	   !Surface albedo: upward scattered beam flux above canopy (per unit direct beam flux)
+       !Surface albedo: upward scattered beam flux above canopy (per unit direct beam flux)
        !albd(p,ib) = 0._r8  !reflected beam already converted to diffuse and included in up_dif(p,iv)
        albd(p,ib) = 1._r8 - fabd(p,ib) - (1._r8-albgrd(c,ib))*ftdd(p,ib) !last item is the fraction absorbed by ground
        !ensure energy balance and avoid error
 
-	  !Diffuse
-	   !Downward scattered diffuse flux below canopy (per unit diffuse flux)
+     !Diffuse
+       !Downward scattered diffuse flux below canopy (per unit diffuse flux)
        ftii(p,ib) = down_dif(p,ib,nrad(p)+1)/down_dif(p,ib,1)
 
-	   !Surface albedo: upward scattered diffuse flux above canopy (per unit diffuse flux)
+       !Surface albedo: upward scattered diffuse flux above canopy (per unit diffuse flux)
        !albi(p,ib) = up_dif(p,ib,1)/down_dif(p,ib,1) !!here up_dif includes reflected beam; this option has minor balerr!
        albi(p,ib) = 1._r8 - fabi(p,ib) - (1._r8-albgri(c,ib))*ftii(p,ib)
 
-	   !There might be remaining error in diffuse energy balance after certain iterations of solving diffuse fluxes
-	   !calculate the error as (for diagnosis)
+       !There might be remaining error in diffuse energy balance after certain iterations of solving diffuse fluxes
+       !calculate the error as (for diagnosis)
        balerr(p,ib) = up_dif(p,ib,1) + fabd(p,ib)*beam(p,ib,1) + fabi(p,ib)*down_dif(p,ib,1) + &
-	                 down_dif(p,ib,nrad(p)+1)*(1._r8-albgri(c,ib)) + beam(p,ib,nrad(p)+1)*(1._r8-albgrd(c,ib)) - &
-					 (forc_solad(g,ib)+forc_solai(g,ib))
+              down_dif(p,ib,nrad(p)+1)*(1._r8-albgri(c,ib)) + beam(p,ib,nrad(p)+1)*(1._r8-albgrd(c,ib)) - &
+              (forc_solad(g,ib)+forc_solai(g,ib))
     !   balerr(p,ib) =	balerr(p,ib) / (1._r8 - fraction_beam)	!proportional error
-	   !If balerr > 1%, repeat the iteration process in lines 1755-1781
+    !If balerr > 1%, repeat the iteration process in lines 1755-1781
     !   if (balerr > 0.01_r8) go to 100
 
        !Add the remaining error (<1%) to albi for energy balance
     !   albi(p,ib) =	albi(p,ib) + balerr(p,ib)
 
-	   !absolute error (the BalanceCheckMod calculate ERRSOL as follows)
+       !absolute error (the BalanceCheckMod calculate ERRSOL as follows)
        !balerr(p,ib) = forc_solad(g,ib)*fabd(p,ib) + forc_solai(g,ib)*fabi(p,ib) + &
        !               forc_solad(g,ib)*ftdd(p,ib)*(1._r8-albgrd(c,ib)) + &
        !               forc_solai(g,ib)*ftii(p,ib)*(1._r8-albgri(c,ib)) + &
@@ -2351,10 +2361,17 @@ contains
    !-----------------------------------------------------------------------
    subroutine Gfunc_all (bounds, filter_vegsol, num_vegsol, coszen, surfalb_inst)
      !
-     ! !DESCRIPTION: (Y.Fan 01.12.2014)
-	 !!!This subroutine computes the G Function according to Wang et al. 2007
-	 !Comparison of leaf angle distribution functions: effects on extinction coefficient and fraction of sunlit foliage.
-	 !Agricultural and Forest Meteorology, 143(1), 106-122.
+     ! !DESCRIPTION: (added by Y.Fan 01.12.2014)
+     !!!This subroutine computes the G Function according to Wang et al. 2007
+     !Comparison of leaf angle distribution functions: effects on extinction coefficient and fraction of sunlit foliage.
+     !Agricultural and Forest Meteorology, 143(1), 106-122.
+
+     ! This subroutine is developed by Y.Fan and is unpublished. Please cite:
+     ! Fan, Y. Modeling oil palm monoculture and its associated impacts on
+     ! land-atmosphere carbon, water and energy fluxes in Indonesia. PhD
+     ! Thesis.(University of
+     ! Göttingen, 2016).
+     ! Please contact Y.Fan before using this code (yfansunny@gmail.com)
 
 
      ! !USES:

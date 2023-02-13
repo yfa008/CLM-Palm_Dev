@@ -195,8 +195,14 @@ contains
             end if
             tsai_min = tsai_min * 0.5_r8
             tsai(p) = max(tsai_alpha*tsai_old+max(tlai_old-tlai(p),0._r8),tsai_min)
+
           ! new calculations for phytomer-based canopy structure
           ! for oil palm the stocking (planting density) and wood density values can be adjusted here (Y.Fan)
+          ! !reference: Fan, Y. et al. A sub-canopy structure for simulating oil palm
+          ! !in the Community Land Model (CLM-Palm): phenology, allocation and yield.
+          ! !Geoscientific Model Development 8, 3785–3800 (2015).
+          ! !doi:10.5194/gmd-8-3785-2015
+
           if (phytomer(ivt(p)) > 0) then
              dwood(ivt(p)) = 1.0e5_r8   !wood density (gC/m3); cn:2.5e5_r8; lpj:2.0e5
              stocking = 150._r8         !planting density (stems/ha); 150 is standard stocking for oil palm plantation
@@ -242,7 +248,7 @@ contains
 !                tlai(p) = sum(plai(p,:))
 !             end if
 
-	    !Stem area index depends on planting density
+            !Stem area index depends on planting density
              tsai_min = 0.005_r8 !the same sai threshold used in STATICEcosysDynMod
              !stocking = stocking / 10000._r8 !convert from stems/ha -> stems/m^2
              !tsai(p) = 0.05_r8 * tlai(p) * stocking

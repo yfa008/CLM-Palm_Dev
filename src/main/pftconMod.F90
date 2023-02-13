@@ -175,7 +175,8 @@ module pftconMod
      real(r8), allocatable :: hybgdd        (:)   ! parameter used in CNPhenology
      real(r8), allocatable :: lfemerg       (:)   ! parameter used in CNPhenology
      real(r8), allocatable :: grnfill       (:)   ! parameter used in CNPhenology
-     real(r8), allocatable :: grnmat        (:)   ! from phytomer initiation to fruit maturity (Palm)
+     real(r8), allocatable :: grnfill2      (:)   ! parameter used in CNPhenology for generic perennial crops (added by Y.Fan)
+     real(r8), allocatable :: grnmat        (:)   ! from phytomer initiation to fruit maturity (CLM-Palm, Y.Fan)
      integer , allocatable :: mxmat         (:)   ! parameter used in CNPhenology
      real(r8), allocatable :: mbbopt        (:)   ! Ball-Berry equation slope used in Photosynthesis
      real(r8), allocatable :: medlynslope   (:)   ! Medlyn equation slope used in Photosynthesis
@@ -424,7 +425,8 @@ contains
     allocate( this%gddmin        (0:mxpft) )       
     allocate( this%hybgdd        (0:mxpft) )       
     allocate( this%lfemerg       (0:mxpft) )      
-    allocate( this%grnfill       (0:mxpft) )     
+    allocate( this%grnfill       (0:mxpft) )    
+    allocate( this%grnfill2      (0:mxpft) ) 
     allocate( this%grnmat        (0:mxpft) ) 
     allocate( this%mbbopt        (0:mxpft) )      
     allocate( this%medlynslope   (0:mxpft) )      
@@ -982,6 +984,9 @@ contains
     call ncd_io('grnfill', this%grnfill, 'read', ncid, readvar=readv)  
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
+    call ncd_io('grnfill2', this%grnfill2, 'read', ncid, readvar=readv)
+    if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
+
     call ncd_io('grnmat', this%grnmat, 'read', ncid, readvar=readv)
     if ( .not. readv ) call endrun(msg=' ERROR: error in reading in pft data'//errMsg(sourcefile, __LINE__))
 
@@ -1467,6 +1472,7 @@ contains
     deallocate( this%hybgdd)
     deallocate( this%lfemerg)
     deallocate( this%grnfill)
+    deallocate( this%grnfill2)
     deallocate( this%grnmat)
     deallocate( this%mbbopt)
     deallocate( this%medlynslope)

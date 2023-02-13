@@ -341,7 +341,7 @@ contains
                       ! interception_fraction is actually the max potential fraction of interception
                       ! in clm5 the default is set as 1.0, clm4.5 uses 0.25, clm3 was using 1.0
                       !OR use PFT-dependent max interception fraction "fpimx" (Y.Fan)
-                      !see Fan, Y., et al., 2019. Journal of Advances in Modeling Earth Systems 11, 732–751. 
+                      !reference: Fan, Y., et al., 2019. Journal of Advances in Modeling Earth Systems 11, 732–751. 
                       !https://doi.org/10.1029/2018MS001490
                       if (use_pft_inter) then ! with clm5 tanh function
                          fpi = fpimx(ivt(p)) * tanh(elai(p) + esai(p))
@@ -786,8 +786,15 @@ contains
              end if
              fdry(p) = (1._r8-fwet(p))*elai(p)/(elai(p)+esai(p))
              !!only dry leaves can transpire
+
              !separate treatment of leaf and stem for canopy water storage for oil palm and other pfts  (Y.Fan 2016)
-             !no need to consider snow for tropics
+             !(no need to consider snow for tropics)
+             !reference: Fan, Y. et al. Reconciling Canopy Interception
+             !Parameterization and Rainfall Forcing Frequency in the Community
+             !Land Model for Simulating Evapotranspiration of Rainforests and
+             !Oil Palm Plantations in Indonesia. Journal of Advances in Modeling
+             !Earth Systems 11, 732–751 (2019).
+             !https://doi.org/10.1029/2018MS001490
 
              if (use_pft_inter .and. dewmxs(ivt(p)) > 0._r8) then 
              !apply to both forest and oil palm, use dewmxs=0 to turn off separate treatment of leaf and stem 

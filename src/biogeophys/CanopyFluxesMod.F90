@@ -1309,6 +1309,12 @@ contains
             liqcan(p) = max(0._r8,liqcan(p)+(qflx_tran_veg(p)-qflx_evap_veg(p))*dtime)
          ! Update two new pools using the proportation of evaporation from leaf and
          ! stem respectively (Y.Fan 2016)
+           !reference: Fan, Y. et al. Reconciling Canopy Interception
+           !Parameterization and Rainfall Forcing Frequency in the Community
+           !Land Model for Simulating Evapotranspiration of Rainforests and
+           !Oil Palm Plantations in Indonesia. Journal of Advances in Modeling
+           !Earth Systems 11, 732–751 (2019).
+           !https://doi.org/10.1029/2018MS001490
            h2oleaf(p) = max(0._r8,h2oleaf(p)-(qflx_evap_veg(p)-qflx_tran_veg(p))*dtime* &
                            elai(p)/(elai(p) + esai(p)))
            h2ostem(p) = max(0._r8,h2ostem(p)-(qflx_evap_veg(p)-qflx_tran_veg(p))*dtime* &

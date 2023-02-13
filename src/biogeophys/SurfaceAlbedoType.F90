@@ -63,7 +63,7 @@ module SurfaceAlbedoType
      real(r8) , pointer :: vcmaxcintsun_patch  (:)   ! patch leaf to canopy scaling coefficient, sunlit leaf vcmax   
      real(r8) , pointer :: vcmaxcintsha_patch  (:)   ! patch leaf to canopy scaling coefficient, shaded leaf vcmax   
 
-   !variables for the multilayer radiative transfer model (Y.Fan 2014)
+    !variables for the multilayer radiative transfer model developed by Y.Fan (2016)
      real(r8), pointer :: n_iter_patch         (:,:) !number of iterations done for solving diffuse fluxes with Norman model
      real(r8), pointer :: balerr_patch         (:,:) !remaining energy balance error after iteration
      real(r8), pointer :: gfunc_solar_patch    (:,:) !the G function for direct beam

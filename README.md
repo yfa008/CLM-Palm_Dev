@@ -11,7 +11,7 @@ The repository also includes code of a perennial semi-deciduous woody crop PFT f
 Ali, A.A., Fan, Y., Corre, M.D., Kotowska, M.M., Preuss-Hassler, E., Cahyo, A.N., Moyano, F.E., Stiegler, C., Röll, A., Meijide, A., Olchev, A., Ringeler, A., Leuschner, C., Ariani, R., June, T., Tarigan, S., Kreft, H., Hölscher, D., Xu, C., Koven, C.D., Dagon, K., Fisher, R.A., Veldkamp, E., Knohl, A., 2022. Implementing a New Rubber Plant Functional Type in the Community Land Model (CLM5) Improves Accuracy of Carbon and Water Flux Estimation. Land 11, 183.
 
 
-The CLM-Palm repository has undergone upgrades from svn to git and from the base CLM4.5 to CLM5.0 and now to the base ctsm-dev.
+The CLM-Palm repository has undergone upgrades from svn to git and from the base CLM4.5 to CLM5.0. The active branch "clm-palm-dev01-ctsm1.0.dev040" is the latest version based on the trunk of ctsm1.0-dev (similar to the trunk clm5.0 release).
 
 Main features of CLM-Palm include a perennial crop phenology and carbon/nitrogen allocation for oil palm plantations. 
 

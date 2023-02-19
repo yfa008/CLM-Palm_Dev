@@ -1,4 +1,5 @@
 This is the repository for CLM-Palm development initiated by Yuanchao Fan based on the following references:
+
 Fan, Y., 2016. Modeling oil palm monoculture and its associated impacts on land-atmosphere carbon, water and energy fluxes in Indonesia (Doctoral thesis). University of Göttingen, Germany.
 
 Fan, Y., Roupsard, O., Bernoux, M., Le Maire, G., Panferov, O., Kotowska, M.M., Knohl, A., 2015. A sub-canopy structure for simulating oil palm in the Community Land Model (CLM-Palm): phenology, allocation and yield. Geoscientific Model Development 8, 3785–3800.
